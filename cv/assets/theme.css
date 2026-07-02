@@ -6,29 +6,31 @@
 
 /* ---- palette + type tokens (light) ---------------------------------------------------------- */
 :root {
-  --cv-bg: #eef1f7;
+  --cv-bg: #eaf0fb;
   --cv-sheet: #ffffff;
-  --cv-ink: #111725;
-  --cv-muted: #59637a;
-  --cv-faint: #7c869c;
-  --cv-line: #e6e9f2;
-  --cv-panel: #f7f8fc;
-  --cv-panel-border: #e9ecf5;
+  --cv-ink: #0b1220;
+  --cv-muted: #4b5568;
+  --cv-faint: #6b7488;
+  --cv-line: #e2e8f5;
+  --cv-panel: #f5f8ff;
+  --cv-panel-border: #e2e9fb;
 
-  --cv-accent: #2743d6;
-  --cv-accent-2: #7c3aed;
-  --cv-accent-soft: rgba(39, 67, 214, 0.09);
+  /* sharp blue range */
+  --cv-accent: #1447e6;
+  --cv-accent-strong: #0b3bd1;
+  --cv-accent-2: #0aa2e6;
+  --cv-accent-soft: rgba(20, 71, 230, 0.1);
   --cv-on-accent: #ffffff;
 
-  --cv-chip-bg: #f4f6fc;
-  --cv-chip-border: #e3e7f4;
+  --cv-chip-bg: #eef3fe;
+  --cv-chip-border: #d7e2fb;
 
   /* planks global tokens, tuned for a dense, elegant CV */
   --font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
   --cv-display: "Space Grotesk", var(--font-family);
-  --font-size-base: 15px;
-  --ratio: 1.38;
-  --measure: 70ch;
+  --font-size-base: 15.5px;
+  --ratio: 1.42;
+  --measure: 72ch;
 
   color: var(--cv-ink);
   background: var(--cv-bg);
@@ -38,22 +40,23 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --cv-bg: #05070f;
-    --cv-sheet: #0e1526;
-    --cv-ink: #e8ebf5;
-    --cv-muted: #9aa4bb;
-    --cv-faint: #7f8aa3;
-    --cv-line: #212a41;
-    --cv-panel: #131b2e;
-    --cv-panel-border: #232d46;
+    --cv-bg: #04070f;
+    --cv-sheet: #0c1424;
+    --cv-ink: #eaeefb;
+    --cv-muted: #a3adc4;
+    --cv-faint: #808ba6;
+    --cv-line: #1e2740;
+    --cv-panel: #111b30;
+    --cv-panel-border: #212c48;
 
-    --cv-accent: #7d97ff;
-    --cv-accent-2: #b98cff;
-    --cv-accent-soft: rgba(125, 151, 255, 0.14);
-    --cv-on-accent: #0a0f1d;
+    --cv-accent: #4d86ff;
+    --cv-accent-strong: #6d9cff;
+    --cv-accent-2: #37c6f4;
+    --cv-accent-soft: rgba(77, 134, 255, 0.16);
+    --cv-on-accent: #050b18;
 
-    --cv-chip-bg: #172038;
-    --cv-chip-border: #26314c;
+    --cv-chip-bg: #14203a;
+    --cv-chip-border: #243356;
   }
 }
 
@@ -61,23 +64,23 @@
 body {
   margin: 0;
   background:
-    radial-gradient(60rem 40rem at 15% -10%, var(--cv-accent-soft), transparent 60%),
+    radial-gradient(70rem 44rem at 12% -12%, var(--cv-accent-soft), transparent 60%),
     var(--cv-bg);
   color: var(--cv-ink);
-  line-height: 1.5;
+  line-height: 1.62;
 }
 
 /* ---- page / sheet --------------------------------------------------------------------------- */
-.cv-page { padding: clamp(0.75rem, 3vw, 2.5rem) 1rem; }
+.cv-page { padding: clamp(0.75rem, 3vw, 3rem) 1rem; }
 .cv-sheet {
-  max-width: 900px;
+  max-width: 940px;
   margin: 0 auto;
   background: var(--cv-sheet);
   border: 1px solid var(--cv-line);
-  border-radius: 18px;
-  box-shadow: 0 24px 60px -30px rgba(20, 26, 48, 0.45);
+  border-radius: 16px;
+  box-shadow: 0 30px 70px -34px rgba(11, 34, 96, 0.4);
   overflow: clip;
-  padding: clamp(1.1rem, 2.5vw, 2rem);
+  padding: clamp(1.4rem, 3vw, 2.6rem);
 }
 
 /* ---- toolbar (lang + download) — hidden in print -------------------------------------------- */
@@ -102,9 +105,10 @@ body {
   position: relative;
   isolation: isolate;
   border-radius: 14px;
-  padding: clamp(1.1rem, 2.4vw, 1.8rem);
+  padding: clamp(1.4rem, 2.8vw, 2.1rem);
   color: var(--cv-on-accent);
-  background: linear-gradient(135deg, var(--cv-accent), var(--cv-accent-2));
+  background: linear-gradient(120deg, var(--cv-accent-strong), var(--cv-accent) 45%, var(--cv-accent-2));
+  box-shadow: 0 18px 40px -22px var(--cv-accent);
   overflow: clip;
 }
 .cv-hero-glow {
@@ -129,7 +133,7 @@ body {
 }
 .cv-headline { display: block; font-weight: 500; opacity: 0.92; margin-top: 0.15rem; }
 
-.cv-contact { margin-top: 1rem; }
+.cv-contact { margin-top: 1.25rem; }
 .cv-chip {
   display: inline-flex; align-items: center; gap: 0.35rem;
   font-size: 0.8rem; font-weight: 500; text-decoration: none;
@@ -145,19 +149,19 @@ body {
 .cv-ico-sm { width: 0.9rem; height: 0.9rem; opacity: 0.7; }
 
 /* ---- body columns --------------------------------------------------------------------------- */
-.cv-body { margin-top: 1.6rem; align-items: start; }
+.cv-body { margin-top: 2rem; align-items: start; }
 .cv-col-side {
   background: var(--cv-panel);
   border: 1px solid var(--cv-panel-border);
   border-radius: 14px;
-  padding: 1.1rem;
+  padding: 1.35rem 1.25rem;
 }
 
 /* ---- section headings ----------------------------------------------------------------------- */
 .cv-h {
-  display: flex; align-items: center; gap: 0.5rem; margin: 0 0 0.7rem;
+  display: flex; align-items: center; gap: 0.55rem; margin: 0 0 0.95rem;
   font-family: var(--cv-display); font-size: 0.82rem; font-weight: 700;
-  text-transform: uppercase; letter-spacing: 0.09em; color: var(--cv-accent);
+  text-transform: uppercase; letter-spacing: 0.1em; color: var(--cv-accent);
 }
 .cv-h::after { content: ""; flex: 1; height: 1px; background: var(--cv-line); margin-left: 0.2rem; }
 .cv-h-ico {
@@ -167,8 +171,8 @@ body {
 .cv-h-ico .cv-ico { width: 1rem; height: 1rem; }
 
 /* ---- summary lead --------------------------------------------------------------------------- */
-.cv-lead { margin-top: 1.4rem; }
-.cv-summary { font-size: 1.02rem; color: var(--cv-ink); }
+.cv-lead { margin-top: 1.7rem; }
+.cv-summary { font-size: 1.05rem; line-height: 1.68; color: var(--cv-ink); }
 .cv-context { color: var(--cv-muted); margin: 0; }
 
 /* ---- experience timeline -------------------------------------------------------------------- */
@@ -177,35 +181,35 @@ body {
   content: ""; position: absolute; left: 4px; top: 6px; bottom: 6px; width: 2px;
   background: linear-gradient(var(--cv-accent), var(--cv-accent-2)); opacity: 0.35; border-radius: 2px;
 }
-.cv-role { position: relative; padding-bottom: 1.15rem; }
+.cv-role { position: relative; padding-bottom: 1.6rem; }
 .cv-role:last-child { padding-bottom: 0; }
 .cv-role::before {
-  content: ""; position: absolute; left: -1.25rem; top: 0.35rem; width: 10px; height: 10px;
+  content: ""; position: absolute; left: -1.25rem; top: 0.4rem; width: 10px; height: 10px;
   border-radius: 50%; background: var(--cv-sheet); border: 2px solid var(--cv-accent);
   box-shadow: 0 0 0 3px var(--cv-accent-soft);
 }
 .cv-role.is-current::before { background: var(--cv-accent); }
-.cv-role-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.15rem 0.5rem; }
-.cv-role-title { font-weight: 700; font-size: 1.02rem; }
+.cv-role-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.15rem 0.55rem; }
+.cv-role-title { font-weight: 700; font-size: 1.05rem; letter-spacing: -0.01em; }
 .cv-role-org { color: var(--cv-accent); font-weight: 600; }
 .cv-role-meta {
-  display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem;
-  color: var(--cv-faint); font-size: 0.82rem; margin: 0.15rem 0 0.35rem;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem;
+  color: var(--cv-faint); font-size: 0.82rem; margin: 0.3rem 0 0.55rem;
 }
 .cv-dot { opacity: 0.5; }
 .cv-badge {
   color: var(--cv-accent); font-weight: 600; font-size: 0.72rem;
-  padding: 0.05rem 0.45rem; border-radius: 999px;
+  padding: 0.05rem 0.5rem; border-radius: 999px;
   background: var(--cv-accent-soft); border: 1px solid var(--cv-chip-border);
 }
-.cv-highlights { margin: 0.35rem 0 0; padding-left: 1.05em; color: var(--cv-ink); }
-.cv-highlights li { margin: 0.22rem 0; }
+.cv-highlights { margin: 0.5rem 0 0; padding-left: 1.15em; color: var(--cv-ink); }
+.cv-highlights li { margin: 0.34rem 0; padding-left: 0.15em; }
 .cv-highlights li::marker { color: var(--cv-accent); }
 .cv-highlights-sm { font-size: 0.9rem; }
 
 /* ---- project cards -------------------------------------------------------------------------- */
 .cv-card {
-  border: 1px solid var(--cv-line); border-radius: 12px; padding: 0.85rem 0.95rem;
+  border: 1px solid var(--cv-line); border-radius: 12px; padding: 1.05rem 1.15rem;
   background: var(--cv-sheet);
 }
 .cv-proj-name { font-weight: 700; margin-bottom: 0.2rem; }
@@ -219,13 +223,28 @@ body {
 
 /* ---- skills / aside ------------------------------------------------------------------------- */
 .cv-skill-label {
-  font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
-  color: var(--cv-faint); margin-bottom: 0.35rem;
+  font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em;
+  color: var(--cv-faint); margin-bottom: 0.55rem;
 }
 .cv-skill {
-  display: inline-block; font-size: 0.78rem; font-weight: 500;
-  padding: 0.2rem 0.55rem; border-radius: 8px;
+  display: inline-flex; align-items: center; gap: 0.4rem; line-height: 1.3;
+  font-size: 0.8rem; font-weight: 500;
+  padding: 0.32rem 0.62rem; border-radius: 9px;
   background: var(--cv-chip-bg); border: 1px solid var(--cv-chip-border); color: var(--cv-ink);
+}
+.cv-skill.has-logo { padding-left: 0.5rem; }
+
+/* ---- tech logos ----------------------------------------------------------------------------- */
+.cv-logo { display: inline-flex; flex: 0 0 auto; color: var(--logo, currentColor); }
+.cv-logo svg { width: 0.95rem; height: 0.95rem; display: block; }
+.cv-logo-mid { color: var(--logo); }
+/* Near-black logos: brand color on light, ink on dark, so they never disappear. */
+.cv-logo-dark { color: var(--logo); }
+/* Near-white logos: ink on light, brand color on dark. */
+.cv-logo-light { color: var(--cv-ink); }
+@media (prefers-color-scheme: dark) {
+  .cv-logo-dark { color: var(--cv-ink); }
+  .cv-logo-light { color: var(--logo); }
 }
 .cv-edu-degree { font-weight: 600; }
 .cv-edu-loc { color: var(--cv-faint); font-size: 0.8rem; }
@@ -263,6 +282,10 @@ a { color: var(--cv-accent); }
   .cv-role, .cv-card, .cv-edu-entry, .cv-skillgroup, .cv-lang { break-inside: avoid; }
   .cv-h { break-after: avoid; } /* keep a heading with its first item */
   a { color: var(--cv-ink); text-decoration: none; }
+
+  /* Logos print in brand color, except near-black ones stay ink; never rely on the OS scheme. */
+  .cv-logo-dark { color: var(--logo); }
+  .cv-logo-light { color: var(--cv-ink); }
 }
 
 @page { size: A4; margin: 13mm 12mm; }
