@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Romain Goussu — Fullstack Web Developer · Tech Lead</title>
+  
+  <link rel="stylesheet" href="./assets/tokens.css" />
+  <link rel="stylesheet" href="./assets/styles.css" />
+  <link rel="stylesheet" href="./assets/theme.css" />
+</head>
+<body>
+  <main class="cv-page">
+    <stack-pk space="var(--s2)">
+      <cluster-pk class="cv-toolbar" justify="space-between" space="var(--s0)">
+      <cluster-pk space="var(--s-1)"><a aria-current="true">EN</a><a href="./fr/">FR</a></cluster-pk>
+      <a href="./cv-en.pdf" download>↓ Download PDF</a>
+    </cluster-pk>
+      <header>
+      <stack-pk space="var(--s-2)">
+        <div class="cv-name" style="font-size: var(--s3)">Romain Goussu</div>
+        <div class="cv-headline" style="font-size: var(--s1)">Fullstack Web Developer · Tech Lead</div>
+        <cluster-pk class="cv-contact cv-meta" space="var(--s-1)"><span>Île-de-France, France</span><a href="mailto:rgoussu@gmail.com">rgoussu@gmail.com</a><a href="https://github.com/rgoussu-dev" rel="noopener">GitHub</a><a href="https://www.npmjs.com/package/@rgoussu.dev/planks" rel="noopener">planks (npm)</a><span>French (Native) · English (Professional)</span></cluster-pk>
+      </stack-pk>
+    </header>
+      <section><stack-pk space="var(--s0)">
+      <h2 class="cv-section-title">Profile</h2>
+      <div class="cv-context"><p>Fullstack engineer and Tech Lead with ~10 years across software publishers, consultancies and
+regulated sectors (finance, aviation, public services). I build and run microservice systems
+(hexagonal architecture, event-driven, design-by-contract) on a Java/Quarkus &amp; Node back end with
+React/Angular front ends, and I lift teams through it — coaching, testing culture, CI/CD, and
+pragmatic cloud (AWS, Terraform). Equally at home extracting shared services from a monolith and
+mentoring engineers toward the state of the art.</p>
+</div>
+    </stack-pk></section>
+      <section><stack-pk space="var(--s0)">
+      <h2 class="cv-section-title">Experience</h2>
+      <stack-pk space="var(--s1)"><article class="cv-role"><stack-pk space="var(--s-3)">
+        <div><span class="cv-role-title">Tech Lead</span> — <span class="cv-role-org">Amundi (via eXalt-IT)</span></div>
+        <div class="cv-role-meta">Sep 2024 – Present · Paris, France</div>
+        <div class="cv-context">Europe's largest asset manager, pivoting toward a software-vendor model. A ~40-person department (~20 engineers) owns the wealth-management solution, organised in feature teams under SAFe, amid heavy unmanaged tech debt, a vertical high-inertia org, demanding delivery pressure and a period of team turnover.</div>
+        <ul class="cv-highlights"><li>Joined a feature team as Tech Lead; re-mobilised the team around quality, testing and engineering practice.</li><li>Drove reporting / integration / retrofit work to move the legacy heavy Java client toward a more conventional client-server model, in a task-force, urgent-intervention format.</li><li>Advised on the release train's sharpest pain points — environment instability, regressions, non-reproducible builds.</li></ul>
+      </stack-pk></article><article class="cv-role"><stack-pk space="var(--s-3)">
+        <div><span class="cv-role-title">Developer Relations (internal)</span> — <span class="cv-role-org">eXalt-IT</span></div>
+        <div class="cv-role-meta">Nov 2023 – Sep 2024 · Paris, France</div>
+        <div class="cv-context">Internal role reporting directly to the two co-founders: conductor and advocate of the technical community (Dev, Data, Ops) toward the staff, driver of internal initiatives, and administrator of eXalt-IT's AWS platform.</div>
+        <ul class="cv-highlights"><li>Structured and automated the technical-assessment side of recruitment plus coaching/skill-up (Power Automate in V1, an in-house ad-hoc tool in V2).</li><li>Mentored engineers in hexagonal architecture, TDD, API management (REST, gRPC; Kafka, RabbitMQ) and infrastructure (SQL/NoSQL persistence, Redis caching).</li><li>Restructured and rationalised the AWS infrastructure, cutting monthly cloud costs by 50%+.</li><li>Led an external vendor to rebuild the corporate site from WordPress to a near-zero-compute Jamstack architecture.</li><li>Set up kata &amp; coaching tracking boards wired into the company's communication tools.</li></ul>
+      </stack-pk></article><article class="cv-role"><stack-pk space="var(--s-3)">
+        <div><span class="cv-role-title">Senior Software Engineer</span> — <span class="cv-role-org">eXalt-IT — Harvest</span></div>
+        <div class="cv-role-meta">May 2022 – Nov 2023 · Porte des Lilas, France</div>
+        <div class="cv-context">Software publisher in wealth management. Re-platforming a monolith to microservices via the strangler-fig pattern, extracting shared cross-cutting services for all Harvest teams. 12-person team with a high quality bar and continuous-improvement culture (Kaizen).</div>
+        <ul class="cv-highlights"><li>Built &amp; ran cross-cutting microservices (Tenant Management, Identity) and business services (Fees) using hexagonal architecture, design-by-contract and event-driven architecture.</li><li>Built &amp; ran an Angular front end on Harvest's internal framework / design system.</li><li>Built a Core framework to ease team adoption of the Quarkus/MicroProfile stack (Outbox pattern, error management, tenant context, mediator pattern).</li><li>Ran POCs / spikes for new tech (OpenTelemetry rollout, time-series databases) and spread best practices to other Harvest teams.</li></ul>
+      </stack-pk></article><article class="cv-role"><stack-pk space="var(--s-3)">
+        <div><span class="cv-role-title">Software Engineer</span> — <span class="cv-role-org">Takima — Total EV Charge (TEVC)</span></div>
+        <div class="cv-role-meta">Jan 2020 – May 2022 · Vélizy-Villacoublay, France</div>
+        <div class="cv-context">Total's worldwide business unit for EV charging — from installing charge points to running charging fleets as an operator. Microservice architecture (Java/Spring Boot services + Node/ Angular PWAs over a RabbitMQ bus). 5-person Scrum team, two-week sprints.</div>
+        <ul class="cv-highlights"><li>Built several B2B and B2G progressive web apps.</li><li>Implemented cross-cutting features across the microservices.</li><li>Took part in migrating the existing IS to Azure with Ansible infrastructure-as-code.</li><li>Owned technical design on structuring topics (payment process, end-user journey).</li></ul>
+      </stack-pk></article><article class="cv-role"><stack-pk space="var(--s-3)">
+        <div><span class="cv-role-title">Software Engineer (training)</span> — <span class="cv-role-org">Takima</span></div>
+        <div class="cv-role-meta">Nov 2019 – Jan 2020 · Bagneux, France</div>
+        <div class="cv-context">Takima's internal bootcamp: built a marketplace across several training modules.</div>
+        <ul class="cv-highlights"><li>Java 11 + SQL (PostgreSQL, MySQL) back end with Spring Boot 2, Hibernate 5, Spring Data JPA.</li><li>DevOps toolchain — Docker, Ansible, a continuous-delivery pipeline; Git, Maven, Flyway.</li></ul>
+      </stack-pk></article><article class="cv-role"><stack-pk space="var(--s-3)">
+        <div><span class="cv-role-title">Junior Technical Referent</span> — <span class="cv-role-org">Klee Group — DGAC (French Civil Aviation Authority)</span></div>
+        <div class="cv-role-meta">Aug 2019 – Oct 2019 · Le Plessis-Robinson, France</div>
+        <div class="cv-context">Framework contract to build and maintain part of the DGAC application estate. Project METEOR, a monolith easing regulatory exchange between the DSAC and civil-aviation actors. V-model team of five developers, a senior tech lead and a project manager.</div>
+        <ul class="cv-highlights"><li>Migrated the project from TFVC to Git and set up a TFS/Jenkins CI/CD pipeline.</li><li>Introduced practices — code review, test automation, feature branching.</li><li>Built a functional module of lot 2 and integrated the DGAC's document-management system (in-house, OpenCMIS/Alfresco).</li><li>Cut the defect rate at factory-acceptance delivery by ~50%.</li></ul>
+      </stack-pk></article><article class="cv-role"><stack-pk space="var(--s-3)">
+        <div><span class="cv-role-title">Fullstack Developer</span> — <span class="cv-role-org">Klee Group</span></div>
+        <div class="cv-role-meta">Feb 2018 – Jul 2019 · Le Plessis-Robinson, France</div>
+        <div class="cv-context">IT services company; assignments for public and private clients (DGAC — METEOR lot 1, OLAF-GEN, MEDRANO/Alphatango drone registration; AGEFICE — Agnes; Renault Sport — Travel Planner) across teams of varying size.</div>
+        <ul class="cv-highlights"><li>Technical design and modelling; ran design workshops with business stakeholders.</li><li>Implemented features and kept applications in operational condition (anomaly resolution).</li><li>Improved deployment processes — set up CI/CD pipelines, improved existing workflows.</li><li>Supported business and ops users through acceptance, install and go-live.</li></ul>
+      </stack-pk></article><article class="cv-role"><stack-pk space="var(--s-3)">
+        <div><span class="cv-role-title">Fullstack Developer</span> — <span class="cv-role-org">CGI — CFE (Caisse des Français de l'Étranger)</span></div>
+        <div class="cv-role-meta">Sep 2016 – Jan 2018 · Melun, France</div>
+        <div class="cv-context">Social-security fund providing health-cover continuity for French expatriates, modernising its IS. Part of a ~10-person application-maintenance team (TMA), V-model, across maintenance and build.</div>
+        <ul class="cv-highlights"><li>Analysed and fixed anomalies; took part in every build phase from design workshops to specs, feature delivery, integration and acceptance of components from a service centre.</li><li>Wrote technical documentation for both the legacy and newly integrated components.</li></ul>
+      </stack-pk></article><article class="cv-role"><stack-pk space="var(--s-3)">
+        <div><span class="cv-role-title">Study Engineer — Intern</span> — <span class="cv-role-org">CGI — CNSA (Caisse Nationale de Solidarité pour l'Autonomie)</span></div>
+        <div class="cv-role-meta">Apr 2016 – Sep 2016 · Paris 14, France</div>
+        <div class="cv-context">National body distributing &quot;journée de solidarité&quot; funds nationwide.</div>
+        <ul class="cv-highlights"><li>Built a POC to industrialise the functional acceptance testing of a web application.</li></ul>
+      </stack-pk></article><article class="cv-role"><stack-pk space="var(--s-3)">
+        <div><span class="cv-role-title">Study Engineer — Intern</span> — <span class="cv-role-org">DGA — MNRBC</span></div>
+        <div class="cv-role-meta">Jun 2015 – Aug 2015 · Île-de-France, France</div>
+        <div class="cv-context">Multidisciplinary maintenance team working on complex systems.</div>
+        <ul class="cv-highlights"><li>Produced operational documentation for on-call teams covering newly delivered systems.</li></ul>
+      </stack-pk></article></stack-pk>
+    </stack-pk></section>
+      <section><stack-pk space="var(--s0)">
+      <h2 class="cv-section-title">Skills</h2>
+      <stack-pk space="var(--s0)"><sidebar-pk side="left" sideWidth="9rem" space="var(--s0)">
+        <div><strong>Back-end</strong></div>
+        <cluster-pk space="var(--s-3)"><span class="cv-skill">Java (8 → 21)</span><span class="cv-skill">Spring / Spring Boot</span><span class="cv-skill">Quarkus (MicroProfile)</span><span class="cv-skill">Node.js (Express, Inversify)</span><span class="cv-skill">PostgreSQL</span><span class="cv-skill">MongoDB</span><span class="cv-skill">ArangoDB / graph databases</span></cluster-pk>
+      </sidebar-pk><sidebar-pk side="left" sideWidth="9rem" space="var(--s0)">
+        <div><strong>Architecture &amp; messaging</strong></div>
+        <cluster-pk space="var(--s-3)"><span class="cv-skill">Hexagonal architecture</span><span class="cv-skill">Event-driven architecture</span><span class="cv-skill">Design by contract</span><span class="cv-skill">REST / gRPC</span><span class="cv-skill">Kafka</span><span class="cv-skill">RabbitMQ</span><span class="cv-skill">Redis</span></cluster-pk>
+      </sidebar-pk><sidebar-pk side="left" sideWidth="9rem" space="var(--s0)">
+        <div><strong>DevOps / Infra</strong></div>
+        <cluster-pk space="var(--s-3)"><span class="cv-skill">AWS (Cognito, CloudFront, App Runner, DynamoDB, Route 53, ACM, IAM)</span><span class="cv-skill">Terraform</span><span class="cv-skill">Docker</span><span class="cv-skill">GitLab CI</span><span class="cv-skill">Jenkins</span><span class="cv-skill">Ansible</span><span class="cv-skill">Git</span></cluster-pk>
+      </sidebar-pk><sidebar-pk side="left" sideWidth="9rem" space="var(--s0)">
+        <div><strong>Front-end</strong></div>
+        <cluster-pk space="var(--s-3)"><span class="cv-skill">React (Redux, MobX, Flux)</span><span class="cv-skill">Angular</span></cluster-pk>
+      </sidebar-pk></stack-pk>
+    </stack-pk></section>
+      <section><stack-pk space="var(--s0)">
+      <h2 class="cv-section-title">Projects</h2>
+      <stack-pk space="var(--s-1)"><div class="cv-role"><strong><a href="https://www.npmjs.com/package/@rgoussu.dev/planks" rel="noopener">planks</a></strong> — An open-source library of every-layout-style layout primitives shipped as framework-free, light-DOM custom elements (14 elements, cascading design tokens, tag-scoped CSS). Authored and published to npm; powers this very CV site.</div><div class="cv-role"><strong>Alfred</strong> — A Slack-fronted personal &quot;second brain&quot;: a Markdown knowledge base driven by scheduled AI routines that triage, consolidate and publish — including this CV and an engineering-journal pipeline.</div></stack-pk>
+    </stack-pk></section>
+      <section><stack-pk space="var(--s0)">
+      <h2 class="cv-section-title">Education</h2>
+      <stack-pk space="var(--s-1)"><div class="cv-edu-entry"><strong>Engineering degree — Computer Science &amp; Networks</strong> — ESME Sudria
+        <span class="cv-role-meta">· Ivry-sur-Seine, France · 2017</span></div><div class="cv-edu-entry"><strong>International semester</strong> — Shanghai Jiao Tong University
+        <span class="cv-role-meta">· Shanghai, China · 2014</span></div><div class="cv-edu-entry"><strong>Scientific Baccalauréat (mathematics)</strong> — Lycée Notre-Dame-des-Missions–Saint-Pierre
+        <span class="cv-role-meta">· Charenton-le-Pont, France · 2011</span></div></stack-pk>
+    </stack-pk></section>
+      <section><stack-pk space="var(--s0)">
+      <h2 class="cv-section-title">More</h2>
+      <stack-pk space="var(--s0)"><div><strong>Open source</strong>
+        <ul class="cv-highlights"><li>planks — authored &amp; published an every-layout web-components library to npm (@rgoussu.dev/planks).</li></ul></div><div><strong>Ways of working</strong>
+        <ul class="cv-highlights"><li>Coaching &amp; mentoring (hexagonal architecture, TDD, API design).</li><li>Agile / SAFe delivery; release-train stabilisation.</li></ul></div></stack-pk>
+    </stack-pk></section>
+    </stack-pk>
+  </main>
+  <script type="module" src="./assets/planks.js"></script>
+</body>
+</html>

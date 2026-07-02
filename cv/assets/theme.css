@@ -1,0 +1,87 @@
+/*
+ * CV theme — layered on top of planks `tokens.css` + `styles.css`.
+ * planks owns layout (via its custom elements); this file owns the *look*:
+ * palette, type scale tweaks, page geometry, and print rules. Keep it small —
+ * prefer setting planks tokens/custom-properties over hand-rolling layout.
+ */
+
+:root {
+  /* Brand palette (echoes the original CV's navy) */
+  --cv-ink: #1a2230;
+  --cv-muted: #5b6472;
+  --cv-accent: #1f3a93;
+  --cv-rule: #d7dbe3;
+  --cv-bg: #ffffff;
+
+  /* planks tokens — tune the global scale for a dense, readable CV */
+  --font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-size-base: 10.5pt;
+  --measure: 68ch;
+  --ratio: 1.4;
+
+  color: var(--cv-ink);
+  background: var(--cv-bg);
+}
+
+body { margin: 0; background: #eef0f4; }
+
+/* The page itself — one A4 sheet on screen, the print box in print. */
+.cv-page {
+  --box-bg-color: var(--cv-bg);
+  max-width: 210mm;
+  margin: 1.5rem auto;
+  padding: 16mm 15mm;
+  background: var(--cv-bg);
+  box-shadow: 0 1px 12px rgba(0, 0, 0, 0.12);
+}
+
+/* Header: name + headline + contact, with the language switcher / PDF link. */
+.cv-name { font-weight: 800; letter-spacing: -0.01em; line-height: 1.05; }
+.cv-headline { color: var(--cv-accent); font-weight: 600; }
+.cv-contact, .cv-meta a { color: var(--cv-muted); text-decoration: none; }
+.cv-meta a:hover { text-decoration: underline; }
+
+/* Section headings get the accent rule from the source CV. */
+.cv-section-title {
+  color: var(--cv-accent);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-bottom: 2px solid var(--cv-accent);
+  padding-bottom: 0.2rem;
+}
+
+.cv-role-title { font-weight: 700; }
+.cv-role-org { color: var(--cv-accent); font-weight: 600; }
+.cv-role-meta { color: var(--cv-muted); font-size: 0.85em; }
+.cv-context { color: var(--cv-muted); }
+.cv-highlights { margin: 0.25rem 0 0; padding-left: 1.1em; }
+.cv-highlights li { margin: 0.15rem 0; }
+
+/* Skill chips via planks <cluster-pk>. */
+.cv-skill {
+  --box-padding: 0.15rem 0.5rem;
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border: 1px solid var(--cv-rule);
+  border-radius: 999px;
+  font-size: 0.85em;
+}
+
+/* Top bar: language switcher + download. Hidden in print. */
+.cv-toolbar a {
+  color: var(--cv-accent);
+  text-decoration: none;
+  font-weight: 600;
+}
+.cv-toolbar a[aria-current="true"] { text-decoration: underline; }
+
+@media print {
+  body { background: var(--cv-bg); }
+  .cv-page { margin: 0; box-shadow: none; max-width: none; padding: 0; }
+  .cv-toolbar { display: none !important; }
+  .cv-role, .cv-edu-entry { break-inside: avoid; }
+  a { color: inherit; }
+}
+
+@page { size: A4; margin: 14mm 13mm; }
