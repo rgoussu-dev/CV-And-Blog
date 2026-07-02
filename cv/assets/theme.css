@@ -1,87 +1,268 @@
 /*
  * CV theme — layered on top of planks `tokens.css` + `styles.css`.
- * planks owns layout (via its custom elements); this file owns the *look*:
- * palette, type scale tweaks, page geometry, and print rules. Keep it small —
- * prefer setting planks tokens/custom-properties over hand-rolling layout.
+ * planks owns layout (via its custom elements); this file owns the *look*: palette, type,
+ * the gradient hero, the experience timeline, chips, light/dark, and print.
  */
 
+/* ---- palette + type tokens (light) ---------------------------------------------------------- */
 :root {
-  /* Brand palette (echoes the original CV's navy) */
-  --cv-ink: #1a2230;
-  --cv-muted: #5b6472;
-  --cv-accent: #1f3a93;
-  --cv-rule: #d7dbe3;
-  --cv-bg: #ffffff;
+  --cv-bg: #eef1f7;
+  --cv-sheet: #ffffff;
+  --cv-ink: #111725;
+  --cv-muted: #59637a;
+  --cv-faint: #7c869c;
+  --cv-line: #e6e9f2;
+  --cv-panel: #f7f8fc;
+  --cv-panel-border: #e9ecf5;
 
-  /* planks tokens — tune the global scale for a dense, readable CV */
+  --cv-accent: #2743d6;
+  --cv-accent-2: #7c3aed;
+  --cv-accent-soft: rgba(39, 67, 214, 0.09);
+  --cv-on-accent: #ffffff;
+
+  --cv-chip-bg: #f4f6fc;
+  --cv-chip-border: #e3e7f4;
+
+  /* planks global tokens, tuned for a dense, elegant CV */
   --font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-size-base: 10.5pt;
-  --measure: 68ch;
-  --ratio: 1.4;
+  --cv-display: "Space Grotesk", var(--font-family);
+  --font-size-base: 15px;
+  --ratio: 1.38;
+  --measure: 70ch;
 
   color: var(--cv-ink);
   background: var(--cv-bg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
-body { margin: 0; background: #eef0f4; }
+@media (prefers-color-scheme: dark) {
+  :root {
+    --cv-bg: #05070f;
+    --cv-sheet: #0e1526;
+    --cv-ink: #e8ebf5;
+    --cv-muted: #9aa4bb;
+    --cv-faint: #7f8aa3;
+    --cv-line: #212a41;
+    --cv-panel: #131b2e;
+    --cv-panel-border: #232d46;
 
-/* The page itself — one A4 sheet on screen, the print box in print. */
-.cv-page {
-  --box-bg-color: var(--cv-bg);
-  max-width: 210mm;
-  margin: 1.5rem auto;
-  padding: 16mm 15mm;
-  background: var(--cv-bg);
-  box-shadow: 0 1px 12px rgba(0, 0, 0, 0.12);
+    --cv-accent: #7d97ff;
+    --cv-accent-2: #b98cff;
+    --cv-accent-soft: rgba(125, 151, 255, 0.14);
+    --cv-on-accent: #0a0f1d;
+
+    --cv-chip-bg: #172038;
+    --cv-chip-border: #26314c;
+  }
 }
 
-/* Header: name + headline + contact, with the language switcher / PDF link. */
-.cv-name { font-weight: 800; letter-spacing: -0.01em; line-height: 1.05; }
-.cv-headline { color: var(--cv-accent); font-weight: 600; }
-.cv-contact, .cv-meta a { color: var(--cv-muted); text-decoration: none; }
-.cv-meta a:hover { text-decoration: underline; }
+* { max-inline-size: none; } /* relax planks' global measure cap for layout containers */
+body {
+  margin: 0;
+  background:
+    radial-gradient(60rem 40rem at 15% -10%, var(--cv-accent-soft), transparent 60%),
+    var(--cv-bg);
+  color: var(--cv-ink);
+  line-height: 1.5;
+}
 
-/* Section headings get the accent rule from the source CV. */
-.cv-section-title {
+/* ---- page / sheet --------------------------------------------------------------------------- */
+.cv-page { padding: clamp(0.75rem, 3vw, 2.5rem) 1rem; }
+.cv-sheet {
+  max-width: 900px;
+  margin: 0 auto;
+  background: var(--cv-sheet);
+  border: 1px solid var(--cv-line);
+  border-radius: 18px;
+  box-shadow: 0 24px 60px -30px rgba(20, 26, 48, 0.45);
+  overflow: clip;
+  padding: clamp(1.1rem, 2.5vw, 2rem);
+}
+
+/* ---- toolbar (lang + download) — hidden in print -------------------------------------------- */
+.cv-toolbar { align-items: center; margin-bottom: 1rem; }
+.cv-langs { font-weight: 600; font-size: 0.85rem; letter-spacing: 0.02em; }
+.cv-langs a { color: var(--cv-faint); text-decoration: none; }
+.cv-langs a:hover { color: var(--cv-accent); }
+.cv-lang-cur { color: var(--cv-accent); }
+.cv-lang-sep { color: var(--cv-line); margin: 0 0.4rem; }
+.cv-download {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  font-size: 0.85rem; font-weight: 600; text-decoration: none;
   color: var(--cv-accent);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  border-bottom: 2px solid var(--cv-accent);
-  padding-bottom: 0.2rem;
+  padding: 0.35rem 0.7rem; border-radius: 999px;
+  border: 1px solid var(--cv-chip-border); background: var(--cv-chip-bg);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.cv-download:hover { transform: translateY(-1px); box-shadow: 0 6px 16px -8px var(--cv-accent); }
+
+/* ---- hero ----------------------------------------------------------------------------------- */
+.cv-hero {
+  position: relative;
+  isolation: isolate;
+  border-radius: 14px;
+  padding: clamp(1.1rem, 2.4vw, 1.8rem);
+  color: var(--cv-on-accent);
+  background: linear-gradient(135deg, var(--cv-accent), var(--cv-accent-2));
+  overflow: clip;
+}
+.cv-hero-glow {
+  position: absolute; inset: auto -20% -60% auto; width: 22rem; height: 22rem; z-index: -1;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.35), transparent 60%);
+  opacity: 0.5;
+}
+.cv-hero-top { align-items: center; }
+.cv-id { align-items: center; }
+.cv-monogram {
+  display: grid; place-items: center;
+  width: 3.4rem; height: 3.4rem; border-radius: 14px;
+  font-family: var(--cv-display); font-weight: 700; font-size: 1.35rem; letter-spacing: 0.02em;
+  color: var(--cv-on-accent);
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  backdrop-filter: blur(4px);
+}
+.cv-name {
+  display: block; font-family: var(--cv-display); font-weight: 700;
+  font-size: clamp(1.5rem, 3.4vw, 2.1rem); line-height: 1.05; letter-spacing: -0.01em;
+}
+.cv-headline { display: block; font-weight: 500; opacity: 0.92; margin-top: 0.15rem; }
+
+.cv-contact { margin-top: 1rem; }
+.cv-chip {
+  display: inline-flex; align-items: center; gap: 0.35rem;
+  font-size: 0.8rem; font-weight: 500; text-decoration: none;
+  color: var(--cv-on-accent);
+  padding: 0.28rem 0.6rem; border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14); border: 1px solid rgba(255, 255, 255, 0.22);
+}
+.cv-chip:hover { background: rgba(255, 255, 255, 0.24); }
+.cv-chip .cv-ico { width: 0.95rem; height: 0.95rem; }
+
+/* ---- icons ---------------------------------------------------------------------------------- */
+.cv-ico { width: 1.1rem; height: 1.1rem; flex: 0 0 auto; }
+.cv-ico-sm { width: 0.9rem; height: 0.9rem; opacity: 0.7; }
+
+/* ---- body columns --------------------------------------------------------------------------- */
+.cv-body { margin-top: 1.6rem; align-items: start; }
+.cv-col-side {
+  background: var(--cv-panel);
+  border: 1px solid var(--cv-panel-border);
+  border-radius: 14px;
+  padding: 1.1rem;
 }
 
-.cv-role-title { font-weight: 700; }
+/* ---- section headings ----------------------------------------------------------------------- */
+.cv-h {
+  display: flex; align-items: center; gap: 0.5rem; margin: 0 0 0.7rem;
+  font-family: var(--cv-display); font-size: 0.82rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.09em; color: var(--cv-accent);
+}
+.cv-h::after { content: ""; flex: 1; height: 1px; background: var(--cv-line); margin-left: 0.2rem; }
+.cv-h-ico {
+  display: grid; place-items: center; width: 1.6rem; height: 1.6rem; border-radius: 8px;
+  color: var(--cv-accent); background: var(--cv-accent-soft);
+}
+.cv-h-ico .cv-ico { width: 1rem; height: 1rem; }
+
+/* ---- summary lead --------------------------------------------------------------------------- */
+.cv-lead { margin-top: 1.4rem; }
+.cv-summary { font-size: 1.02rem; color: var(--cv-ink); }
+.cv-context { color: var(--cv-muted); margin: 0; }
+
+/* ---- experience timeline -------------------------------------------------------------------- */
+.cv-timeline { position: relative; padding-left: 1.25rem; }
+.cv-timeline::before {
+  content: ""; position: absolute; left: 4px; top: 6px; bottom: 6px; width: 2px;
+  background: linear-gradient(var(--cv-accent), var(--cv-accent-2)); opacity: 0.35; border-radius: 2px;
+}
+.cv-role { position: relative; padding-bottom: 1.15rem; }
+.cv-role:last-child { padding-bottom: 0; }
+.cv-role::before {
+  content: ""; position: absolute; left: -1.25rem; top: 0.35rem; width: 10px; height: 10px;
+  border-radius: 50%; background: var(--cv-sheet); border: 2px solid var(--cv-accent);
+  box-shadow: 0 0 0 3px var(--cv-accent-soft);
+}
+.cv-role.is-current::before { background: var(--cv-accent); }
+.cv-role-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.15rem 0.5rem; }
+.cv-role-title { font-weight: 700; font-size: 1.02rem; }
 .cv-role-org { color: var(--cv-accent); font-weight: 600; }
-.cv-role-meta { color: var(--cv-muted); font-size: 0.85em; }
-.cv-context { color: var(--cv-muted); }
-.cv-highlights { margin: 0.25rem 0 0; padding-left: 1.1em; }
-.cv-highlights li { margin: 0.15rem 0; }
+.cv-role-meta {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem;
+  color: var(--cv-faint); font-size: 0.82rem; margin: 0.15rem 0 0.35rem;
+}
+.cv-dot { opacity: 0.5; }
+.cv-badge {
+  color: var(--cv-accent); font-weight: 600; font-size: 0.72rem;
+  padding: 0.05rem 0.45rem; border-radius: 999px;
+  background: var(--cv-accent-soft); border: 1px solid var(--cv-chip-border);
+}
+.cv-highlights { margin: 0.35rem 0 0; padding-left: 1.05em; color: var(--cv-ink); }
+.cv-highlights li { margin: 0.22rem 0; }
+.cv-highlights li::marker { color: var(--cv-accent); }
+.cv-highlights-sm { font-size: 0.9rem; }
 
-/* Skill chips via planks <cluster-pk>. */
+/* ---- project cards -------------------------------------------------------------------------- */
+.cv-card {
+  border: 1px solid var(--cv-line); border-radius: 12px; padding: 0.85rem 0.95rem;
+  background: var(--cv-sheet);
+}
+.cv-proj-name { font-weight: 700; margin-bottom: 0.2rem; }
+.cv-proj-name a { color: var(--cv-accent); text-decoration: none; }
+.cv-proj-name a:hover { text-decoration: underline; }
+.cv-tags { margin-top: 0.5rem; }
+.cv-tag {
+  font-size: 0.72rem; color: var(--cv-muted);
+  padding: 0.1rem 0.45rem; border-radius: 6px; background: var(--cv-chip-bg);
+}
+
+/* ---- skills / aside ------------------------------------------------------------------------- */
+.cv-skill-label {
+  font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--cv-faint); margin-bottom: 0.35rem;
+}
 .cv-skill {
-  --box-padding: 0.15rem 0.5rem;
-  display: inline-block;
-  padding: 0.15rem 0.5rem;
-  border: 1px solid var(--cv-rule);
-  border-radius: 999px;
-  font-size: 0.85em;
+  display: inline-block; font-size: 0.78rem; font-weight: 500;
+  padding: 0.2rem 0.55rem; border-radius: 8px;
+  background: var(--cv-chip-bg); border: 1px solid var(--cv-chip-border); color: var(--cv-ink);
 }
+.cv-edu-degree { font-weight: 600; }
+.cv-edu-loc { color: var(--cv-faint); font-size: 0.8rem; }
+.cv-lang { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; font-size: 0.9rem; }
+.cv-lang > span:first-child { display: inline-flex; align-items: center; gap: 0.35rem; }
+.cv-lang-level { color: var(--cv-faint); font-size: 0.8rem; }
 
-/* Top bar: language switcher + download. Hidden in print. */
-.cv-toolbar a {
-  color: var(--cv-accent);
-  text-decoration: none;
-  font-weight: 600;
-}
-.cv-toolbar a[aria-current="true"] { text-decoration: underline; }
+a { color: var(--cv-accent); }
 
+/* ---- print --------------------------------------------------------------------------------- */
 @media print {
-  body { background: var(--cv-bg); }
-  .cv-page { margin: 0; box-shadow: none; max-width: none; padding: 0; }
+  :root {
+    --cv-bg: #fff; --cv-sheet: #fff; --cv-ink: #111725; --cv-muted: #3f4657; --cv-faint: #5b6478;
+    --cv-line: #d7dbe6; --cv-panel: #f6f7fb; --cv-panel-border: #e2e6f0;
+    --cv-accent: #21378f; --cv-accent-2: #21378f; --cv-on-accent: #fff;
+    --cv-accent-soft: #eef1fb; --cv-chip-bg: #f2f4fb; --cv-chip-border: #dfe4f2;
+    font-size: 10.3pt;
+  }
+  body { background: #fff; }
+  .cv-page { padding: 0; }
+  .cv-sheet { max-width: none; margin: 0; border: 0; border-radius: 0; box-shadow: none; padding: 0; }
   .cv-toolbar { display: none !important; }
-  .cv-role, .cv-edu-entry { break-inside: avoid; }
-  a { color: inherit; }
+
+  /* Hero prints as ink-on-white to save toner, keep the accent identity via a rule + monogram. */
+  .cv-hero { background: none; color: var(--cv-ink); padding: 0 0 0.6rem; border-bottom: 2px solid var(--cv-accent); border-radius: 0; }
+  .cv-hero-glow { display: none; }
+  .cv-monogram { color: var(--cv-accent); background: var(--cv-accent-soft); border-color: var(--cv-chip-border); }
+  .cv-chip { color: var(--cv-muted); background: var(--cv-chip-bg); border-color: var(--cv-chip-border); }
+
+  /* Stack the two columns for a clean single-flow print. */
+  .cv-body { display: block !important; margin-top: 1rem; }
+  .cv-col-side { margin-top: 1rem; background: #fff; border: 0; padding: 0; }
+  .cv-col-side .cv-section { margin-top: 0.8rem; }
+
+  .cv-role, .cv-card, .cv-edu-entry, .cv-skillgroup, .cv-lang { break-inside: avoid; }
+  .cv-h { break-after: avoid; } /* keep a heading with its first item */
+  a { color: var(--cv-ink); text-decoration: none; }
 }
 
-@page { size: A4; margin: 14mm 13mm; }
+@page { size: A4; margin: 13mm 12mm; }
