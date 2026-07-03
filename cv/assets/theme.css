@@ -111,11 +111,17 @@ body {
   background: var(--cv-bar);
   border-bottom: 1px solid var(--cv-line);
 }
-.term-dots { display: inline-flex; gap: 0.4rem; flex: 0 0 auto; }
-.term-dots i { width: 0.72rem; height: 0.72rem; border-radius: 50%; display: block; }
-.term-dots i:nth-child(1) { background: var(--cv-red); }
-.term-dots i:nth-child(2) { background: var(--cv-amber); }
-.term-dots i:nth-child(3) { background: var(--cv-green); }
+/* GNOME/Yaru window controls: glyphed circular buttons, close-first (Ubuntu Ambiance) */
+.term-btns { display: inline-flex; gap: 0.5rem; flex: 0 0 auto; }
+.term-btn {
+  width: 1.15rem; height: 1.15rem; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: color-mix(in srgb, var(--cv-ink) 14%, transparent); color: var(--cv-muted);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.term-btn svg { width: 0.6rem; height: 0.6rem; }
+.term-btn:hover { color: var(--cv-bright); background: color-mix(in srgb, var(--cv-ink) 26%, transparent); }
+.term-btn-close:hover { background: var(--cv-neon); color: #fff; }
 .term-title { flex: 1; text-align: center; color: var(--cv-faint); font-size: 0.8rem; letter-spacing: 0.02em; }
 
 .term-body { padding: 1.3rem 1.4rem 1.5rem; }
