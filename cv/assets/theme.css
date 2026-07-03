@@ -133,6 +133,7 @@ body {
 .tok-comment { color: var(--cv-green); opacity: 0.85; }
 
 .cv-name {
+  margin: 0; /* it's the page <h1>; drop the UA heading margin */
   font-family: var(--cv-display); font-size: clamp(1.75rem, 4.3vw, 2.7rem); font-weight: 700;
   letter-spacing: -0.01em; color: var(--cv-bright); line-height: 1.05;
   text-shadow: 0 0 26px rgba(233, 84, 32, 0.35);
@@ -279,7 +280,7 @@ body {
 }
 .cv-card:hover { border-color: var(--cv-neon); transform: translateY(-2px); box-shadow: 0 12px 28px -18px var(--cv-neon); }
 .cv-proj-name { font-weight: 700; margin-bottom: 0.25rem; }
-.cv-proj-name a { color: var(--cv-neon); text-decoration: none; }
+.cv-proj-name a { color: #ff7043; text-decoration: none; } /* brighter than --cv-neon for AA on the card panel */
 .cv-proj-name a:hover { text-decoration: underline; }
 .cv-tags { margin-top: 0.55rem; }
 .cv-tag { font-size: 0.72rem; color: var(--cv-muted); padding: 0.1rem 0.45rem; border-radius: 5px; background: #0e1626; border: 1px solid var(--cv-line); }
@@ -338,11 +339,13 @@ a { color: var(--cv-neon); }
 @media (prefers-color-scheme: light) {
   :root {
     --cv-bg: #f7f3f4; --cv-window: #ffffff; --cv-bar: #f3ebef; --cv-panel: #fbf6f8;
-    --cv-ink: #2b2226; --cv-bright: #1a1013; --cv-muted: #6a5b63; --cv-faint: #998a91;
+    --cv-ink: #2b2226; --cv-bright: #1a1013; --cv-muted: #6a5b63; --cv-faint: #6f6069;
     --cv-line: #eadfe4;
-    --cv-neon: #d24a17;   /* Ubuntu orange, darkened for contrast on paper */
+    /* All accents darkened so text hits WCAG AA (>=4.5:1) on the paper backgrounds. */
+    --cv-neon: #ba3a0d;   /* Ubuntu orange, darkened for contrast on paper */
     --cv-neon-2: #2f6bb0; /* prompt blue */
-    --cv-green: #3a8c1e;  /* prompt green */
+    --cv-green: #2c6e14;  /* prompt green */
+    --cv-amber: #8a5a00;  /* Tango yellow has no legible form on white — use a dark amber for text */
     --cv-neon-soft: rgba(210, 74, 23, 0.12);
   }
   body {
@@ -357,6 +360,13 @@ a { color: var(--cv-neon); }
   /* light bg: near-black logos keep brand; near-white logos use ink */
   .cv-logo-dark { color: var(--logo); }
   .cv-logo-light { color: var(--cv-ink); }
+  /* The green tmux bar + "present" badge carry dark text in dark mode; on the lighter green of
+     the paper theme, flip that text to near-white so it stays legible. */
+  .tmux-status, .cv-badge { color: #f4fbee; }
+  .tmux-tab { opacity: 0.9; }
+  /* Project links live on the near-white card; use the darkened paper orange (not the bright
+     dark-mode value) so they meet AA. */
+  .cv-proj-name a { color: var(--cv-neon); }
 }
 
 /* ---- PRINT: decluttered ink-on-white, ATS-safe ---------------------------------------------- */
