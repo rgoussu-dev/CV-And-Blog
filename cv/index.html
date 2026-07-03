@@ -12,9 +12,33 @@
   <link rel="stylesheet" href="./assets/tokens.css" />
   <link rel="stylesheet" href="./assets/styles.css" />
   <link rel="stylesheet" href="./assets/theme.css" />
-  <script>addEventListener("beforeprint",function(){document.querySelectorAll("details").forEach(function(d){d.open=true})})</script>
+  <script>
+    addEventListener("beforeprint",function(){document.querySelectorAll("details").forEach(function(d){d.open=true})});
+    addEventListener("DOMContentLoaded",function(){
+      var btn=document.querySelector("[data-exp-all]");
+      if(!btn)return;
+      var all=function(){return Array.prototype.slice.call(document.querySelectorAll(".cv-exp"))};
+      var sync=function(){
+        var list=all();var allOpen=list.length>0&&list.every(function(d){return d.open});
+        btn.setAttribute("aria-expanded",String(allOpen));
+        btn.textContent=allOpen?btn.dataset.collapseLabel:btn.dataset.expandLabel;
+      };
+      btn.addEventListener("click",function(){
+        var list=all();var anyClosed=list.some(function(d){return !d.open});
+        list.forEach(function(d){d.open=anyClosed});sync();
+      });
+      all().forEach(function(d){d.addEventListener("toggle",sync)});
+      sync();
+    });
+  </script>
 </head>
 <body>
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="./"><span class="tok-p">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary"><a class="site-nav-link is-active" href="./" aria-current="page">CV</a></nav>
+    </div>
+  </header>
   <main class="cv-page">
     <div class="cv-sheet">
       <section class="term">
@@ -51,13 +75,14 @@ mentoring engineers toward the state of the art.</p>
             <sidebar-pk class="cv-body tmux-panes" side="right" sideWidth="16.5rem" contentWidth="58%" space="0">
               <div class="cv-col-main pane pane-active">
                 <stack-pk space="var(--s2)">
-                  <section class="cv-section"><h2 class="cv-h"><span class="tok-p">❯</span> <span class="tok-dim">ls</span> <span class="tok-flag">-la</span> <span class="tok-path">~/</span><span class="tok-file">experience</span></h2>
-      <div class="cv-exp-list"><details class="cv-exp is-current" open>
+                  <section class="cv-section"><div class="cv-exp-head"><h2 class="cv-h"><span class="tok-p">❯</span> <span class="tok-dim">ls</span> <span class="tok-flag">-la</span> <span class="tok-path">~/</span><span class="tok-file">experience</span></h2><button type="button" class="cv-exp-all" data-exp-all aria-expanded="false" data-expand-label="expand all" data-collapse-label="collapse all">expand all</button></div>
+      <div class="cv-exp-list"><details class="cv-exp is-current">
         <summary class="cv-exp-sum">
           <span class="cv-exp-perms">drwxr-xr-x</span>
           <span class="cv-exp-name"><span class="cv-role-title">Tech Lead</span> <span class="cv-at">@</span> <span class="cv-role-org">Amundi (via eXalt-IT)</span></span>
           <span class="cv-exp-date">Sep 2024 → Present</span>
           <span class="cv-badge">● Present</span>
+          <span class="cv-exp-toggle" aria-hidden="true"><span class="cv-exp-toggle-open">expand</span><span class="cv-exp-toggle-close">collapse</span></span>
         </summary>
         <div class="cv-exp-body">
           <div class="cv-exp-loc"><span class="tok-comment"># Paris, France</span></div>
@@ -70,6 +95,7 @@ mentoring engineers toward the state of the art.</p>
           <span class="cv-exp-name"><span class="cv-role-title">Developer Relations (internal)</span> <span class="cv-at">@</span> <span class="cv-role-org">eXalt-IT</span></span>
           <span class="cv-exp-date">Nov 2023 → Sep 2024</span>
           
+          <span class="cv-exp-toggle" aria-hidden="true"><span class="cv-exp-toggle-open">expand</span><span class="cv-exp-toggle-close">collapse</span></span>
         </summary>
         <div class="cv-exp-body">
           <div class="cv-exp-loc"><span class="tok-comment"># Paris, France</span></div>
@@ -82,6 +108,7 @@ mentoring engineers toward the state of the art.</p>
           <span class="cv-exp-name"><span class="cv-role-title">Senior Software Engineer</span> <span class="cv-at">@</span> <span class="cv-role-org">eXalt-IT — Harvest</span></span>
           <span class="cv-exp-date">May 2022 → Nov 2023</span>
           
+          <span class="cv-exp-toggle" aria-hidden="true"><span class="cv-exp-toggle-open">expand</span><span class="cv-exp-toggle-close">collapse</span></span>
         </summary>
         <div class="cv-exp-body">
           <div class="cv-exp-loc"><span class="tok-comment"># Porte des Lilas, France</span></div>
@@ -94,6 +121,7 @@ mentoring engineers toward the state of the art.</p>
           <span class="cv-exp-name"><span class="cv-role-title">Software Engineer</span> <span class="cv-at">@</span> <span class="cv-role-org">Takima — Total EV Charge (TEVC)</span></span>
           <span class="cv-exp-date">Jan 2020 → May 2022</span>
           
+          <span class="cv-exp-toggle" aria-hidden="true"><span class="cv-exp-toggle-open">expand</span><span class="cv-exp-toggle-close">collapse</span></span>
         </summary>
         <div class="cv-exp-body">
           <div class="cv-exp-loc"><span class="tok-comment"># Vélizy-Villacoublay, France</span></div>
@@ -106,6 +134,7 @@ mentoring engineers toward the state of the art.</p>
           <span class="cv-exp-name"><span class="cv-role-title">Software Engineer (training)</span> <span class="cv-at">@</span> <span class="cv-role-org">Takima</span></span>
           <span class="cv-exp-date">Nov 2019 → Jan 2020</span>
           
+          <span class="cv-exp-toggle" aria-hidden="true"><span class="cv-exp-toggle-open">expand</span><span class="cv-exp-toggle-close">collapse</span></span>
         </summary>
         <div class="cv-exp-body">
           <div class="cv-exp-loc"><span class="tok-comment"># Bagneux, France</span></div>
@@ -118,6 +147,7 @@ mentoring engineers toward the state of the art.</p>
           <span class="cv-exp-name"><span class="cv-role-title">Junior Technical Referent</span> <span class="cv-at">@</span> <span class="cv-role-org">Klee Group — DGAC (French Civil Aviation Authority)</span></span>
           <span class="cv-exp-date">Aug 2019 → Oct 2019</span>
           
+          <span class="cv-exp-toggle" aria-hidden="true"><span class="cv-exp-toggle-open">expand</span><span class="cv-exp-toggle-close">collapse</span></span>
         </summary>
         <div class="cv-exp-body">
           <div class="cv-exp-loc"><span class="tok-comment"># Le Plessis-Robinson, France</span></div>
@@ -130,6 +160,7 @@ mentoring engineers toward the state of the art.</p>
           <span class="cv-exp-name"><span class="cv-role-title">Fullstack Developer</span> <span class="cv-at">@</span> <span class="cv-role-org">Klee Group</span></span>
           <span class="cv-exp-date">Feb 2018 → Jul 2019</span>
           
+          <span class="cv-exp-toggle" aria-hidden="true"><span class="cv-exp-toggle-open">expand</span><span class="cv-exp-toggle-close">collapse</span></span>
         </summary>
         <div class="cv-exp-body">
           <div class="cv-exp-loc"><span class="tok-comment"># Le Plessis-Robinson, France</span></div>
@@ -142,6 +173,7 @@ mentoring engineers toward the state of the art.</p>
           <span class="cv-exp-name"><span class="cv-role-title">Fullstack Developer</span> <span class="cv-at">@</span> <span class="cv-role-org">CGI — CFE (Caisse des Français de l'Étranger)</span></span>
           <span class="cv-exp-date">Sep 2016 → Jan 2018</span>
           
+          <span class="cv-exp-toggle" aria-hidden="true"><span class="cv-exp-toggle-open">expand</span><span class="cv-exp-toggle-close">collapse</span></span>
         </summary>
         <div class="cv-exp-body">
           <div class="cv-exp-loc"><span class="tok-comment"># Melun, France</span></div>
@@ -154,6 +186,7 @@ mentoring engineers toward the state of the art.</p>
           <span class="cv-exp-name"><span class="cv-role-title">Study Engineer — Intern</span> <span class="cv-at">@</span> <span class="cv-role-org">CGI — CNSA (Caisse Nationale de Solidarité pour l'Autonomie)</span></span>
           <span class="cv-exp-date">Apr 2016 → Sep 2016</span>
           
+          <span class="cv-exp-toggle" aria-hidden="true"><span class="cv-exp-toggle-open">expand</span><span class="cv-exp-toggle-close">collapse</span></span>
         </summary>
         <div class="cv-exp-body">
           <div class="cv-exp-loc"><span class="tok-comment"># Paris 14, France</span></div>
@@ -166,6 +199,7 @@ mentoring engineers toward the state of the art.</p>
           <span class="cv-exp-name"><span class="cv-role-title">Study Engineer — Intern</span> <span class="cv-at">@</span> <span class="cv-role-org">DGA — MNRBC</span></span>
           <span class="cv-exp-date">Jun 2015 → Aug 2015</span>
           
+          <span class="cv-exp-toggle" aria-hidden="true"><span class="cv-exp-toggle-open">expand</span><span class="cv-exp-toggle-close">collapse</span></span>
         </summary>
         <div class="cv-exp-body">
           <div class="cv-exp-loc"><span class="tok-comment"># Île-de-France, France</span></div>
@@ -221,6 +255,12 @@ mentoring engineers toward the state of the art.</p>
       </section>
     </div>
   </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 Romain Goussu · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># Built with care, love, and Claude.</span></span>
+    </div>
+  </footer>
   <script type="module" src="./assets/planks.js"></script>
 </body>
 </html>

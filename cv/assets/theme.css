@@ -57,6 +57,45 @@ body {
 .cv-sheet { max-width: 960px; margin: 0 auto; }
 .cv-content { margin-top: 1.6rem; }
 
+/* ---- site header (top navigation) ----------------------------------------------------------- */
+.site-header {
+  position: sticky; top: 0; z-index: 10;
+  background: color-mix(in srgb, var(--cv-bar) 88%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--cv-line);
+}
+.site-header-inner {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  max-width: 960px; margin: 0 auto; padding: 0.6rem 1rem;
+}
+.site-brand {
+  display: inline-flex; align-items: baseline; gap: 0.45ch;
+  font-weight: 700; text-decoration: none; color: var(--cv-ink); font-size: 0.95rem;
+}
+.site-brand-name { color: var(--cv-bright); }
+.site-brand:hover .site-brand-name { color: var(--cv-neon); }
+.site-nav { display: inline-flex; align-items: center; gap: 0.35rem; }
+.site-nav-link {
+  text-decoration: none; color: var(--cv-muted); font-size: 0.82rem;
+  padding: 0.3rem 0.7rem; border-radius: 6px; border: 1px solid transparent;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+.site-nav-link:hover { color: var(--cv-neon); border-color: var(--cv-line); }
+.site-nav-link.is-active {
+  color: var(--cv-neon); border-color: var(--cv-line);
+  background: var(--cv-neon-soft);
+}
+
+/* ---- site footer ---------------------------------------------------------------------------- */
+.site-footer { border-top: 1px solid var(--cv-line); margin-top: 1rem; }
+.site-footer-inner {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.4rem 1rem;
+  max-width: 960px; margin: 0 auto; padding: 1.1rem 1rem 1.6rem;
+  font-size: 0.8rem;
+}
+.site-copy { color: var(--cv-faint); }
+.site-built .tok-comment { opacity: 0.85; }
+
 /* ---- terminal hero -------------------------------------------------------------------------- */
 .term {
   border: 1px solid var(--cv-line);
@@ -165,17 +204,42 @@ body {
 .cv-context { color: var(--cv-muted); margin: 0; }
 
 /* ---- experience: `ls ~/experience` → collapsible <details> ---------------------------------- */
+.cv-exp-head { display: flex; align-items: baseline; gap: 0.6rem; }
+.cv-exp-head .cv-h { flex: 1 1 auto; margin-bottom: 1rem; min-width: 0; }
+.cv-exp-all {
+  flex: 0 0 auto; font: inherit; font-size: 0.76rem; cursor: pointer;
+  color: var(--cv-neon-2); background: #0e1626; border: 1px solid var(--cv-line);
+  padding: 0.22rem 0.6rem; border-radius: 6px;
+  transition: color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.cv-exp-all:hover { color: var(--cv-neon); border-color: var(--cv-neon); box-shadow: 0 0 0 1px var(--cv-neon-soft); }
+
 .cv-exp-list { border: 1px solid var(--cv-line); border-radius: 8px; overflow: clip; }
 .cv-exp { border-bottom: 1px solid var(--cv-line); }
 .cv-exp:last-child { border-bottom: 0; }
 .cv-exp-sum {
   display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.2rem 0.6ch;
-  padding: 0.55rem 0.75rem; cursor: pointer; list-style: none; user-select: none;
+  padding: 0.6rem 0.75rem; cursor: pointer; list-style: none; user-select: none;
+  transition: background 0.15s ease;
 }
 .cv-exp-sum::-webkit-details-marker { display: none; }
-.cv-exp-sum::before { content: "▸"; color: var(--cv-neon); font-weight: 700; width: 0.9ch; }
-.cv-exp[open] > .cv-exp-sum::before { content: "▾"; }
+.cv-exp-sum::before {
+  content: "▸"; color: var(--cv-neon); font-weight: 700; width: 1ch; font-size: 0.95rem;
+  transition: transform 0.15s ease;
+}
+.cv-exp[open] > .cv-exp-sum::before { transform: rotate(90deg); }
 .cv-exp-sum:hover { background: color-mix(in srgb, var(--cv-neon) 8%, transparent); }
+/* the collapsible affordance: a persistent [+] expand / [–] collapse chip on each row */
+.cv-exp-toggle {
+  flex: 0 0 auto; margin-left: 0.4rem; font-size: 0.72rem; letter-spacing: 0.02em;
+  color: var(--cv-faint); white-space: nowrap;
+}
+.cv-exp-sum:hover .cv-exp-toggle { color: var(--cv-neon); }
+.cv-exp-toggle-open::before { content: "[+] "; color: var(--cv-neon); font-weight: 700; }
+.cv-exp-toggle-close::before { content: "[–] "; color: var(--cv-neon); font-weight: 700; }
+.cv-exp-toggle-close { display: none; }
+.cv-exp[open] > .cv-exp-sum .cv-exp-toggle-open { display: none; }
+.cv-exp[open] > .cv-exp-sum .cv-exp-toggle-close { display: inline; }
 .cv-exp-perms { color: var(--cv-faint); font-size: 0.76rem; }
 .cv-exp-name { flex: 1 1 auto; }
 .cv-role-title { color: var(--cv-bright); font-weight: 700; }
@@ -298,6 +362,9 @@ a { color: var(--cv-neon); }
   body { background: #fff; }
   .cv-page { padding: 0; } .cv-sheet { max-width: none; }
   .cv-content { margin-top: 0; }
+
+  /* site chrome is screen-only — the printed CV is content, not a web page */
+  .site-header, .site-footer, .cv-exp-all, .cv-exp-toggle { display: none !important; }
 
   /* strip the terminal + tmux chrome — print shows content only */
   .term { border: 0; border-radius: 0; box-shadow: none; background: none; }
