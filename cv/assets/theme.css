@@ -204,42 +204,50 @@ body {
 .cv-context { color: var(--cv-muted); margin: 0; }
 
 /* ---- experience: `ls ~/experience` → collapsible <details> ---------------------------------- */
-.cv-exp-head { display: flex; align-items: baseline; gap: 0.6rem; }
-.cv-exp-head .cv-h { flex: 1 1 auto; margin-bottom: 1rem; min-width: 0; }
+.cv-exp-head { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1rem; }
+.cv-exp-head .cv-h { flex: 1 1 auto; margin: 0; min-width: 0; }
+/* "expand all / collapse all" — a ghost pill that matches the window toolbar buttons */
 .cv-exp-all {
-  flex: 0 0 auto; font: inherit; font-size: 0.76rem; cursor: pointer;
-  color: var(--cv-neon-2); background: #0e1626; border: 1px solid var(--cv-line);
-  padding: 0.22rem 0.6rem; border-radius: 6px;
-  transition: color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  flex: 0 0 auto; display: inline-flex; align-items: center; gap: 0.4rem;
+  font: inherit; font-size: 0.75rem; line-height: 1; cursor: pointer;
+  color: var(--cv-muted); background: transparent; border: 1px solid var(--cv-line);
+  padding: 0.3rem 0.66rem; border-radius: 7px;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
 }
-.cv-exp-all:hover { color: var(--cv-neon); border-color: var(--cv-neon); box-shadow: 0 0 0 1px var(--cv-neon-soft); }
+.cv-exp-all:hover { color: var(--cv-neon); border-color: var(--cv-neon); background: var(--cv-neon-soft); }
+.cv-exp-all .cv-chevron { width: 0.85rem; height: 0.85rem; transition: transform 0.18s ease; }
+.cv-exp-all[aria-expanded="true"] .cv-chevron { transform: rotate(180deg); }
 
 .cv-exp-list { border: 1px solid var(--cv-line); border-radius: 8px; overflow: clip; }
 .cv-exp { border-bottom: 1px solid var(--cv-line); }
 .cv-exp:last-child { border-bottom: 0; }
 .cv-exp-sum {
-  display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.2rem 0.6ch;
-  padding: 0.6rem 0.75rem; cursor: pointer; list-style: none; user-select: none;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0.2rem 0.6ch;
+  padding: 0.62rem 0.8rem; cursor: pointer; list-style: none; user-select: none;
   transition: background 0.15s ease;
 }
 .cv-exp-sum::-webkit-details-marker { display: none; }
-.cv-exp-sum::before {
-  content: "▸"; color: var(--cv-neon); font-weight: 700; width: 1ch; font-size: 0.95rem;
-  transition: transform 0.15s ease;
+.cv-exp-sum:hover { background: color-mix(in srgb, var(--cv-neon) 9%, transparent); }
+.cv-exp[open] > .cv-exp-sum { background: color-mix(in srgb, var(--cv-neon) 6%, transparent); }
+
+/* the disclosure caret: a boxed chevron button — the clear "this row opens" affordance */
+.cv-exp-caret {
+  flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center;
+  width: 1.4rem; height: 1.4rem; border-radius: 6px; color: var(--cv-neon);
+  border: 1px solid color-mix(in srgb, var(--cv-neon) 45%, var(--cv-line));
+  background: color-mix(in srgb, var(--cv-neon) 13%, transparent);
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
 }
-.cv-exp[open] > .cv-exp-sum::before { transform: rotate(90deg); }
-.cv-exp-sum:hover { background: color-mix(in srgb, var(--cv-neon) 8%, transparent); }
-/* the collapsible affordance: a persistent [+] expand / [–] collapse chip on each row */
-.cv-exp-toggle {
-  flex: 0 0 auto; margin-left: 0.4rem; font-size: 0.72rem; letter-spacing: 0.02em;
-  color: var(--cv-faint); white-space: nowrap;
+.cv-exp-caret .cv-chevron { transition: transform 0.18s ease; }
+.cv-exp[open] > .cv-exp-sum .cv-exp-caret {
+  color: var(--cv-window); background: var(--cv-neon); border-color: var(--cv-neon);
 }
-.cv-exp-sum:hover .cv-exp-toggle { color: var(--cv-neon); }
-.cv-exp-toggle-open::before { content: "[+] "; color: var(--cv-neon); font-weight: 700; }
-.cv-exp-toggle-close::before { content: "[–] "; color: var(--cv-neon); font-weight: 700; }
-.cv-exp-toggle-close { display: none; }
-.cv-exp[open] > .cv-exp-sum .cv-exp-toggle-open { display: none; }
-.cv-exp[open] > .cv-exp-sum .cv-exp-toggle-close { display: inline; }
+.cv-exp[open] > .cv-exp-sum .cv-exp-caret .cv-chevron { transform: rotate(180deg); }
+.cv-exp-sum:hover .cv-exp-caret {
+  color: var(--cv-window); background: var(--cv-neon); border-color: var(--cv-neon);
+  box-shadow: 0 0 0 3px var(--cv-neon-soft);
+}
+
 .cv-exp-perms { color: var(--cv-faint); font-size: 0.76rem; }
 .cv-exp-name { flex: 1 1 auto; }
 .cv-role-title { color: var(--cv-bright); font-weight: 700; }
@@ -364,7 +372,7 @@ a { color: var(--cv-neon); }
   .cv-content { margin-top: 0; }
 
   /* site chrome is screen-only — the printed CV is content, not a web page */
-  .site-header, .site-footer, .cv-exp-all, .cv-exp-toggle { display: none !important; }
+  .site-header, .site-footer, .cv-exp-all, .cv-exp-caret { display: none !important; }
 
   /* strip the terminal + tmux chrome — print shows content only */
   .term { border: 0; border-radius: 0; box-shadow: none; background: none; }
