@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Romain Goussu — under construction</title>
   <meta name="description" content="Romain Goussu · Fullstack Web Developer &amp; Tech Lead. A tech blog is under construction; the CV is live." />
-  <meta name="color-scheme" content="dark" />
+  <meta name="color-scheme" content="dark light" />
 
   <!-- Social preview -->
   <meta property="og:title" content="Romain Goussu — under construction" />
@@ -19,6 +19,7 @@
 
   <style>
     /* ---- tokens: Ubuntu terminal (aubergine + orange), shared with the CV --------------------- */
+    /* Dark is the default (the terminal); light is a warm Yaru "paper" variant, mirroring the CV. */
     :root {
       --bg: #1b0416;        /* page, deep aubergine */
       --window: #300a24;    /* the iconic Ubuntu terminal aubergine */
@@ -34,7 +35,35 @@
       --green: #8ae234;     /* bash prompt green (user@host) */
       --amber: #fce94f;     /* Tango yellow */
 
+      --glow: rgba(233, 84, 32, 0.16);
+      --grid: rgba(233, 84, 32, 0.03);
+      --grid2: rgba(173, 127, 168, 0.10);
+      --shadow: rgba(0, 0, 0, 0.7);
+
       --mono: "Ubuntu Mono", ui-monospace, "DejaVu Sans Mono", Menlo, Consolas, monospace;
+    }
+
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #f7f3f4;      /* warm paper */
+        --window: #ffffff;
+        --bar: #f3ebef;     /* Yaru light headerbar */
+        --ink: #2b2226;
+        --bright: #1a1013;
+        --muted: #6a5b63;
+        --faint: #998a91;
+        --line: #eadfe4;
+
+        --orange: #d24a17;  /* Ubuntu orange, darkened for contrast on paper */
+        --blue: #2f6bb0;    /* prompt blue */
+        --green: #3a8c1e;   /* prompt green */
+        --amber: #b5601a;   /* darkened for legibility on paper (used as text) */
+
+        --glow: rgba(210, 74, 23, 0.12);
+        --grid: rgba(120, 60, 40, 0.03);
+        --grid2: rgba(120, 60, 40, 0.03);
+        --shadow: rgba(80, 40, 60, 0.18);
+      }
     }
 
     * { box-sizing: border-box; }
@@ -52,10 +81,10 @@
       font-size: clamp(14px, 1.1vw + 11px, 16.5px);
       line-height: 1.65;
       background:
-        radial-gradient(48rem 30rem at 82% -8%, rgba(233, 84, 32, 0.16), transparent 60%),
-        radial-gradient(40rem 26rem at 0% 8%, rgba(173, 127, 168, 0.10), transparent 60%),
-        repeating-linear-gradient(0deg, rgba(233, 84, 32, 0.03) 0 1px, transparent 1px 24px),
-        repeating-linear-gradient(90deg, rgba(233, 84, 32, 0.03) 0 1px, transparent 1px 24px),
+        radial-gradient(48rem 30rem at 82% -8%, var(--glow), transparent 60%),
+        radial-gradient(40rem 26rem at 0% 8%, var(--grid2), transparent 60%),
+        repeating-linear-gradient(0deg, var(--grid) 0 1px, transparent 1px 24px),
+        repeating-linear-gradient(90deg, var(--grid) 0 1px, transparent 1px 24px),
         var(--bg);
       -webkit-font-smoothing: antialiased;
       text-rendering: optimizeLegibility;
@@ -70,7 +99,7 @@
       overflow: hidden;
       box-shadow:
         0 1px 0 rgba(255, 255, 255, 0.04) inset,
-        0 24px 60px -24px rgba(0, 0, 0, 0.7);
+        0 24px 60px -24px var(--shadow);
     }
 
     .titlebar {
@@ -171,10 +200,22 @@
     }
     footer a { color: var(--muted); text-decoration: none; }
     footer a:hover { color: var(--orange); }
+
+    /* available to assistive tech, removed from the visual terminal metaphor */
+    .visually-hidden {
+      position: absolute;
+      width: 1px; height: 1px;
+      margin: -1px; padding: 0; border: 0;
+      clip: rect(0 0 0 0);
+      clip-path: inset(50%);
+      overflow: hidden;
+      white-space: nowrap;
+    }
   </style>
 </head>
 <body>
   <main class="terminal" aria-label="Romain Goussu — placeholder landing page">
+    <h1 class="visually-hidden">Romain Goussu — website under construction</h1>
     <div class="titlebar">
       <span class="dots" aria-hidden="true"><span></span><span></span><span></span></span>
       <span class="title">romain@goussu: ~/blog</span>
@@ -182,25 +223,25 @@
 
     <div class="screen">
       <div class="block">
-        <div class="line"><span class="prompt">romain@goussu<span class="sigil">:</span><span class="path">~/blog</span><span class="sigil">$</span></span> <span class="cmd">whoami</span></div>
+        <div class="line"><span class="prompt" aria-hidden="true">romain@goussu<span class="sigil">:</span><span class="path">~/blog</span><span class="sigil">$</span></span> <span class="cmd">whoami</span></div>
         <div class="line out"><span class="accent">Romain Goussu</span> — Fullstack Web Developer · Tech Lead</div>
       </div>
 
       <div class="block">
-        <div class="line"><span class="prompt">romain@goussu<span class="sigil">:</span><span class="path">~/blog</span><span class="sigil">$</span></span> <span class="cmd">cat STATUS</span></div>
+        <div class="line"><span class="prompt" aria-hidden="true">romain@goussu<span class="sigil">:</span><span class="path">~/blog</span><span class="sigil">$</span></span> <span class="cmd">cat STATUS</span></div>
         <div class="line out"><span class="amber">🚧 Under construction.</span></div>
         <div class="line out">A tech blog is on its way — hand-written articles on engineering,</div>
         <div class="line out">architecture and the odd war story, shipping weekly-ish.</div>
       </div>
 
       <div class="block">
-        <div class="line"><span class="prompt">romain@goussu<span class="sigil">:</span><span class="path">~/blog</span><span class="sigil">$</span></span> <span class="cmd">ls -la ..</span></div>
+        <div class="line"><span class="prompt" aria-hidden="true">romain@goussu<span class="sigil">:</span><span class="path">~/blog</span><span class="sigil">$</span></span> <span class="cmd">ls -la ..</span></div>
         <div class="line listing out"><span class="name">cv/</span>    &nbsp;&nbsp;<span class="live">live now</span>     — the CV, in English &amp; French</div>
         <div class="line listing out"><span class="name">blog/</span>  &nbsp;<span class="soon">coming soon</span>  — you are here</div>
       </div>
 
       <div class="block">
-        <div class="line"><span class="prompt">romain@goussu<span class="sigil">:</span><span class="path">~/blog</span><span class="sigil">$</span></span> <span class="cmd">open ../cv/</span><span class="cursor" aria-hidden="true"></span></div>
+        <div class="line"><span class="prompt" aria-hidden="true">romain@goussu<span class="sigil">:</span><span class="path">~/blog</span><span class="sigil">$</span></span> <span class="cmd">open ../cv/</span><span class="cursor" aria-hidden="true"></span></div>
         <div class="cta-line">
           <a class="cta" href="./cv/">Read my CV →</a>
           <a class="cta-ghost" href="https://github.com/rgoussu-dev">github.com/rgoussu-dev</a>
