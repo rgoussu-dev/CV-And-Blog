@@ -1,0 +1,56 @@
+name: Deploy blog
+
+# Builds the tech blog (blog-site/ reads blog/posts/*.md) and publishes it into the gh-pages branch
+# under /blog/. Like the landing-page and CV deploys, it uses keep_files: true so the three subtrees
+# coexist on one branch and never clobber each other:
+#
+#   gh-pages/
+#     index.html   <- deploy-landing.yml (site/)     https://rgoussu-dev.github.io/CV-And-Blog/
+#     cv/...       <- Alfred cv-deploy.yml            https://rgoussu-dev.github.io/CV-And-Blog/cv/
+#     blog/...     <- this workflow (blog-site/dist)  https://rgoussu-dev.github.io/CV-And-Blog/blog/
+#
+# Publishing stays within this repo, so the built-in GITHUB_TOKEN suffices — no secret needed.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "blog/**"
+      - "blog-site/**"
+      - ".github/workflows/deploy-blog.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: deploy-blog
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install
+        working-directory: blog-site
+        run: npm ci || npm install
+
+      - name: Build blog
+        working-directory: blog-site
+        run: npm run build
+
+      - name: Publish blog-site/dist to gh-pages /blog (root + /cv preserved)
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: ./blog-site/dist
+          destination_dir: blog
+          keep_files: true # don't wipe the site root or the /cv subtree
+          commit_message: "deploy blog @${{ github.sha }}"
