@@ -1,0 +1,44 @@
+name: Deploy landing page
+
+# Publishes the site root (site/) to the gh-pages branch that GitHub Pages serves.
+#
+# The CV is deployed INTO THIS SAME gh-pages branch, under /cv/, by the Alfred repo's
+# cv-deploy.yml workflow — which uses keep_files: true precisely so a page at the site root is
+# preserved. This workflow is the mirror of that: it publishes site/ to the gh-pages ROOT with
+# keep_files: true, so the /cv/ subtree deployed from Alfred is left untouched.
+#
+#   gh-pages/
+#     index.html      <- from here (site/)      https://rgoussu-dev.github.io/CV-And-Blog/
+#     cv/...          <- from Alfred            https://rgoussu-dev.github.io/CV-And-Blog/cv/
+#
+# No secret needed: publishing stays within this repo, so the built-in GITHUB_TOKEN suffices.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "site/**"
+      - ".github/workflows/deploy-landing.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: deploy-landing
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Publish site/ to gh-pages root (CV subtree preserved)
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: ./site
+          keep_files: true # don't wipe /cv (deployed here from the Alfred repo)
+          commit_message: "deploy landing page @${{ github.sha }}"
