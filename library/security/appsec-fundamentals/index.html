@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>AppSec fundamentals — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../assets/styles.css" />
+  <link rel="stylesheet" href="../../assets/theme.css" />
+</head>
+<body data-prefix="../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/security</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../">~/library</a><span class="tok-path">/</span><span class="tok-path">security</span> <span class="tok-cmd">cat</span> <span class="tok-file">appsec-fundamentals</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">AppSec fundamentals</h1>
+        <p class="lib-lede"><span class="tok-comment"># The attacks every developer must know — injection, XSS, CSRF, SSRF, deserialization — and the defensive habits that neutralize them.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-08</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../tags/#appsec">#appsec</a><a class="lib-tag" href="../../tags/#security">#security</a><a class="lib-tag" href="../../tags/#owasp">#owasp</a><a class="lib-tag" href="../../tags/#web">#web</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>Application security is mostly a small set of recurring vulnerability classes exploited
+for decades because the same mistakes keep being rewritten. The OWASP Top 10 is the
+shared vocabulary; the deeper lesson is that nearly all of them reduce to one root cause —
+<em>trusting input</em> — and nearly all defenses reduce to a few habits: parameterize, encode
+for context, deny by default, and keep components patched.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>Injection</strong>: user input spliced into an interpreter — SQL, OS commands, LDAP,
+templates. Defense is structural, not sanitization: parameterized queries/prepared
+statements, never string-built commands.</li>
+<li><strong>XSS</strong>: attacker-controlled content executing in a victim's browser. Contextual output
+encoding (what template engines do when you don't bypass them), Content-Security-Policy
+as the safety net; stored vs. reflected vs. DOM-based.</li>
+<li><strong>CSRF</strong>: a victim's browser making authenticated requests the victim didn't intend —
+possible because cookies ride along automatically. SameSite cookies (now default-ish),
+anti-CSRF tokens, and &quot;state-changing = never GET&quot;.</li>
+<li><strong>Broken access control</strong> (OWASP #1): IDOR (guessing other users' object IDs), missing
+function-level checks, path traversal. Authorization enforced server-side on <em>every</em>
+request, deny by default — see <a href="../../security/authentication-and-authorization/">authentication &amp; authorization</a>.</li>
+<li><strong>SSRF</strong>: the server fetching attacker-chosen URLs — the cloud-era killer (169.254.169.254
+metadata endpoints); allowlist outbound destinations, block link-local ranges.</li>
+<li><strong>Insecure deserialization &amp; supply chain</strong>: deserializing untrusted data as code
+(Java's gadget chains), and vulnerable/compromised dependencies (Log4Shell) — SCA
+scanning, lockfiles, minimal dependencies.</li>
+<li><strong>The habits</strong>: validate input at trust boundaries (allowlist), encode output for its
+context, secure defaults, least privilege, defense in depth, and security headers
+(CSP, HSTS, X-Content-Type-Options) as cheap wins.</li>
+<li><strong>Shift-left tooling</strong>: SAST/DAST/SCA in CI, dependency update bots, secret scanning —
+security as pipeline stages, not an annual audit.</li>
+<li>To explore: the OWASP ASVS as a checklist beyond the Top 10, race-condition (TOCTOU)
+bugs, DNS rebinding, browser security model (same-origin policy, CORS — widely
+misunderstood as a server protection; it protects <em>users</em>).</li>
+</ul>
+<h2>Related</h2>
+<ul>
+<li><a href="../../security/threat-modeling/">Threat modeling</a> — finding which of these applies to your design
+before writing it.</li>
+<li><a href="../../security/authentication-and-authorization/">Authentication &amp; authorization</a> — the
+identity-side failure modes.</li>
+<li><a href="../../security/articles/hardening-linux/">Hardening Linux</a> — the host layer beneath the app.</li>
+<li><a href="../../system-design/api-design/">API design</a> — where the trust boundaries are declared.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../assets/planks.js"></script>
+  <script src="../../assets/search.js" defer></script>
+</body>
+</html>

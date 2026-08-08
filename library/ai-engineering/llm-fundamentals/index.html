@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>LLM fundamentals for engineers — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../assets/styles.css" />
+  <link rel="stylesheet" href="../../assets/theme.css" />
+</head>
+<body data-prefix="../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/ai-engineering</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../">~/library</a><span class="tok-path">/</span><span class="tok-path">ai-engineering</span> <span class="tok-cmd">cat</span> <span class="tok-file">llm-fundamentals</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">LLM fundamentals for engineers</h1>
+        <p class="lib-lede"><span class="tok-comment"># The working model of large language models — tokens, context, sampling, capabilities and failure modes — needed to build on them soundly.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-08</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../tags/#llm">#llm</a><a class="lib-tag" href="../../tags/#ai">#ai</a><a class="lib-tag" href="../../tags/#tokens">#tokens</a><a class="lib-tag" href="../../tags/#prompting">#prompting</a><a class="lib-tag" href="../../tags/#ai-engineering">#ai-engineering</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>You can build well on LLMs without training one, but not without a correct working model
+of what they do: autoregressive next-token prediction over a learned distribution,
+conditioned on everything in a finite context window. That single sentence explains most
+observed behavior — the fluency, the hallucinations, the sensitivity to prompt wording,
+the cost model — and replaces the two failure modes of intuition: treating the model as a
+database, or as a person.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>Tokens are the native unit</strong>: text is split into subword tokens (~4 chars / ~0.75
+words in English); pricing, context limits, and latency all count tokens. Streaming
+exists because generation is genuinely one token at a time, each conditioned on all
+before it.</li>
+<li><strong>The context window is the model's entire working memory</strong>: nothing persists between
+calls — &quot;memory&quot; in products is engineering (retrieval, summaries) that refills the
+window each turn. Long contexts degrade subtly (middle-loss); what's <em>in the window</em>
+and <em>where</em> is a real design surface.</li>
+<li><strong>Sampling knobs</strong>: temperature (0 ≈ argmax-deterministic-ish, higher = more varied),
+top-p; deterministic-looking ≠ correct — it's still a sampled distribution. Structured
+output (JSON modes, schema-constrained decoding, tool calls) is how you get
+machine-readable answers reliably, not &quot;please output JSON&quot;.</li>
+<li><strong>Capabilities vs. failure modes</strong>: strong at transformation, synthesis, code, and
+instruction-following; unreliable as a <em>fact store</em> — hallucination is the model doing
+exactly its job (plausible continuation) without grounding. Countermeasures are
+architectural: retrieval for facts, tools for arithmetic/lookup, verification steps
+for stakes — see <a href="../../ai-engineering/agents-rag-and-tool-use/">agents, RAG &amp; tool use</a>.</li>
+<li><strong>The lifecycle behind the API</strong>: pretraining (next-token, internet scale) →
+instruction tuning → preference alignment (RLHF-family) — knowing this explains why
+models follow instructions at all, and why system prompts steer them.</li>
+<li><strong>Embeddings</strong> are the other primitive: text → vectors where semantic similarity ≈
+distance; they power search, clustering, RAG retrieval, and classification, at a
+fraction of generation's cost.</li>
+<li><strong>Engineering economics</strong>: cost = input + output tokens (output usually pricier);
+prompt caching, model-size routing (small model first, escalate on need), and batching
+are the levers; evals — not vibes — are how you know a prompt or model change helped.</li>
+<li>To explore: fine-tuning vs. prompting vs. RAG (decision triangle), quantization &amp;
+local inference, multimodality, inference mechanics (KV cache — why long contexts
+cost).</li>
+</ul>
+<h2>Related</h2>
+<ul>
+<li><a href="../../ai-engineering/agents-rag-and-tool-use/">Agents, RAG &amp; tool use</a> — the systems layer on top of
+these primitives.</li>
+<li><a href="../../ai-engineering/articles/how-boris-uses-claude-code/">How Boris Uses Claude Code (Part 17)</a> and
+<a href="../../ai-engineering/articles/steering-claude-code-skills-hooks-rules-subagents/">Steering Claude Code</a> —
+applied practice in this bundle.</li>
+<li><a href="../../system-design/search-systems/">Search systems</a> — embeddings meet retrieval.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../assets/planks.js"></script>
+  <script src="../../assets/search.js" defer></script>
+</body>
+</html>

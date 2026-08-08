@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Kubernetes &amp; containers deep dive — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../assets/styles.css" />
+  <link rel="stylesheet" href="../../assets/theme.css" />
+</head>
+<body data-prefix="../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/platform</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../">~/library</a><span class="tok-path">/</span><span class="tok-path">platform</span> <span class="tok-cmd">cat</span> <span class="tok-file">kubernetes-and-containers</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Kubernetes &amp; containers deep dive</h1>
+        <p class="lib-lede"><span class="tok-comment"># From namespaces and images to the reconciliation loop — what containers actually are and how Kubernetes turns them into a platform.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-08</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../tags/#kubernetes">#kubernetes</a><a class="lib-tag" href="../../tags/#containers">#containers</a><a class="lib-tag" href="../../tags/#docker">#docker</a><a class="lib-tag" href="../../tags/#platform">#platform</a><a class="lib-tag" href="../../tags/#orchestration">#orchestration</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>A container is not a lightweight VM — it's an ordinary Linux process wearing namespaces
+(isolation of view) and cgroups (limits on resources), started from a layered filesystem
+image. Kubernetes is a control plane over many such processes, built on one idea applied
+everywhere: you declare desired state, controllers reconcile actual state toward it,
+forever. Grasp those two foundations and the whole surface — pods, deployments, services,
+operators — becomes derivable rather than memorized.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>Containers = kernel features</strong>: PID/net/mount/user namespaces + cgroup v2 limits +
+a union filesystem (image layers, copy-on-write) — see
+<a href="../../system-administration/linux-deep-dive/">Linux deep dive</a>. One process per
+container is convention because the container <em>is</em> the process; OCI images/runtimes
+(runc, containerd) are the standardized pieces — Docker is a UX over them.</li>
+<li><strong>Image discipline</strong>: layers cache by instruction order (dependencies before code),
+multi-stage builds keep toolchains out of runtime images, distroless/slim bases cut
+attack surface, pin digests not <code>latest</code>.</li>
+<li><strong>The reconciliation loop is Kubernetes</strong>: every object (Deployment, Service…) is a
+record in etcd (<a href="../../system-design/distributed-consensus/">consensus</a>); controllers
+watch, diff desired vs. actual, and act; the scheduler is just the controller that
+assigns pods to nodes; kubelet is the node-side reconciler. Self-healing is nothing
+more than this loop never stopping.</li>
+<li><strong>The object model in layers</strong>: Pod (co-scheduled containers sharing network/volumes) ←
+ReplicaSet (N copies) ← Deployment (rolling updates) — plus StatefulSet (stable
+identity/storage), DaemonSet (one per node), Job/CronJob. Services give pods a stable
+virtual IP + DNS name with load balancing; Ingress/Gateway handles L7 routing in.</li>
+<li><strong>Config &amp; operations</strong>: ConfigMaps/Secrets injected as env or files; requests/limits
+drive scheduling and eviction (set requests honestly or the bin-packing lies);
+liveness vs. readiness probes (confusing them causes restart storms); HPA for
+autoscaling; RBAC + namespaces for multi-tenancy.</li>
+<li><strong>The extension pattern</strong>: CRDs + custom controllers (&quot;operators&quot;) let you declare
+<em>your</em> domain objects (a <code>PostgresCluster</code>) and reconcile them — the same loop,
+user-defined; this is why the ecosystem (cert-manager, ArgoCD, Prometheus operator)
+feels native.</li>
+<li>To explore: networking model (CNI, kube-proxy/eBPF, why every pod gets an IP),
+service mesh, GitOps deployment flows, when Kubernetes is overkill (it often is —
+managed PaaS/serverless first for small estates).</li>
+</ul>
+<h2>Related</h2>
+<ul>
+<li><a href="../../system-administration/linux-deep-dive/">Linux system deep dive</a> — namespaces and
+cgroups are the whole trick.</li>
+<li><a href="../../platform/ci-cd-and-delivery-engineering/">CI/CD &amp; delivery engineering</a> — the pipeline's
+deploy target; progressive delivery maps onto Deployments.</li>
+<li><a href="../../platform/observability-and-sre/">Observability &amp; SRE practice</a> — probes, metrics, and the
+operational contract.</li>
+<li><a href="../../system-design/distributed-consensus/">Distributed consensus</a> — etcd underneath
+everything.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../assets/planks.js"></script>
+  <script src="../../assets/search.js" defer></script>
+</body>
+</html>

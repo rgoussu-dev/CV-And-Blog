@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Microservice architecture — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../assets/styles.css" />
+  <link rel="stylesheet" href="../../assets/theme.css" />
+</head>
+<body data-prefix="../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/system-design</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../">~/library</a><span class="tok-path">/</span><span class="tok-path">system-design</span> <span class="tok-cmd">cat</span> <span class="tok-file">microservice-architecture</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Microservice architecture</h1>
+        <p class="lib-lede"><span class="tok-comment"># Decomposing a system into independently deployable services — when it pays, what it costs, and the patterns that make it survivable.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-08</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../tags/#microservices">#microservices</a><a class="lib-tag" href="../../tags/#architecture">#architecture</a><a class="lib-tag" href="../../tags/#distributed-systems">#distributed-systems</a><a class="lib-tag" href="../../tags/#system-design">#system-design</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>Microservice architecture splits a system into small, independently deployable services,
+each owning its data and aligned with a business capability. The prize is independent
+deployment and team autonomy; the price is turning in-process calls into a distributed
+system with all its failure modes. The honest framing (Fowler, Newman): you must be <em>this
+tall</em> — mature CI/CD, observability, and ops — before the trade is worth it, and a
+well-modularized monolith is the right starting point more often than not.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>Boundaries are the whole game</strong>: services should map to bounded contexts
+(<a href="../../applicative-architecture/ddd/">DDD</a>); get boundaries wrong and you build a
+distributed monolith — the worst of both worlds.</li>
+<li><strong>Database per service</strong>: no shared database; data crosses boundaries via APIs and
+events, consistency becomes eventual
+(<a href="../../system-design/asynchronous-and-distributed-system-patterns/">async patterns</a>, sagas, outbox).</li>
+<li><strong>Communication</strong>: sync (REST/gRPC, simple but couples availability) vs. async
+(events, decoupled but harder to reason about); API gateway and service discovery at
+the edges; contract testing to keep independence real.</li>
+<li><strong>Deployment &amp; ops</strong>: one service = one pipeline; containers + orchestration;
+observability (distributed tracing, correlation IDs) is non-optional because no single
+log tells the story.</li>
+<li><strong>Organizational mirror</strong>: Conway's law works both ways — team ownership per service is
+the point (&quot;you build it, you run it&quot;).</li>
+<li><strong>Alternatives on the spectrum</strong>: modular monolith, and the middle grounds (moduliths,
+self-contained systems); migration via strangler fig, not big bang.</li>
+<li>To explore: service mesh, serverless as the extreme of the same axis, micro-frontends
+as the front-end analogue.</li>
+</ul>
+<h2>Related</h2>
+<ul>
+<li><a href="../../applicative-architecture/ddd/">DDD</a> — supplies the decomposition principle.</li>
+<li><a href="../../applicative-architecture/hexagonal-architecture/">Hexagonal architecture</a> — sound
+internal structure for each service.</li>
+<li><a href="../../system-design/asynchronous-and-distributed-system-patterns/">Asynchronous and distributed system patterns</a></li>
+<li><a href="../../system-design/system-design-fundamentals/">System design fundamentals</a></li>
+<li><a href="../../system-design/api-design/">API design</a> — the contract discipline service independence rests on.</li>
+<li><a href="../../platform/observability-and-sre/">Observability &amp; SRE practice</a> — the operational
+prerequisite.</li>
+<li><a href="../../engineering-practice/team-topologies-and-conways-law/">Team topologies &amp; Conway's law</a> —
+the organizational mirror, in full.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../assets/planks.js"></script>
+  <script src="../../assets/search.js" defer></script>
+</body>
+</html>

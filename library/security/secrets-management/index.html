@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Secrets management — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../assets/styles.css" />
+  <link rel="stylesheet" href="../../assets/theme.css" />
+</head>
+<body data-prefix="../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/security</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../">~/library</a><span class="tok-path">/</span><span class="tok-path">security</span> <span class="tok-cmd">cat</span> <span class="tok-file">secrets-management</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Secrets management</h1>
+        <p class="lib-lede"><span class="tok-comment"># Keeping credentials out of code and alive in production — vaults, rotation, short-lived credentials, and the leak-response playbook.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-08</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../tags/#secrets">#secrets</a><a class="lib-tag" href="../../tags/#security">#security</a><a class="lib-tag" href="../../tags/#credentials">#credentials</a><a class="lib-tag" href="../../tags/#devsecops">#devsecops</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>Every system holds secrets — database passwords, API keys, signing keys, TLS private
+keys — and the default failure mode is depressingly consistent: committed to a repo,
+baked into an image, or living unrotated for years in an env file. Secrets management is
+the discipline of giving workloads the credentials they need without humans ever seeing
+them, and making every credential short-lived enough that leaking one is an incident,
+not a catastrophe.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>Never in the repo, never in the image</strong>: git history is forever (a removed secret is
+still a leaked secret — rotate, don't just delete); secret scanning (gitleaks, GitHub
+push protection) as a pre-commit and CI gate.</li>
+<li><strong>The hierarchy of maturity</strong>: env vars from a deploy system → encrypted-at-rest secret
+stores (Kubernetes Secrets + KMS, SOPS) → a real secrets manager (Vault, cloud secret
+managers) with access control, audit logs, and dynamic issuance.</li>
+<li><strong>Short-lived beats encrypted</strong>: dynamic secrets (Vault issuing per-workload database
+credentials with a TTL) and workload identity federation (pods/VMs exchanging their
+platform identity for cloud tokens — no stored keys at all) beat any static secret,
+however well vaulted.</li>
+<li><strong>Rotation must be designed in</strong>: dual-secret acceptance windows so rotation is a
+routine no-downtime operation; if rotating a credential is scary, that's the finding.</li>
+<li><strong>Scope and audit</strong>: one credential per consumer (blast radius + attribution), least
+privilege per credential, audit trail on access; shared &quot;the API key&quot; in a team vault
+is an anti-pattern.</li>
+<li><strong>Leak response</strong>: assume exploited — rotate immediately, then hunt usage in audit
+logs, then fix the path it leaked through. Speed of rotation is the metric that
+matters.</li>
+<li>To explore: envelope encryption &amp; KMS key hierarchies, sealed secrets for GitOps,
+SPIFFE/SVID for service identity, HSMs for root keys.</li>
+</ul>
+<h2>Related</h2>
+<ul>
+<li><a href="../../security/tls-https-and-certificates/">TLS/HTTPS &amp; certificate management</a> — private keys
+and internal CAs are secrets with a lifecycle.</li>
+<li><a href="../../security/authentication-and-authorization/">Authentication &amp; authorization</a> — the
+credentials being managed.</li>
+<li><a href="../../platform/ci-cd-and-delivery-engineering/">CI/CD &amp; delivery engineering</a> — the
+pipeline is both a consumer of secrets and a leak vector.</li>
+<li><a href="../../platform/infrastructure-as-code/">Infrastructure as code</a> — where &quot;no secrets in
+the repo&quot; gets hard.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../assets/planks.js"></script>
+  <script src="../../assets/search.js" defer></script>
+</body>
+</html>

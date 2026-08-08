@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Algorithms &amp; data structures — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../assets/styles.css" />
+  <link rel="stylesheet" href="../../assets/theme.css" />
+</head>
+<body data-prefix="../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/algorithms</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../">~/library</a><span class="tok-path">/</span><span class="tok-path">algorithms</span> <span class="tok-cmd">cat</span> <span class="tok-file">algorithms-and-data-structures</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Algorithms &amp; data structures</h1>
+        <p class="lib-lede"><span class="tok-comment"># The core toolkit and how to practice it — complexity, the essential structures, the algorithm families, and interview-grade patterns.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-08</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../tags/#algorithms">#algorithms</a><a class="lib-tag" href="../../tags/#data-structures">#data-structures</a><a class="lib-tag" href="../../tags/#complexity">#complexity</a><a class="lib-tag" href="../../tags/#interview-prep">#interview-prep</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>The foundation everything else compiles down to: knowing which data structure fits which
+access pattern, estimating cost with big-O before writing code, and recognizing the
+standard algorithm families when a problem is secretly one of them. Doubly useful right
+now — it's also the deliberate-practice track for coding interviews, where fluency in the
+patterns matters more than memorizing solutions.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>Complexity as a habit</strong>: big-O for time and space, amortized analysis (why dynamic
+array append is O(1)), and the practical caveat — constants and cache behavior decide
+real performance between same-O options.</li>
+<li><strong>Core structures &amp; their access patterns</strong>: arrays vs. linked lists, hash maps (and
+their failure mode: worst-case collisions), heaps/priority queues, stacks &amp; queues,
+trees (BST, balanced — the idea of red-black/AVL more than the rotations), tries,
+union-find, graphs (adjacency list vs. matrix).</li>
+<li><strong>Algorithm families</strong>: sorting (know quicksort/mergesort/heapsort trade-offs; know
+when counting/radix beats comparison), binary search (and &quot;binary search the answer&quot;),
+graph traversal (BFS/DFS, Dijkstra, topological sort), dynamic programming (overlapping
+subproblems + optimal substructure), greedy (and proving it safe), divide &amp; conquer.</li>
+<li><strong>The interview pattern catalog</strong>: two pointers, sliding window, fast &amp; slow pointers,
+prefix sums, monotonic stack, intervals, backtracking, top-K with a heap — most
+problems are one of ~20 patterns wearing a costume.</li>
+<li><strong>Deliberate practice protocol</strong>: spaced repetition over volume; attempt hard for
+20-30 min before reading solutions, then re-solve from scratch days later; talk aloud —
+the interview grades reasoning, not typing.</li>
+<li><strong>In the wild</strong>: bloom filters, consistent hashing, LRU implementations, merkle trees —
+where this theme meets the system-design one.</li>
+<li>To explore: CLRS / <em>Algorithm Design Manual</em> (Skiena) as references, NeetCode 150 as a
+practice syllabus, complexity of the structures your languages actually ship.</li>
+</ul>
+<h2>Related</h2>
+<ul>
+<li><a href="../../system-design/system-design-fundamentals/">System design fundamentals</a> — the
+large-scale application of the same instincts.</li>
+<li><a href="../../system-design/performance-engineering/">Performance engineering</a> — where big-O
+meets the memory hierarchy.</li>
+<li><a href="../../system-design/cache-management/">Cache management</a> — LRU/LFU are data-structure
+problems.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../assets/planks.js"></script>
+  <script src="../../assets/search.js" defer></script>
+</body>
+</html>

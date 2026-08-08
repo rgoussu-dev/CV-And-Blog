@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Testing strategies — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../assets/styles.css" />
+  <link rel="stylesheet" href="../../assets/theme.css" />
+</head>
+<body data-prefix="../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/applicative-architecture</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../">~/library</a><span class="tok-path">/</span><span class="tok-path">applicative-architecture</span> <span class="tok-cmd">cat</span> <span class="tok-file">testing-strategies</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Testing strategies</h1>
+        <p class="lib-lede"><span class="tok-comment"># Testing as a strategy, not a ritual — the pyramid and its critics, contract and property-based testing, load and chaos, and testing in production.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-08</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../tags/#testing">#testing</a><a class="lib-tag" href="../../tags/#strategy">#strategy</a><a class="lib-tag" href="../../tags/#contract-testing">#contract-testing</a><a class="lib-tag" href="../../tags/#quality">#quality</a><a class="lib-tag" href="../../tags/#craft">#craft</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>TDD tells you <em>how</em> to write a test; a testing strategy decides <em>which kinds</em> of tests,
+in what proportion, catching which risks, at what cost. The classic answer is the test
+pyramid — many fast unit tests, fewer integration tests, a thin crust of end-to-end —
+but the interesting engineering is in its exceptions and its blind spots: contracts
+between services, properties instead of examples, load, failure injection, and the
+tests that can only run in production.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>The pyramid, and why it's shaped that way</strong>: cost and feedback speed rise as you
+climb; flakiness rises too (e2e tests fail for reasons unrelated to the change).
+The critiques matter: the &quot;testing trophy&quot; argues integration tests catch the most
+real bugs per line for API/UI code; testcontainers-style real-dependency tests have
+made &quot;integration&quot; much cheaper than when the pyramid was drawn. The honest rule:
+test each behavior at the <em>lowest</em> level that can actually falsify it.</li>
+<li><strong>Unit vs. integration is a seam question</strong>: sociable units (real collaborators,
+fake I/O) vs. solitary (mock everything) — over-mocking couples tests to internals
+and rots them (<a href="../../applicative-architecture/tdd/">TDD</a>'s London/Detroit trade). Ports from
+<a href="../../applicative-architecture/hexagonal-architecture/">hexagonal architecture</a> are the natural mocking line.</li>
+<li><strong>Contract testing</strong>: consumer-driven contracts (Pact-style) verify that provider
+and consumer agree on the API <em>without</em> spinning both up together — each side tests
+against the recorded contract in its own pipeline. This is what makes independently
+deployable <a href="../../system-design/microservice-architecture/">microservices</a> honest, and
+it replaces the integration-environment bottleneck that otherwise reappears.</li>
+<li><strong>Property-based testing</strong>: state invariants (&quot;encode∘decode = identity&quot;, &quot;sorted
+output is a permutation of input&quot;) and let the framework (QuickCheck lineage: jqwik,
+Hypothesis, proptest) generate and <em>shrink</em> counterexamples. Finds the edge cases
+nobody writes examples for; ideal for parsers, serializers, and anything with a
+round-trip.</li>
+<li><strong>Mutation testing</strong> (PIT, Stryker): seed artificial bugs and check the suite catches
+them — the only honest measure of suite strength; coverage only proves code <em>ran</em>.</li>
+<li><strong>Load &amp; resilience</strong>: performance tests belong in the strategy, not in launch week —
+k6/Gatling with realistic scenarios, percentile assertions, and coordinated-omission
+awareness (<a href="../../system-design/performance-engineering/">performance engineering</a>);
+chaos engineering (failure injection, starting in staging with a hypothesis) tests
+the <em>system's</em> error handling the way unit tests test a function's.</li>
+<li><strong>Testing in production is a tier, not a sin</strong>: smoke tests post-deploy, canary
+analysis, synthetic monitoring — some risks (config, data shape, scale) only exist
+there; <a href="../../platform/ci-cd-and-delivery-engineering/">progressive delivery</a> is the
+safety harness that makes it responsible.</li>
+<li><strong>Suite hygiene is strategy too</strong>: flaky tests quarantined and fixed (a suite people
+rerun is a suite people ignore), test data builders over shared fixtures,
+deterministic time/randomness injection.</li>
+<li>To explore: approval/snapshot testing (and its rubber-stamp failure mode), fuzzing
+as security-grade property testing, test impact analysis at scale.</li>
+</ul>
+<h2>Related</h2>
+<ul>
+<li><a href="../../applicative-architecture/tdd/">TDD</a> and <a href="../../applicative-architecture/bdd/">BDD</a> — the inner disciplines this strategy arranges.</li>
+<li><a href="../../platform/ci-cd-and-delivery-engineering/">CI/CD &amp; delivery engineering</a> — where
+each tier runs, and the deploy-time tiers.</li>
+<li><a href="../../system-design/microservice-architecture/">Microservice architecture</a> — contract
+testing as the independence guarantee.</li>
+<li><a href="../../system-design/performance-engineering/">Performance engineering</a> — the load-test
+methodology.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../assets/planks.js"></script>
+  <script src="../../assets/search.js" defer></script>
+</body>
+</html>

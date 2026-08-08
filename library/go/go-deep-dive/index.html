@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Deep dive Go — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../assets/styles.css" />
+  <link rel="stylesheet" href="../../assets/theme.css" />
+</head>
+<body data-prefix="../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/go</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../">~/library</a><span class="tok-path">/</span><span class="tok-path">go</span> <span class="tok-cmd">cat</span> <span class="tok-file">go-deep-dive</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Deep dive Go</h1>
+        <p class="lib-lede"><span class="tok-comment"># Go beneath the surface — goroutines and the scheduler, channels and CSP, interfaces, the GC, and the language's deliberate simplicity.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-08</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../tags/#go">#go</a><a class="lib-tag" href="../../tags/#concurrency">#concurrency</a><a class="lib-tag" href="../../tags/#internals">#internals</a><a class="lib-tag" href="../../tags/#runtime">#runtime</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>Go's design bet is radical simplicity: a small language, fast compilation, and one
+first-class concurrency story (goroutines + channels, from Hoare's CSP) baked into the
+runtime. Going deep means understanding that runtime — the M:N scheduler, the GC, how
+interfaces dispatch — and the idioms the community has settled on, because Go punishes
+fighting its grain more than most languages.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>Goroutines &amp; scheduler</strong>: G-M-P model (goroutines multiplexed onto OS threads via
+per-core run queues), work stealing, preemption; goroutines cost ~KBs — concurrency as
+a default, not an event.</li>
+<li><strong>Channels &amp; CSP</strong>: &quot;share memory by communicating&quot;; buffered vs. unbuffered, <code>select</code>,
+<code>context.Context</code> for cancellation as the idiom that ties it together; <code>sync</code> package
+when channels are the wrong tool.</li>
+<li><strong>Interfaces</strong>: implicit satisfaction, small interfaces (<code>io.Reader</code>) as the design
+unit; interface values = (type, pointer) pairs — the nil-interface trap.</li>
+<li><strong>Memory &amp; GC</strong>: escape analysis (stack vs. heap), concurrent tri-color mark-sweep
+tuned for low pause over throughput, <code>GOGC</code>/<code>GOMEMLIMIT</code>.</li>
+<li><strong>Error handling &amp; generics</strong>: explicit <code>error</code> returns, wrapping with <code>%w</code>,
+<code>errors.Is/As</code>; generics (1.18+) deliberately modest — used for containers and
+constraints, not type gymnastics.</li>
+<li><strong>Tooling as language feature</strong>: <code>go mod</code>, <code>gofmt</code> (no style debates), race detector,
+pprof profiling, single-binary cross-compilation.</li>
+<li>To explore: runtime internals (netpoller under goroutine I/O), PGO, when Go's
+simplicity becomes a ceiling (and the workarounds).</li>
+</ul>
+<h2>Related</h2>
+<ul>
+<li><a href="../../system-design/concurrency-and-parallelism/concurrency-and-parallelism/">Concurrency and Parallelism</a> —
+Go is the CSP branch of that crossroads.</li>
+<li><a href="../../java/java-deep-dive/">Deep dive Java</a> and <a href="../../rust/rust-deep-dive/">Deep dive Rust</a> —
+the contrasting runtime philosophies.</li>
+<li><a href="../../system-design/microservice-architecture/">Microservice architecture</a> — Go's sweet
+spot in practice.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../assets/planks.js"></script>
+  <script src="../../assets/search.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Message brokers &amp; event streaming — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../assets/styles.css" />
+  <link rel="stylesheet" href="../../assets/theme.css" />
+</head>
+<body data-prefix="../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/system-design</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../">~/library</a><span class="tok-path">/</span><span class="tok-path">system-design</span> <span class="tok-cmd">cat</span> <span class="tok-file">message-brokers-and-event-streaming</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Message brokers &amp; event streaming</h1>
+        <p class="lib-lede"><span class="tok-comment"># Kafka internals and the broker landscape — logs vs. queues, partitions, consumer groups, replication, and exactly-once semantics.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-08</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../tags/#kafka">#kafka</a><a class="lib-tag" href="../../tags/#messaging">#messaging</a><a class="lib-tag" href="../../tags/#event-streaming">#event-streaming</a><a class="lib-tag" href="../../tags/#distributed-systems">#distributed-systems</a><a class="lib-tag" href="../../tags/#system-design">#system-design</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>The deep dive behind the async patterns: how brokers actually work, with Kafka as the
+centerpiece because its design — a partitioned, replicated, append-only log — has become
+the reference model for event streaming. Understanding the internals (partitions, consumer
+groups, replication protocol, delivery semantics) is what turns &quot;we use Kafka&quot; into
+correctly reasoning about ordering, throughput, and failure.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>Log vs. queue is the fundamental split</strong>: queues (RabbitMQ, SQS) delete on ack —
+work distribution; logs (Kafka, Pulsar, Redpanda) retain and let consumers replay from
+any offset — events as durable history, multiple independent readers.</li>
+<li><strong>Kafka's anatomy</strong>: topics → partitions (the unit of ordering and parallelism; keys
+route to partitions — ordering holds per key only), segments on disk, sequential I/O +
+zero-copy + batching as the reason it's fast.</li>
+<li><strong>Consumer groups</strong>: one partition ↔ one consumer per group; rebalancing (and its
+pauses); offset commits are where at-least-once vs. at-most-once is actually decided;
+consumer lag as <em>the</em> health metric.</li>
+<li><strong>Replication</strong>: leader/follower per partition, in-sync replicas (ISR),
+<code>acks=all</code> + <code>min.insync.replicas</code> as the durability contract; KRaft replacing
+ZooKeeper for metadata consensus.</li>
+<li><strong>Delivery semantics</strong>: idempotent producer (dedup per partition), transactions across
+partitions, and &quot;exactly-once&quot; as exactly-once <em>stream processing</em> (read-process-write
+atomically) — not magic end-to-end delivery; consumers still need idempotency at the
+edges.</li>
+<li><strong>The ecosystem</strong>: Kafka Connect (CDC in, sinks out), stream processing (Kafka
+Streams, Flink), schema registry — Avro/Protobuf with enforced compatibility rules as
+the contract layer for events.</li>
+<li>To explore: partitioning strategy &amp; hot-key skew, retention vs. compaction, tiered
+storage, when RabbitMQ or NATS is honestly the better fit.</li>
+</ul>
+<h2>Related</h2>
+<ul>
+<li><a href="../../system-design/asynchronous-and-distributed-system-patterns/">Asynchronous and distributed system patterns</a> —
+the pattern language this infrastructure serves.</li>
+<li><a href="../../data-storage/databases-and-storage-systems/">Databases and other storage systems</a> —
+a Kafka topic is an LSM-flavored log; CDC bridges the two.</li>
+<li><a href="../../system-design/api-design/">API design</a> — schema registry compatibility is contract evolution for
+events.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../assets/planks.js"></script>
+  <script src="../../assets/search.js" defer></script>
+</body>
+</html>

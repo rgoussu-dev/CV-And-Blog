@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Code review — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../assets/styles.css" />
+  <link rel="stylesheet" href="../../assets/theme.css" />
+</head>
+<body data-prefix="../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/engineering-practice</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../">~/library</a><span class="tok-path">/</span><span class="tok-path">engineering-practice</span> <span class="tok-cmd">cat</span> <span class="tok-file">code-review</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Code review</h1>
+        <p class="lib-lede"><span class="tok-comment"># Review as a practice — what it's actually for, how to give and receive it well, and the process mechanics that keep it fast and humane.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-08</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../tags/#code-review">#code-review</a><a class="lib-tag" href="../../tags/#craft">#craft</a><a class="lib-tag" href="../../tags/#collaboration">#collaboration</a><a class="lib-tag" href="../../tags/#process">#process</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>Code review is the highest-leverage team practice in software — not primarily for
+catching bugs (tests do that better) but for knowledge spread, design feedback while
+change is still cheap, and maintaining a shared bar for the codebase. Done badly it's a
+bottleneck and a morale sink; the difference is almost entirely process mechanics
+(size, latency, tone) rather than reviewer brilliance.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>Know what review is for</strong>: readability and maintainability, design fit, knowledge
+transfer, and collective ownership. It is the <em>worst</em> tool for catching what a
+linter, formatter, or test can catch — automate those out of the conversation
+entirely so humans discuss only what humans must
+(<a href="../../platform/ci-cd-and-delivery-engineering/">CI/CD</a> gates first, review second).</li>
+<li><strong>Small changes or nothing works</strong>: review quality collapses with diff size (&quot;LGTM&quot;
+is what 2,000-line PRs receive); a few hundred lines with a clear narrative is the
+target — stacked/chained PRs for big features. The author's description (what, why,
+how to review it, what's deliberately out of scope) is half the review.</li>
+<li><strong>Author obligations</strong>: self-review the diff first (you'll catch a third of the
+comments yourself), respond to every comment (fix, or explain — silence is neither),
+and treat pushback on your code as pushback on the code, which it is.</li>
+<li><strong>Reviewer obligations</strong>: comment on the code, never the coder (&quot;this function could…&quot;
+not &quot;you didn't…&quot;); distinguish severity explicitly — blocking vs. <code>nit:</code> vs.
+question — so the author knows what matters; offer the <em>why</em> (a principle or a link,
+e.g. <a href="../../applicative-architecture/clean-code/">clean code</a>) not just the verdict;
+and approve when it's <em>better and good enough</em>, not when it's how you'd have
+written it. Google's standard is the reference: prefer continuous improvement over
+perfection.</li>
+<li><strong>Latency beats thoroughness</strong>: a review turnaround measured in hours keeps work
+flowing and diffs small; one measured in days <em>causes</em> the giant PRs everyone then
+complains about. Treat review as interrupt-priority work; a same-day SLO changes
+team dynamics more than any checklist.</li>
+<li><strong>Alternatives on the dial</strong>: pair programming is continuous review (no artifact,
+no latency); ensemble/mob for gnarly shared-context work; post-merge review for
+trusted trivial changes (trunk-based shops). The practice is negotiable, the
+feedback loop isn't.</li>
+<li>To explore: review checklists per change type, ownership models (CODEOWNERS),
+measuring review health (time-to-first-review, rework rate), AI-assisted review as
+first-pass filter.</li>
+</ul>
+<h2>Related</h2>
+<ul>
+<li><a href="../../applicative-architecture/clean-code/">Clean code</a> — the shared bar review
+enforces.</li>
+<li><a href="../../platform/ci-cd-and-delivery-engineering/">CI/CD &amp; delivery engineering</a> — small
+PRs and trunk-based development are the same discipline.</li>
+<li><a href="../../engineering-practice/technical-debt/">Technical debt</a> — review is where debt gets flagged or waved
+through.</li>
+<li><a href="../../applicative-architecture/architecture-documentation/">Architecture documentation</a> —
+ADRs settle the debates review keeps re-litigating.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../assets/planks.js"></script>
+  <script src="../../assets/search.js" defer></script>
+</body>
+</html>

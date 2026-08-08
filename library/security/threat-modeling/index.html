@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Threat modeling — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../assets/styles.css" />
+  <link rel="stylesheet" href="../../assets/theme.css" />
+</head>
+<body data-prefix="../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/security</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../">~/library</a><span class="tok-path">/</span><span class="tok-path">security</span> <span class="tok-cmd">cat</span> <span class="tok-file">threat-modeling</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Threat modeling</h1>
+        <p class="lib-lede"><span class="tok-comment"># Finding what can go wrong before building it — assets, trust boundaries, STRIDE, and keeping the practice lightweight.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-08</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../tags/#threat-modeling">#threat-modeling</a><a class="lib-tag" href="../../tags/#security">#security</a><a class="lib-tag" href="../../tags/#design">#design</a><a class="lib-tag" href="../../tags/#architecture">#architecture</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>Threat modeling is structured pessimism at design time: what are we building, what can go
+wrong, what will we do about it, and did we do enough (Shostack's four questions). It is
+the cheapest security work there is — a whiteboard hour that prevents the vulnerability
+classes no scanner will ever find, because they're flaws in the design, not the code.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>Start from a data-flow diagram</strong>: components, data stores, external entities, and —
+the crucial part — <strong>trust boundaries</strong> (internet→edge, service→service, app→database);
+threats cluster at the boundaries.</li>
+<li><strong>STRIDE as the checklist</strong>: Spoofing (identity), Tampering (integrity), Repudiation
+(deniability), Information disclosure (confidentiality), Denial of service
+(availability), Elevation of privilege (authorization) — walk each boundary asking all
+six.</li>
+<li><strong>Rank, don't drown</strong>: impact × likelihood (a lightweight DREAD substitute) to pick
+what's worth mitigating; explicitly accept the rest — an <em>accepted</em> risk written down
+beats an unexamined one.</li>
+<li><strong>Mitigations map to the catalog</strong>: each STRIDE finding points at a standard control —
+authn (<a href="../../security/authentication-and-authorization/">auth</a>), TLS/signing
+(<a href="../../security/tls-https-and-certificates/">TLS &amp; certificates</a>), audit logs, rate limits,
+least-privilege IAM.</li>
+<li><strong>Keep it lightweight and recurring</strong>: a session at design time for each significant
+feature, revisited when the architecture changes — not a one-off compliance artifact.
+&quot;What's the worst thing a malicious insider / a stolen laptop / a compromised
+dependency could do here?&quot; is a fine informal starter.</li>
+<li><strong>Abuse cases beat checklists for business logic</strong>: fraud, scraping, workflow abuse
+(buy at stale price, redeem twice) are invisible to STRIDE unless you model the
+<em>incentives</em>.</li>
+<li>To explore: attack trees, LINDDUN (privacy threats), threat modeling for LLM/agent
+systems (prompt injection as a new trust-boundary class).</li>
+</ul>
+<h2>Related</h2>
+<ul>
+<li><a href="../../security/appsec-fundamentals/">AppSec fundamentals</a> — the vulnerability catalog STRIDE
+points into.</li>
+<li><a href="../../security/secrets-management/">Secrets management</a> — a recurring finding.</li>
+<li><a href="../../system-design/system-design-fundamentals/">System design fundamentals</a> — the same
+diagrams, hostile reading.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../assets/planks.js"></script>
+  <script src="../../assets/search.js" defer></script>
+</body>
+</html>

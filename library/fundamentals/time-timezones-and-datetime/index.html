@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Time, timezones &amp; datetime — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../assets/styles.css" />
+  <link rel="stylesheet" href="../../assets/theme.css" />
+</head>
+<body data-prefix="../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/fundamentals</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../">~/library</a><span class="tok-path">/</span><span class="tok-path">fundamentals</span> <span class="tok-cmd">cat</span> <span class="tok-file">time-timezones-and-datetime</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Time, timezones &amp; datetime</h1>
+        <p class="lib-lede"><span class="tok-comment"># Instants, civil time, and the tzdb — storing time correctly, surviving DST, and the clock model under distributed systems.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-08</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../tags/#time">#time</a><a class="lib-tag" href="../../tags/#timezones">#timezones</a><a class="lib-tag" href="../../tags/#datetime">#datetime</a><a class="lib-tag" href="../../tags/#utc">#utc</a><a class="lib-tag" href="../../tags/#fundamentals">#fundamentals</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>Time bugs are a rite of passage because &quot;what time is it&quot; conflates three different
+types: an <em>instant</em> (a point on the physical timeline), <em>civil/wall time</em> (what a clock
+on a wall in some place reads), and a <em>timezone</em> (the politically-defined mapping
+between them, which changes). Modern datetime libraries (java.time, Temporal, chrono)
+encode this type distinction; most bugs are using the wrong type — or trusting the
+mapping to be stable, when it is neither fixed, nor reversible, nor gap-free.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>The type system of time</strong>: instant (UTC timestamp), local date/time (no zone —
+&quot;2026-12-25 09:00&quot; means nothing globally), zoned datetime (local + zone = usually
+an instant), duration (physical seconds) vs. period (&quot;one month&quot; — calendar
+arithmetic). Use the narrowest honest type; converting early and precisely beats
+strings everywhere.</li>
+<li><strong>Store UTC — with the famous exception</strong>: past events are instants, store UTC.
+But <em>future civil events</em> (a 9:00 meeting in Paris next June) must store local time
+<ul>
+<li>IANA zone (<code>Europe/Paris</code>, never a fixed offset, never &quot;CET&quot;), because the
+UTC↔local mapping can change between now and then (governments do this constantly —
+the tzdb ships several updates a year). Converting a future meeting to UTC at write
+time silently bakes in today's rules.</li>
+</ul>
+</li>
+<li><strong>DST makes local time non-continuous and ambiguous</strong>: spring-forward creates a gap
+(2:30 doesn't exist), fall-back an overlap (2:30 happens twice) — every scheduler
+and recurring job hits these; libraries let you choose resolution strategies, and
+&quot;daily at 2:30 local&quot; needs one. Never do arithmetic in local time (&quot;add 24h&quot; ≠
+&quot;same time tomorrow&quot; across a transition — that's a <em>period</em>, not a duration).</li>
+<li><strong>Offsets are not zones</strong>: +02:00 is a moment's offset; <code>Europe/Paris</code> is a rule
+set with history. ISO 8601 with offset (<code>2026-08-08T10:00:00+02:00</code>) pinpoints an
+instant but does <em>not</em> preserve the zone — round-tripping civil semantics needs the
+zone name (RFC 9557 extends the format for exactly this).</li>
+<li><strong>The machine's clocks</strong>: wall clocks jump (NTP corrections, manual changes) —
+never measure elapsed time with them; that's the <em>monotonic</em> clock's job
+(<code>System.nanoTime</code>, <code>CLOCK_MONOTONIC</code>). Across machines, clocks disagree despite
+NTP — the reason distributed systems reason with logical/hybrid clocks instead of
+timestamps (<a href="../../system-design/asynchronous-and-distributed-system-patterns/">async patterns</a>);
+leap seconds exist and clouds smear them.</li>
+<li><strong>Practical hygiene</strong>: test with zones like <code>Pacific/Kiritimati</code> (UTC+14),
+half-hour zones (India), and DST edges; inject the clock (a <code>Clock</code> dependency, not
+<code>now()</code> scattered) so tests control time
+(<a href="../../applicative-architecture/testing-strategies/">testing strategies</a>);
+format for users with locale-aware formatters at the edge — the ISO string is for
+machines. Database types: <code>timestamptz</code> stores instants (it does <em>not</em> store the
+zone), <code>timestamp</code> stores civil time — teams that don't know the difference are
+currently paged.</li>
+<li>To explore: recurring-event modeling (RRULE), calendar arithmetic edge cases
+(Jan 31 + 1 month), TAI vs. UTC, why aviation runs on UTC.</li>
+</ul>
+<h2>Related</h2>
+<ul>
+<li><a href="../../fundamentals/unicode-and-text-encoding/">Unicode &amp; text encoding</a> — the sibling fundamental.</li>
+<li><a href="../../system-design/asynchronous-and-distributed-system-patterns/">Asynchronous and distributed system patterns</a> —
+no-global-clock reasoning made formal.</li>
+<li><a href="../../data-storage/databases-and-storage-systems/">Databases and other storage systems</a> —
+the storage types where these choices persist.</li>
+<li><a href="../../data-storage/data-engineering/">Data engineering</a> — event time vs. processing
+time is this topic at pipeline scale.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../assets/planks.js"></script>
+  <script src="../../assets/search.js" defer></script>
+</body>
+</html>

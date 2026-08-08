@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Browser internals — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../assets/styles.css" />
+  <link rel="stylesheet" href="../../assets/theme.css" />
+</head>
+<body data-prefix="../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/frontend</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../">~/library</a><span class="tok-path">/</span><span class="tok-path">frontend</span> <span class="tok-cmd">cat</span> <span class="tok-file">browser-internals</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Browser internals</h1>
+        <p class="lib-lede"><span class="tok-comment"># What happens between URL and pixels — parsing, the rendering pipeline, the event loop, and the process/security model.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-08</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../tags/#frontend">#frontend</a><a class="lib-tag" href="../../tags/#browser">#browser</a><a class="lib-tag" href="../../tags/#rendering">#rendering</a><a class="lib-tag" href="../../tags/#event-loop">#event-loop</a><a class="lib-tag" href="../../tags/#internals">#internals</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>&quot;What happens when you type a URL&quot; is a cliché interview question because it threads
+through everything: networking, parsing, layout, paint, and JavaScript's concurrency
+model. For a working engineer the payoff is diagnostic — jank, layout thrashing, blocked
+main threads, and hydration mismatches all become legible once the pipeline underneath is
+concrete rather than folklore.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>From bytes to DOM</strong>: HTML parses incrementally into the DOM; CSS into the CSSOM;
+<code>&lt;script&gt;</code> (without <code>defer</code>/<code>async</code>) <em>blocks parsing</em> — the original reason for
+&quot;scripts at the bottom&quot; and the modern reason for <code>defer</code> as default.</li>
+<li><strong>The rendering pipeline</strong>: style → layout (geometry) → paint (pixels into layers) →
+composite (GPU assembles layers). Cost descends left to right: <code>width</code> triggers
+layout+paint+composite; <code>transform</code>/<code>opacity</code> composite only — the entire basis of
+&quot;animate transforms, not top/left&quot;.</li>
+<li><strong>The event loop</strong>: one main thread runs JS, style, layout, and paint; tasks
+(macrotasks) run one per loop turn, then the <em>entire</em> microtask queue (promises) drains
+before rendering gets a chance — a long task or a microtask storm freezes the page at
+~16ms/frame stakes. <code>requestAnimationFrame</code> before paint; workers for real off-thread
+compute.</li>
+<li><strong>Layout thrashing</strong>: interleaving DOM writes with reads of layout-forcing properties
+(<code>offsetHeight</code>…) forces synchronous reflow per iteration — batch reads, then writes;
+it's the classic self-inflicted performance bug.</li>
+<li><strong>Process &amp; security model</strong>: per-site processes (site isolation), the same-origin
+policy as the bedrock rule, CORS as its <em>relaxation</em> protocol (not a server shield),
+cookies vs. storage, and why the network tab shows preflights.</li>
+<li><strong>Modern rendering strategies sit on this</strong>: SSR streams HTML the parser can use
+immediately; hydration re-attaches JS to server-rendered DOM (mismatch bugs = the two
+renders disagreed); islands/server components shrink the JS that must hydrate at all.</li>
+<li>To explore: V8's JIT tiers and hidden classes, speculative parsing &amp; preload scanner,
+<code>content-visibility</code>, the RAIL model as budgets — and
+<a href="../../frontend/web-performance/">web performance</a> for the measurement side.</li>
+</ul>
+<h2>Related</h2>
+<ul>
+<li><a href="../../frontend/web-performance/">Web performance</a> — the metrics layer over this machinery.</li>
+<li><a href="../../system-administration/networking-fundamentals/">Networking fundamentals</a> — the
+URL-to-bytes half of the journey.</li>
+<li><a href="../../system-design/websockets-and-bidirectional-protocols/">WebSockets &amp; bidirectional protocols</a> —
+EventSource and WebSocket live in this runtime.</li>
+<li><a href="../../frontend/typescript-deep-dive/">TypeScript deep dive</a> — the language running on the main
+thread.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../assets/planks.js"></script>
+  <script src="../../assets/search.js" defer></script>
+</body>
+</html>
