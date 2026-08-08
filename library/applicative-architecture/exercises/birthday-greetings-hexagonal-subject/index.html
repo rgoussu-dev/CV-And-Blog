@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Birthday Greetings — hexagonal extraction — subject — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/applicative-architecture/exercises</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../applicative-architecture/">applicative-architecture</a><span class="tok-path">/</span><span class="tok-path">exercises</span> <span class="tok-cmd">cat</span> <span class="tok-file">birthday-greetings-hexagonal-subject</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Birthday Greetings — hexagonal extraction — subject</h1>
+        <p class="lib-lede"><span class="tok-comment"># The self-contained Birthday Greetings work statement — the greeting behavior, the flat starting design, the extraction assignment, and the checks that prove the boundary holds.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="subject">Subject</span><span class="lib-meta-date">saved 2026-08-08</span><a class="lib-chip lib-chip-src" href="https://matteo.vaccari.name/blog/archives/154" rel="noopener"><svg class="lib-ico" viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 11.5a3 3 0 0 0 4.2 0l2-2a3 3 0 0 0-4.2-4.2l-1 1"/><path d="M11.5 8.5a3 3 0 0 0-4.2 0l-2 2a3 3 0 0 0 4.2 4.2l1-1"/></svg>source</a></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#exercise">#exercise</a><a class="lib-tag" href="../../../tags/#hexagonal-architecture">#hexagonal-architecture</a><a class="lib-tag" href="../../../tags/#ports-and-adapters">#ports-and-adapters</a><a class="lib-tag" href="../../../tags/#tdd">#tdd</a><a class="lib-tag" href="../../../tags/#design">#design</a><a class="lib-tag" href="../../../tags/#subject">#subject</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Brief</h2>
+<p>You maintain a tiny office utility that runs every morning: it reads the employee list
+from a flat file and emails a birthday greeting to everyone whose birthday is today.
+It works, everyone likes it — and it is one class that does everything: file parsing,
+date logic, greeting text, SMTP. Nobody can test it without a mail server, and the
+office is about to move the employee list into a database. Your assignment is to
+refactor it into a hexagon — pure domain core behind ports, technology in adapters —
+and then <em>prove</em> the boundary by swapping the technology without touching the core.</p>
+<h2>Instructions</h2>
+<h3>The behavior (unchanged throughout)</h3>
+<ul>
+<li>Employees live in <code>employees.csv</code>, one per line, header included:
+<code>last_name, first_name, date_of_birth, email</code>, dates as <code>YYYY/MM/DD</code>.</li>
+<li>On each run, find every employee whose birthday — month and day of <code>date_of_birth</code> —
+matches the run date.</li>
+<li>Send each of them an email: subject <code>Happy birthday!</code>, body
+<code>Happy birthday, dear &lt;first_name&gt;!</code>.</li>
+<li>Employees with no birthday today get nothing; an empty match sends nothing.</li>
+</ul>
+<h3>The starting design (build it or take the kata's)</h3>
+<p>One class, no seams: it opens the file, parses lines, compares dates, builds the
+message, and talks to the mail library directly. This flat version is milestone 1 —
+ugly on purpose.</p>
+<h3>The extraction assignment</h3>
+<ol>
+<li>Build (or adopt) the naive flat version above.</li>
+<li>Pin the behavior with one end-to-end acceptance test at the system edges: a fixture
+CSV in, a fake SMTP server or captured output out.</li>
+<li>Untangle the pure logic — &quot;who has a birthday on date X&quot; and the greeting content —
+from all I/O. No interfaces yet.</li>
+<li>Extract two driven ports <strong>owned by the core</strong>: <code>EmployeeRepository</code> (provides
+employees) and <code>GreetingSender</code> (delivers greetings). The CSV reader and the mail
+sender become adapters implementing them.</li>
+<li>Unit-test the core against in-memory fakes; write one contract test per port that
+both the real adapter and the fake must pass.</li>
+<li>Add a second adapter pair — an SQLite <code>EmployeeRepository</code> and a console or Slack
+<code>GreetingSender</code> — selected purely by wiring at startup.</li>
+</ol>
+<h2>Examples</h2>
+<p><code>employees.csv</code>:</p>
+<pre><code class="language-csv">last_name, first_name, date_of_birth, email
+Doe, John, 1982/10/08, john.doe@foobar.com
+Ann, Mary, 1975/09/11, mary.ann@foobar.com
+</code></pre>
+<p>A run dated <strong>October 8</strong> sends exactly one email:</p>
+<pre><code>To:      john.doe@foobar.com
+Subject: Happy birthday!
+
+Happy birthday, dear John!
+</code></pre>
+<p>A run dated October 9 sends nothing.</p>
+<h2>Constraints</h2>
+<ul>
+<li>Behavior stays identical through every step — the acceptance test from step 2 must
+pass unchanged from milestone 2 onward.</li>
+<li>After step 4, the core <strong>imports nothing from infrastructure</strong>: no file, SQL, or mail
+types cross the ports; the interfaces speak domain language (employees, greetings).</li>
+<li>The final swap (step 6) may only touch adapter code and wiring — a single changed
+line in the core means the boundary is a fiction.</li>
+<li>Hand-roll the fakes; no mocking framework needed at this size.</li>
+</ul>
+<h2>Acceptance</h2>
+<p>Mapped to the exercise's milestones:</p>
+<ol>
+<li>The flat version reproduces the example above end to end.</li>
+<li>The acceptance test runs the whole program against a fixture CSV and asserts on the
+captured outgoing messages — and fails if the greeting text or recipients change.</li>
+<li>The birthday rule and greeting content are callable with plain values — no file or
+mail object in sight.</li>
+<li><code>EmployeeRepository</code> and <code>GreetingSender</code> are defined in the core's package/module;
+dependency arrows all point inward.</li>
+<li>Core unit tests run without touching disk or network; each port has a contract test
+green against both its real adapter and its fake.</li>
+<li>Switching CSV→SQLite and SMTP→console is a wiring-only change with zero core diffs,
+and the acceptance test still passes.</li>
+</ol>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../applicative-architecture/exercises/birthday-greetings-hexagonal/">Birthday Greetings — hexagonal extraction</a> — the
+exercise this is the subject of.</li>
+<li><a href="https://matteo.vaccari.name/blog/archives/154" rel="noopener">Matteo Vaccari — the Birthday Greetings kata</a> —
+the original statement this is adapted from.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

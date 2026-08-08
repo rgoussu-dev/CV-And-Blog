@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Build your own database — subject — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/data-storage/exercises</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../data-storage/">data-storage</a><span class="tok-path">/</span><span class="tok-path">exercises</span> <span class="tok-cmd">cat</span> <span class="tok-file">build-your-own-database-subject</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Build your own database — subject</h1>
+        <p class="lib-lede"><span class="tok-comment"># The build spec for a SQLite-style engine — REPL grammar, row and page formats, pager, B-tree node layouts and splits, WAL with crash-proof replay, and a secondary index.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="subject">Subject</span><span class="lib-meta-date">saved 2026-08-08</span><a class="lib-chip lib-chip-src" href="https://cstack.github.io/db_tutorial/" rel="noopener"><svg class="lib-ico" viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 11.5a3 3 0 0 0 4.2 0l2-2a3 3 0 0 0-4.2-4.2l-1 1"/><path d="M11.5 8.5a3 3 0 0 0-4.2 0l-2 2a3 3 0 0 0 4.2 4.2l1-1"/></svg>source</a></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#exercise">#exercise</a><a class="lib-tag" href="../../../tags/#databases">#databases</a><a class="lib-tag" href="../../../tags/#storage">#storage</a><a class="lib-tag" href="../../../tags/#data-structures">#data-structures</a><a class="lib-tag" href="../../../tags/#subject">#subject</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Brief</h2>
+<p>Build a single-file, single-table database engine with an interactive shell, in any
+language (C follows the original most closely; the formats below are
+language-neutral). The table is fixed-schema — <code>id INTEGER PRIMARY KEY, username VARCHAR(32), email VARCHAR(255)</code> — which keeps parsing trivial and puts all the
+difficulty where it belongs: pages, trees, and durability. By the end, rows survive
+<code>kill -9</code>, lookups are logarithmic, and you can explain every byte in the file.</p>
+<h2>Instructions</h2>
+<h3>1. REPL and grammar</h3>
+<p>An interactive prompt (<code>db &gt; </code>) accepting:</p>
+<ul>
+<li><strong>Meta-commands</strong>, prefixed with a dot: <code>.exit</code>; add <code>.btree</code> (print the tree) and
+<code>.constants</code> (print layout constants) as you go — they are your debugger.</li>
+<li><strong>Statements</strong>:
+<ul>
+<li><code>insert &lt;id&gt; &lt;username&gt; &lt;email&gt;</code> — id is a positive integer; strings are
+space-delimited (no quoting needed).</li>
+<li><code>select</code> — print every row as <code>(id, username, email)</code> in key order.</li>
+<li>Later: <code>select &lt;id&gt;</code> (point lookup) and <code>select where email = &lt;value&gt;</code> (via the
+secondary index).</li>
+</ul>
+</li>
+<li>Unrecognized input gets a specific error (<code>Unrecognized keyword at start of '…'</code>), oversized strings and negative ids are rejected at parse time — the
+statement is validated before it executes.</li>
+</ul>
+<h3>2. Row format and in-memory pages</h3>
+<ul>
+<li>A serialized row is fixed-size: <code>id</code> u32 little-endian, <code>username</code> 32 bytes,
+<code>email</code> 255 bytes, null-padded — offsets are compile-time constants.</li>
+<li>Storage is organized in <strong>4096-byte pages</strong> held in a page array; rows pack
+contiguously. First version: append-only, full-scan <code>select</code>, memory only.</li>
+</ul>
+<h3>3. The pager</h3>
+<ul>
+<li>All page access goes through a pager: <code>get_page(page_num)</code> returns a cached page,
+reading it from the database file on first touch (a page-sized cache slot per
+page; no eviction needed at this scale).</li>
+<li>On <code>.exit</code>, flush dirty pages to the file at <code>page_num * 4096</code>. Reopening the file
+finds the data: file length / page size tells you what exists.</li>
+</ul>
+<h3>4. B-tree leaf nodes</h3>
+<p>Replace the packed array with one page = one B-tree node. Common node header:
+node-type byte, is-root byte, parent pointer (u32). <strong>Leaf</strong> body: cell count
+(u32), next-leaf pointer (u32, 0 = none, for range scans), then cells — each cell a
+key (u32) + serialized row, kept <strong>sorted by key</strong>.</p>
+<ul>
+<li>Insert finds the position by <strong>binary search</strong>; duplicate keys are an error
+(<code>Error: Duplicate key.</code>).</li>
+<li>When a leaf overflows, <strong>split</strong>: allocate a sibling, move the upper half of the
+cells, wire the next-leaf pointers, push the split key to the parent.</li>
+</ul>
+<h3>5. Internal nodes and the full tree</h3>
+<p><strong>Internal</strong> body: key count (u32), rightmost-child pointer (u32), then pairs of
+(child pointer u32, max key in that child u32).</p>
+<ul>
+<li><strong>Root split</strong>: the root's contents move to a fresh page; the root page itself
+becomes the new root (internal node with two children) so the root's page number
+never changes (page 0 forever).</li>
+<li>Point lookups and inserts descend by binary search over the keys; <code>select</code> walks
+the leftmost leaf then follows next-leaf pointers.</li>
+<li>Internal-node splitting must work too — inserting thousands of keys in random
+order may not corrupt the tree (<code>.btree</code> output stays consistent).</li>
+</ul>
+<h3>6. Write-ahead log</h3>
+<p>Durability, past the tutorial's edge:</p>
+<ul>
+<li><strong>Record format</strong> (yours to refine, but at least): record type
+(page-write/commit), page number, page image (or a delta), and a <strong>checksum</strong>
+(CRC32 over the record) so a torn tail is detectable.</li>
+<li>Every mutation appends its record(s) plus a commit record to the WAL and
+<strong>fsyncs the WAL before acknowledging</strong> the insert; only then may the pager write
+the page in place (or defer it).</li>
+<li><strong>On open</strong>: scan the WAL, discard anything after the last valid-checksummed
+commit, replay the rest onto the data file, fsync, then truncate.</li>
+<li><strong>Checkpoint</strong>: when the WAL exceeds a threshold (or on a <code>.checkpoint</code>
+meta-command), flush all replayed/dirty state to the main file, fsync it, truncate
+the WAL.</li>
+<li>Write the crash-test harness: a script that spawns the REPL feeding it inserts,
+<code>kill -9</code>s it at random points in a loop, reopens, and verifies every
+acknowledged row is present and the tree is well-formed.</li>
+</ul>
+<h3>7. Secondary index</h3>
+<ul>
+<li>A second B-tree (same node formats) keyed on <code>email</code> (fixed 255-byte key or a
+hash of it — decide and document), whose values are row ids (the primary key).</li>
+<li>Maintained <strong>in the same logical write</strong> as the primary insert — WAL covers both,
+so a crash can't leave them out of sync.</li>
+<li><code>select where email = …</code> descends the index then the primary tree.</li>
+<li>Benchmark: N random inserts and M point reads by email, with and without the
+index — show the read speedup and measure the write tax.</li>
+</ul>
+<h2>Examples</h2>
+<pre><code>db &gt; insert 1 user1 person1@example.com
+Executed.
+db &gt; insert 2 user2 person2@example.com
+Executed.
+db &gt; select
+(1, user1, person1@example.com)
+(2, user2, person2@example.com)
+Executed.
+db &gt; insert 1 dup dup@example.com
+Error: Duplicate key.
+db &gt; .exit
+</code></pre>
+<h2>Constraints</h2>
+<ul>
+<li>No storage, B-tree, or serialization libraries — stdlib file I/O and memory only.
+(Testing libraries and a CRC implementation are fine.)</li>
+<li>Page size stays 4096 bytes everywhere; all multi-byte integers little-endian.</li>
+<li>Every stage keeps the previous stage's tests passing; keep a growing test file of
+REPL sessions (script in / expected out).</li>
+</ul>
+<h2>Acceptance</h2>
+<p>Mapped to the exercise's milestones:</p>
+<ol>
+<li><strong>REPL</strong> — the session in Examples behaves exactly as shown for the happy paths;
+bad input (unknown keyword, string too long, negative id) yields the specific
+error and a clean next prompt.</li>
+<li><strong>In-memory table</strong> — insert then select round-trips rows; a row exactly filling
+the last page slot works; inserting past the page-array cap reports a full table
+rather than corrupting.</li>
+<li><strong>Pager</strong> — insert, <code>.exit</code>, reopen, <code>select</code>: rows are back. Hexdump the file
+and point at a row's bytes.</li>
+<li><strong>Leaf nodes</strong> — out-of-order inserts come back sorted; duplicate key errors;
+overflowing one leaf produces a split visible in <code>.btree</code>.</li>
+<li><strong>Full tree</strong> — 10k random-order inserts: <code>select</code> returns all in order,
+<code>select &lt;id&gt;</code> touches only ~log-depth pages (instrument the pager to count),
+<code>.btree</code> shows a balanced multi-level tree.</li>
+<li><strong>WAL</strong> — the crash-test harness runs ≥100 kill-reopen cycles with zero
+acknowledged-row loss and zero malformed trees; a WAL with a torn final record
+opens cleanly, dropping only the unacknowledged tail.</li>
+<li><strong>Secondary index</strong> — email lookups return the same rows as a full scan;
+crash-testing during indexed inserts never de-syncs the two trees; the benchmark
+table (reads/sec, writes/sec, with/without index) is committed with the code.</li>
+</ol>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../data-storage/exercises/build-your-own-database/">Build your own database</a> — the exercise note this is
+the subject of.</li>
+<li><a href="https://cstack.github.io/db_tutorial/" rel="noopener">Let's Build a Simple Database (cstack)</a> —
+the tutorial stages 1–5 condense; formats above stay compatible with its spirit,
+not its exact bytes.</li>
+<li><a href="https://build-your-own.org/database/" rel="noopener">build-your-own.org — database book</a> — the
+Go-flavored alternative source.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

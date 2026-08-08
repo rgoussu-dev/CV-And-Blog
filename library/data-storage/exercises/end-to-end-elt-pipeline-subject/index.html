@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>End-to-end ELT pipeline — subject — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/data-storage/exercises</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../data-storage/">data-storage</a><span class="tok-path">/</span><span class="tok-path">exercises</span> <span class="tok-cmd">cat</span> <span class="tok-file">end-to-end-elt-pipeline-subject</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">End-to-end ELT pipeline — subject</h1>
+        <p class="lib-lede"><span class="tok-comment"># The work statement for the laptop-scale modern data stack — DuckDB + dbt layers and tests, a star schema with an SCD2 dimension, idempotent ingestion with late data, orchestrated backfills, and CI gates.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="subject">Subject</span><span class="lib-meta-date">saved 2026-08-08</span><a class="lib-chip lib-chip-src" href="https://github.com/dbt-labs/jaffle_shop" rel="noopener"><svg class="lib-ico" viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 11.5a3 3 0 0 0 4.2 0l2-2a3 3 0 0 0-4.2-4.2l-1 1"/><path d="M11.5 8.5a3 3 0 0 0-4.2 0l-2 2a3 3 0 0 0 4.2 4.2l1-1"/></svg>source</a></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#exercise">#exercise</a><a class="lib-tag" href="../../../tags/#data-engineering">#data-engineering</a><a class="lib-tag" href="../../../tags/#etl">#etl</a><a class="lib-tag" href="../../../tags/#dbt">#dbt</a><a class="lib-tag" href="../../../tags/#warehouse">#warehouse</a><a class="lib-tag" href="../../../tags/#subject">#subject</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Brief</h2>
+<p>You are the sole data engineer for a small e-commerce shop (the &quot;jaffle shop&quot;:
+customers place orders of one or more items and pay for them). Analytics today is a
+spreadsheet. Build the whole pipeline — ingestion, warehouse, modeled marts, tests,
+orchestration, CI — as versioned code on your laptop, sized so every run finishes in
+seconds but shaped exactly like the production article. Everything must be
+reproducible from a fresh clone: <code>git clone</code> → documented bootstrap → working
+warehouse.</p>
+<h2>Instructions</h2>
+<h3>Stack (fixed)</h3>
+<ul>
+<li><strong>Warehouse</strong>: DuckDB, one <code>.duckdb</code> file (git-ignored).</li>
+<li><strong>Transforms</strong>: dbt (dbt-core + dbt-duckdb), one project, all models SQL.</li>
+<li><strong>Ingestion</strong>: a Python job you write.</li>
+<li><strong>Orchestrator</strong>: Dagster (or Airflow — pick one and stay with it).</li>
+<li><strong>CI</strong>: GitHub Actions (or equivalent) on every pull request.</li>
+</ul>
+<h3>Dataset</h3>
+<p>Start from the jaffle shop's raw CSVs (customers, orders, payments) loaded as dbt
+seeds — the training wheels. From the ingestion stage onward the seeds are replaced
+by a <strong>source you control</strong>: a small generator script that emits order/payment events
+with timestamps into Postgres (or SQLite) — including out-of-order and late-arriving
+events, which the pipeline must survive.</p>
+<h3>Layering</h3>
+<p>Three dbt layers, cleanly separated, no layer-skipping:</p>
+<ul>
+<li><code>staging/</code> — one view per source table (<code>stg_customers</code>, <code>stg_orders</code>,
+<code>stg_payments</code>): rename, cast, deduplicate; no joins, no business logic. Sources
+declared in YAML with freshness config.</li>
+<li><code>marts/</code> — tables. Business logic lives here only.</li>
+<li>Every model and column of the marts documented in YAML; <code>dbt docs generate</code> must
+show an unbroken lineage graph source → staging → marts.</li>
+</ul>
+<h3>Star schema (the marts layer)</h3>
+<ul>
+<li><strong><code>fct_order_items</code></strong> — the fact, at <strong>order-line grain</strong>: one row per item on an
+order, with surrogate key, foreign keys to the dimensions, order timestamp,
+quantity, unit price, amount paid.</li>
+<li><strong><code>dim_customers</code></strong> — <strong>slowly-changing type 2</strong>: one row per customer <em>version</em>,
+with <code>valid_from</code>, <code>valid_to</code>, <code>is_current</code>; a customer changing address/segment
+closes the old row and opens a new one (dbt snapshots are the natural mechanism).</li>
+<li><strong><code>dim_date</code></strong> — a generated calendar dimension (day, week, month, quarter,
+weekday/weekend).</li>
+<li>An example mart query answering &quot;what did we know then&quot;: revenue by customer
+segment <em>as of a past date</em>, joining the fact to the dimension version valid at
+that time.</li>
+</ul>
+<h3>Tests</h3>
+<ul>
+<li><strong>Generic</strong>: every primary key <code>unique</code> + <code>not_null</code>; every foreign key a
+<code>relationships</code> test to its dimension; an <code>accepted_values</code> test on order status.</li>
+<li><strong>Freshness</strong>: source freshness thresholds that fail when the generator hasn't
+delivered recently.</li>
+<li><strong>At least one singular test</strong> — a business rule written as SQL returning
+offending rows, e.g. <em>&quot;no order's payments may total more than its order amount&quot;</em>
+or <em>&quot;every current SCD2 customer has exactly one <code>is_current</code> row&quot;</em>.</li>
+<li>Prove the net works: a documented &quot;chaos&quot; script corrupts the raw layer (duplicate
+keys, null ids, orphan orders) and the build must fail loudly on each corruption.</li>
+</ul>
+<h3>Ingestion (replacing the seeds)</h3>
+<ul>
+<li>Incremental extraction from the source by cursor (updated-at watermark), landing
+into a <code>raw</code> schema with load metadata (<code>_loaded_at</code>, batch id).</li>
+<li><strong>Idempotent</strong>: keyed merge/upsert, never blind append — re-running any batch, or
+overlapping windows, produces zero duplicates.</li>
+<li><strong>Late data</strong>: events arriving with old timestamps land correctly and downstream
+incremental models pick them up (a lookback window on the incremental
+materialization).</li>
+</ul>
+<h3>Orchestration &amp; backfills</h3>
+<ul>
+<li>One DAG: generator/ingestion → dbt build (staging → marts, tests inline), with
+retries and a daily schedule.</li>
+<li><strong>Backfill semantics</strong>: runs are parameterized by logical date/partition; a single
+CLI command backfills a named 3-day gap, re-running ingestion and transforms for
+just those partitions, idempotently.</li>
+</ul>
+<h3>CI</h3>
+<p>On every pull request, a pipeline that: installs pinned dependencies, <code>dbt deps</code> +
+<code>dbt parse</code>/compile, then <strong>builds the whole project into a scratch (throwaway)
+schema/database with all tests</strong> against a small fixture dataset. Red check blocks
+merge. Add a lint step (sqlfluff) if time allows.</p>
+<h2>Constraints</h2>
+<ul>
+<li>Laptop-only and free: no cloud warehouse, no paid orchestrator (cloud is the
+stretch goal in the exercise note).</li>
+<li>Raw data is immutable once landed — transforms never <code>UPDATE</code> the raw layer.</li>
+<li>Every artifact (models, tests, DAG, generator, chaos script, CI config) is in git;
+the README's bootstrap section is the only setup path anyone needs.</li>
+</ul>
+<h2>Acceptance</h2>
+<p>Mapped to the exercise's milestones:</p>
+<ol>
+<li><strong>Warehouse up</strong> — fresh clone + bootstrap: <code>dbt build</code> is green; a mart query
+returns rows from a DuckDB CLI.</li>
+<li><strong>Layers &amp; docs</strong> — no mart references a source directly (staging-only
+<code>ref</code>s); <code>dbt docs generate</code> renders full lineage; every mart column carries a
+description.</li>
+<li><strong>Tests</strong> — full generic + singular suite green on clean data; each chaos-script
+corruption makes <code>dbt build</code> fail with the failing test named.</li>
+<li><strong>Star schema</strong> — <code>fct_order_items</code> grain verified (row count = total line
+items, unique surrogate key); changing a customer's segment in the source and
+re-running yields two versions with contiguous validity ranges and one
+<code>is_current</code>; the &quot;as-of&quot; query returns different segments for different as-of
+dates.</li>
+<li><strong>Ingestion</strong> — run the load twice back-to-back: row counts identical, zero
+duplicates. Inject a late event (timestamp three days old): after the next run
+it appears in the correct partitions downstream.</li>
+<li><strong>Orchestration</strong> — the DAG runs green on schedule; one command backfills a
+3-day hole, and re-running that same backfill changes nothing (idempotent).</li>
+<li><strong>CI</strong> — open a PR that removes a <code>not_null</code> constraint's underlying guarantee
+(or breaks a model): the check goes red; revert, it goes green — screenshot or
+link the runs.</li>
+</ol>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../data-storage/exercises/end-to-end-elt-pipeline/">End-to-end ELT pipeline</a> — the exercise note this is
+the subject of.</li>
+<li><a href="https://github.com/dbt-labs/jaffle_shop" rel="noopener">jaffle_shop (dbt-labs)</a> — the seed
+project the dataset framing starts from.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

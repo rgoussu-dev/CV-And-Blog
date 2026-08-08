@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Build your own container runtime — subject — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/platform/exercises</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../platform/">platform</a><span class="tok-path">/</span><span class="tok-path">exercises</span> <span class="tok-cmd">cat</span> <span class="tok-file">build-your-own-container-runtime-subject</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Build your own container runtime — subject</h1>
+        <p class="lib-lede"><span class="tok-comment"># The program spec for a minimal container runtime — run-command semantics, namespaces, pivot_root, cgroup v2 limits, veth networking, and OCI image pulling, with acceptance per stage.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="subject">Subject</span><span class="lib-meta-date">saved 2026-08-08</span><a class="lib-chip lib-chip-src" href="https://github.com/lizrice/containers-from-scratch" rel="noopener"><svg class="lib-ico" viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 11.5a3 3 0 0 0 4.2 0l2-2a3 3 0 0 0-4.2-4.2l-1 1"/><path d="M11.5 8.5a3 3 0 0 0-4.2 0l-2 2a3 3 0 0 0 4.2 4.2l1-1"/></svg>source</a></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#exercise">#exercise</a><a class="lib-tag" href="../../../tags/#containers">#containers</a><a class="lib-tag" href="../../../tags/#linux">#linux</a><a class="lib-tag" href="../../../tags/#platform">#platform</a><a class="lib-tag" href="../../../tags/#subject">#subject</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Brief</h2>
+<p>Write <code>mycontainer</code>, a command-line program that runs an arbitrary command inside a
+container of your own making: isolated hostname and process view, its own root
+filesystem, bounded memory and CPU, its own network, and eventually a real image pulled
+straight from a registry. No Docker, no containerd, no runc — only syscalls (Go's
+<code>syscall</code>/<code>golang.org/x/sys</code> is the classic vehicle; any language that can clone with
+namespace flags works). You are building the proof that a container is an ordinary
+Linux process wearing kernel features.</p>
+<h2>Instructions</h2>
+<h3>Command-line contract</h3>
+<pre><code>mycontainer run [--mem &lt;MB&gt;] [--cpu &lt;fraction&gt;] &lt;image|rootfs&gt; &lt;cmd&gt; [args…]
+</code></pre>
+<ul>
+<li><code>run</code> creates the container and executes <code>&lt;cmd&gt;</code> inside it, wiring the child's
+stdin/stdout/stderr to yours.</li>
+<li>The parent waits for the child and <strong>propagates its exit code</strong> as its own.</li>
+<li>Until the image stage, <code>&lt;image|rootfs&gt;</code> may be a path to a pre-extracted rootfs
+directory; from stage 5 it is an image reference like <code>alpine:latest</code>.</li>
+</ul>
+<h3>Stage 1 — namespaces (UTS, then PID)</h3>
+<ul>
+<li><code>run</code> must re-execute itself (the fork/exec-self trick: a hidden <code>child</code> subcommand)
+so namespace setup happens in the parent and in-namespace setup in the child.</li>
+<li>Create the child with new <strong>UTS</strong> and <strong>PID</strong> namespaces (<code>CLONE_NEWUTS | CLONE_NEWPID</code>); inside, set a container hostname before exec'ing <code>&lt;cmd&gt;</code>.</li>
+</ul>
+<h3>Stage 2 — a root of one's own (mount namespace + pivot_root)</h3>
+<ul>
+<li>Obtain an Alpine mini-root filesystem tarball and extract it once; this is your
+rootfs.</li>
+<li>Add a new <strong>mount</strong> namespace. In the child: mark mount propagation private,
+bind-mount the rootfs onto itself, <code>pivot_root</code> into it (fallback: <code>chroot</code>, but
+know what you give up), unmount and remove the old root, and mount a fresh
+<strong><code>/proc</code></strong> so process tooling works.</li>
+</ul>
+<h3>Stage 3 — cgroup v2 resource limits</h3>
+<ul>
+<li>Create a per-container group under <code>/sys/fs/cgroup/</code> (e.g.
+<code>mycontainer/&lt;container-id&gt;/</code>), enable the <code>memory</code> and <code>cpu</code> controllers, and add
+the child's PID to <code>cgroup.procs</code> <strong>before</strong> it execs the user command.</li>
+<li><code>--mem</code> writes <code>memory.max</code> (and set <code>memory.swap.max</code> to 0 so the limit is real);
+<code>--cpu</code> writes <code>cpu.max</code> as a quota/period pair.</li>
+<li>Remove the group on exit.</li>
+</ul>
+<h3>Stage 4 — networking (net namespace + veth)</h3>
+<ul>
+<li>Add a new <strong>network</strong> namespace. From the parent: create a veth pair, move one end
+into the child's namespace, assign addresses on a small private subnet (e.g.
+<code>10.0.0.0/24</code>), bring both ends up, set the default route inside.</li>
+<li>On the host: enable IP forwarding and add a NAT/masquerade rule so container traffic
+reaches the outside world. Provide DNS inside (write a <code>resolv.conf</code> in the rootfs).</li>
+</ul>
+<h3>Stage 5 — real OCI images</h3>
+<p>Implement enough of the OCI distribution API to run <code>mycontainer run alpine:latest sh</code>
+with nothing pre-extracted:</p>
+<ol>
+<li><strong>Auth</strong>: request a pull token from the registry's token endpoint (for Docker Hub:
+<code>auth.docker.io</code>, service <code>registry.docker.io</code>, scope <code>repository:library/&lt;image&gt;:pull</code>).</li>
+<li><strong>Manifest</strong>: fetch the manifest (handle the manifest-list/index case by selecting
+your architecture), using the OCI/Docker v2 media-type Accept headers.</li>
+<li><strong>Layers</strong>: download each layer blob by digest, verify the digest, and extract the
+gzipped tarballs <strong>in order</strong> into a per-image rootfs — or mount them as overlayfs
+lowerdirs with a fresh upperdir per container for true copy-on-write.</li>
+<li>Cache pulled layers by digest so the second run of the same image downloads
+nothing.</li>
+</ol>
+<h3>Stage 6 — UX hardening</h3>
+<p>Argument parsing with helpful errors, <code>--mem</code>/<code>--cpu</code> defaults, cleanup of cgroup,
+veth, and mounts on every exit path (including the child crashing), and a <code>--help</code>
+that lets a colleague use the tool without reading the source.</p>
+<h2>Constraints</h2>
+<ul>
+<li>Do not shell out to <code>docker</code>, <code>podman</code>, <code>runc</code>, or <code>ctr</code> for any container work
+(calling <code>ip</code>/<code>iptables</code> for host-side network plumbing is acceptable; extracting
+tarballs with your language's stdlib is preferred over <code>tar</code>).</li>
+<li>Root is assumed; rootless operation is a stretch goal, not a requirement.</li>
+<li>Keep each stage's work on its own commit(s) so the build-up stays reviewable.</li>
+</ul>
+<h2>Acceptance</h2>
+<p>Mapped to the exercise's milestones:</p>
+<ol>
+<li><strong>Namespaces</strong> — inside: <code>hostname</code> shows the container name; after stage 2,
+<code>ps</code> shows the command as PID 1. Outside, in a second terminal: the host's
+hostname is unchanged while the container runs.</li>
+<li><strong>Rootfs</strong> — inside: <code>/</code> lists the Alpine tree, <code>ls /proc</code> shows only container
+PIDs, and no path (<code>..</code>, <code>/proc/1/root</code>…) escapes to the host filesystem.</li>
+<li><strong>Cgroups</strong> — run a memory hog (e.g. a loop appending to a slice, or
+<code>dd</code>/<code>stress</code>) with <code>--mem 100</code>: the process is OOM-killed near 100 MB and the
+host stays healthy; with <code>--cpu 0.5</code>, a busy loop is pinned at ~50% of one core
+(<code>top</code> on the host confirms).</li>
+<li><strong>Network</strong> — inside: <code>ping &lt;host-veth-ip&gt;</code> and <code>ping 8.8.8.8</code> succeed and a DNS
+name resolves; the container's interfaces are invisible from the host's default
+namespace.</li>
+<li><strong>Images</strong> — <code>mycontainer run alpine:latest sh</code> works on a clean cache directory:
+token fetched, manifest resolved for your architecture, layer digests verified,
+filesystem correct (a file added by a later layer wins over earlier ones).
+Second run: zero blob downloads.</li>
+<li><strong>UX</strong> — <code>echo $?</code> after <code>mycontainer run alpine sh -c 'exit 42'</code> prints 42;
+after any run, no leftover cgroup directory, veth interface, or mount remains.</li>
+</ol>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../platform/exercises/build-your-own-container-runtime/">Build your own container runtime</a> — the
+exercise note this is the subject of.</li>
+<li><a href="https://github.com/lizrice/containers-from-scratch" rel="noopener">Containers from Scratch (Liz Rice)</a> —
+the seed demo this spec grows out of.</li>
+<li><a href="https://codingchallenges.fyi/challenges/intro/" rel="noopener">Coding Challenges — Build Your Own Docker</a> —
+the same ground as a challenge series.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

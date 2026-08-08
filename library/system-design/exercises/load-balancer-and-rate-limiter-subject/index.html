@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Build a load balancer &amp; rate limiter — subject — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/system-design/exercises</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../system-design/">system-design</a><span class="tok-path">/</span><span class="tok-path">exercises</span> <span class="tok-cmd">cat</span> <span class="tok-file">load-balancer-and-rate-limiter-subject</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Build a load balancer &amp; rate limiter — subject</h1>
+        <p class="lib-lede"><span class="tok-comment"># The full work statement for the API-edge build — the L7 load balancer spec, the rate-limiter algorithms and response contract, their composition, and the load-test protocol with a measured p99.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="subject">Subject</span><span class="lib-meta-date">saved 2026-08-08</span><a class="lib-chip lib-chip-src" href="https://codingchallenges.fyi/challenges/intro/" rel="noopener"><svg class="lib-ico" viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 11.5a3 3 0 0 0 4.2 0l2-2a3 3 0 0 0-4.2-4.2l-1 1"/><path d="M11.5 8.5a3 3 0 0 0-4.2 0l-2 2a3 3 0 0 0 4.2 4.2l1-1"/></svg>source</a></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#exercise">#exercise</a><a class="lib-tag" href="../../../tags/#load-balancing">#load-balancing</a><a class="lib-tag" href="../../../tags/#rate-limiting">#rate-limiting</a><a class="lib-tag" href="../../../tags/#networking">#networking</a><a class="lib-tag" href="../../../tags/#http">#http</a><a class="lib-tag" href="../../../tags/#resilience">#resilience</a><a class="lib-tag" href="../../../tags/#subject">#subject</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Brief</h2>
+<p>Your API runs on several identical backend instances, and clients — some polite, some
+not — hit them directly. You are building the edge tier that goes in front: an L7 load
+balancer that spreads traffic across healthy backends only, and a rate limiter that
+keeps any one client from starving the rest. Built as two separate projects, then
+composed into a single edge process whose own overhead you must measure and report.</p>
+<h2>Instructions</h2>
+<h3>1. The load balancer (L7)</h3>
+<p>An HTTP reverse proxy in front of a configurable set of backends.</p>
+<ul>
+<li><strong>Backend registry</strong> — backends come from configuration (file or flags): a list of
+<code>url</code> + optional <code>weight</code> (default 1). No hardcoded addresses. For testing, any
+trivial HTTP server that returns its own identity (port or name) in the body works as
+a backend.</li>
+<li><strong>Proxying</strong> — for each inbound request, pick a backend, forward the request (method,
+path, query, headers, body), and relay the response — status, headers, body —
+unmodified except for hop-by-hop headers (<code>Connection</code>, <code>Keep-Alive</code>,
+<code>Transfer-Encoding</code>, <code>TE</code>, <code>Upgrade</code>, <code>Proxy-*</code>), which are stripped, and standard
+forwarding headers (<code>X-Forwarded-For</code>, <code>X-Forwarded-Proto</code>, <code>X-Forwarded-Host</code>),
+which are appended. A backend connection failure or timeout yields <code>502 Bad Gateway</code>;
+the balancer process itself never crashes on a dead backend.</li>
+<li><strong>Health-check loop</strong> — a background loop probes every backend's health endpoint
+(path configurable, default <code>GET /health</code>; 2xx = pass) every <code>interval</code> seconds
+(configurable, default 10). After <code>unhealthy-threshold</code> consecutive failures
+(default 2) a backend leaves the rotation; after <code>healthy-threshold</code> consecutive
+passes (default 2) it re-enters. Thresholds prevent flapping on one lost probe.
+State transitions are logged. If every backend is out, answer <code>503</code>.</li>
+<li><strong>Strategies</strong> — <strong>round-robin</strong> first: rotate through healthy backends in order,
+correct under concurrent requests (the shared cursor is synchronized). Then
+<strong>weighted round-robin</strong>: a backend with weight 3 receives 3× the requests of a
+weight-1 backend over any window, interleaved (smooth), not in runs of 3.</li>
+<li><strong>Connection reuse</strong> — maintain keep-alive connections to backends (a pool or your
+HTTP library's pooling, deliberately configured: max idle per backend, idle
+timeout). Demonstrate the win: measure request latency with pooling on vs. a new
+TCP connection per request, and record both numbers.</li>
+</ul>
+<h3>2. The rate limiter</h3>
+<p>A limiting layer with pluggable algorithms behind one interface —
+<code>allow(client, now) → (allowed, retry_after_hint)</code> — so algorithms swap without
+touching the transport.</p>
+<ul>
+<li><strong>Keying</strong> — the client identity is the <code>X-Api-Key</code> header when present, else the
+client IP. Every counter/bucket is per-key; one client exhausting its quota must not
+affect another's.</li>
+<li><strong>Token bucket</strong> — per key: <code>capacity</code> tokens, refilled at <code>rate</code> tokens/second
+(lazily computed from elapsed time — no timer per bucket). A request consumes one
+token; empty bucket → rejected. Allows bursts up to <code>capacity</code> while capping the
+sustained rate at <code>rate</code>.</li>
+<li><strong>Fixed window</strong> — per key: a counter per clock-aligned window of <code>window</code> seconds,
+rejecting past <code>limit</code>. Keep it — and unit-test its known flaw: up to <code>2×limit</code>
+requests can pass inside one window-straddling burst.</li>
+<li><strong>Sliding window log</strong> — per key: a timestamp log of accepted requests; a request is
+allowed if fewer than <code>limit</code> timestamps fall within the trailing <code>window</code>; prune as
+you go. Exact behavior, O(limit) memory per key — the reference the others are
+judged against.</li>
+<li><strong>Sliding window counter</strong> — the compromise: current and previous fixed-window
+counters, the previous one weighted by its overlap with the trailing window
+(<code>prev × overlap_fraction + current</code>). Near-exact at O(1) memory.</li>
+<li><strong>Rejection contract</strong> — a rejected request gets <code>429 Too Many Requests</code> with a
+<code>Retry-After</code> header (whole seconds until a request could next succeed). Every
+response — allowed or not — carries <code>X-RateLimit-Limit</code>, <code>X-RateLimit-Remaining</code>,
+and <code>X-RateLimit-Reset</code> so a well-behaved client can pace itself without ever
+seeing a 429.</li>
+<li><strong>Comparison harness</strong> — one bursty client profile (e.g. 3× the sustained limit for
+2 s, silence, repeat) replayed against all four algorithms; output a per-second
+admitted-requests series per algorithm (table or chart) showing the double-burst
+leak of fixed window and the smoothing of the others.</li>
+</ul>
+<h3>3. Composition — one edge</h3>
+<p>Mount the rate limiter inside the balancer, in front of backend selection: a rejected
+request costs no backend capacity. Per-key limits come from configuration (a default
+plus optional per-key overrides). The full rejection contract of §2 applies at the
+edge.</p>
+<h3>4. Distributed counters</h3>
+<p>Run <strong>two</strong> edge instances behind any entry point (round-robin DNS, a TCP proxy, or
+just a client alternating between them). Local buckets now let a client reach ~2× its
+quota. Fix it by backing the counters with a shared store (Redis or your own
+build-your-own-Redis server): the check-and-consume must be <strong>atomic</strong> — a Lua script
+(or equivalent single server-side operation), never a read-modify-write from the edge.
+Measure both configurations: enforcement accuracy (admitted rate vs. configured limit)
+and added per-request latency, and present the trade-off in a short table.</p>
+<h3>5. Load-test protocol</h3>
+<p>Drive the system with wrk2 (constant-throughput mode, which avoids coordinated
+omission) on an otherwise idle machine:</p>
+<ol>
+<li>Baseline: wrk2 straight at one backend — record p50/p99/p999.</li>
+<li>Through the edge (limiter keyed so the test client is never limited) — same rates,
+same duration; report the p99 delta as &quot;what the edge costs&quot;.</li>
+<li>Limiter enforcement: set a per-key limit, drive wrk2 at 2× that limit, and verify
+the admitted (non-429) throughput sits within 2% of the configured limit.</li>
+</ol>
+<p>Report the exact wrk2 invocations with the numbers.</p>
+<h2>Constraints</h2>
+<ul>
+<li>Standard library plus, at most, an HTTP toolkit — no proxy frameworks, no
+rate-limiting libraries; the algorithms and the balancing logic are the exercise.
+(Redis as milestone 7's shared store is allowed and expected.)</li>
+<li>The balancer is L7 and transparent: apart from the header rules above, a client must
+not be able to tell (from status, headers, or body) whether it hit the backend
+directly or through the edge.</li>
+<li>All tunables — backends, weights, health-check interval and thresholds, algorithm,
+limits, window sizes — are configuration, not code edits.</li>
+<li>Time-based logic must be testable: inject the clock so window and refill arithmetic
+is unit-testable without sleeping.</li>
+</ul>
+<h2>Acceptance</h2>
+<p>Mapped one-to-one onto the exercise's milestones:</p>
+<ol>
+<li><strong>Reverse proxy</strong> — for GET and POST (with body), <code>curl -i</code> direct vs. proxied
+differs only in the specified hop-by-hop/forwarding headers; <code>diff</code> on the bodies
+is empty.</li>
+<li><strong>Round robin</strong> — 90 requests across 3 backends land exactly 30/30/30; killing one
+backend yields <code>502</code> on its turns and no balancer crash.</li>
+<li><strong>Health checks</strong> — kill a backend under continuous traffic: after the configured
+threshold×interval it stops receiving requests and clients stop seeing 502s;
+restart it and it rejoins within threshold×interval; both transitions appear in the
+log.</li>
+<li><strong>Rate limiter, in process</strong> — unit tests (injected clock) pass for token bucket
+and fixed window, including: burst of <code>capacity</code> allowed then denial; and the
+window-straddling <code>2×limit</code> burst that fixed window admits but token bucket
+doesn't.</li>
+<li><strong>Sliding window</strong> — log and counter variants pass the same suite (counter within
+~1% of log's decisions); the comparison harness outputs the per-algorithm admitted
+series for the shared bursty profile.</li>
+<li><strong>Composed edge</strong> — a scripted client exceeding its key's limit receives <code>429</code> with
+<code>Retry-After</code> and the three <code>X-RateLimit-*</code> headers; a client that obeys them
+never receives a 429; backends receive no rejected requests.</li>
+<li><strong>Distributed counters</strong> — with two edges and local buckets, a client demonstrably
+exceeds its quota (~2×); switching to the shared atomic store brings admitted rate
+within 2% of the limit; the accuracy-vs-latency table for both setups is filled in.</li>
+<li><strong>Load test</strong> — the wrk2 report shows baseline vs. through-edge p99 and the
+enforcement run's admitted throughput within 2% of the configured limit, with exact
+invocations reproducible from the README.</li>
+</ol>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../system-design/exercises/load-balancer-and-rate-limiter/">Build a load balancer &amp; rate limiter</a> — the
+exercise this is the subject of.</li>
+<li><a href="https://codingchallenges.fyi/challenges/intro/" rel="noopener">Coding Challenges</a> — John
+Crickett's load-balancer and rate-limiter challenges this statement is adapted from.</li>
+<li><a href="https://github.com/giltene/wrk2" rel="noopener">wrk2</a> — the constant-throughput load generator the
+test protocol requires.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

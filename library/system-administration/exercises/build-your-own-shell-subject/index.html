@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Build your own shell — subject — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/system-administration/exercises</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../system-administration/">system-administration</a><span class="tok-path">/</span><span class="tok-path">exercises</span> <span class="tok-cmd">cat</span> <span class="tok-file">build-your-own-shell-subject</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Build your own shell — subject</h1>
+        <p class="lib-lede"><span class="tok-comment"># The feature spec for an interactive Unix shell — REPL, exec with PATH search, builtins, quoting, N-stage pipelines, redirections, background jobs, and signal handling — precise enough to implement and test.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="subject">Subject</span><span class="lib-meta-date">saved 2026-08-08</span><a class="lib-chip lib-chip-src" href="https://codingchallenges.fyi/challenges/challenge-shell/" rel="noopener"><svg class="lib-ico" viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 11.5a3 3 0 0 0 4.2 0l2-2a3 3 0 0 0-4.2-4.2l-1 1"/><path d="M11.5 8.5a3 3 0 0 0-4.2 0l-2 2a3 3 0 0 0 4.2 4.2l1-1"/></svg>source</a></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#linux">#linux</a><a class="lib-tag" href="../../../tags/#shell">#shell</a><a class="lib-tag" href="../../../tags/#processes">#processes</a><a class="lib-tag" href="../../../tags/#systems-programming">#systems-programming</a><a class="lib-tag" href="../../../tags/#exercise">#exercise</a><a class="lib-tag" href="../../../tags/#cli">#cli</a><a class="lib-tag" href="../../../tags/#subject">#subject</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Brief</h2>
+<p>You use a shell every day and treat it as magic. Strip the magic: write your own. It prints a
+prompt, reads a line, parses it, and runs it — external programs via <code>fork</code>/<code>exec</code>, builtins
+in-process, pipelines wired with real pipes, I/O redirected with <code>dup2</code>, and signals routed
+so Ctrl-C kills the command and not your shell. Build it in any systems-capable language
+(C, Rust, Go, Zig…) with direct access to the POSIX process syscalls.</p>
+<h2>Instructions</h2>
+<p>Grow the shell in the milestone order below; each stage is independently runnable and
+testable.</p>
+<h3>1. REPL + external commands</h3>
+<ul>
+<li>Loop: print a prompt, read a line, tokenize on whitespace, and if the first token names a
+program, <code>fork</code> and <code>execvp</code> it in the child, <code>waitpid</code> in the parent, then loop.</li>
+<li>Resolve bare command names via <code>PATH</code> search (this is what <code>execvp</code> does — or implement the
+search yourself). Handle an empty line (re-prompt, no fork) and a not-found command (print a
+clean error, do not crash). EOF (Ctrl-D) on an empty line exits.</li>
+</ul>
+<h3>2. Builtins</h3>
+<ul>
+<li>Implement the commands that <strong>must</strong> run in the shell process because a forked child could
+not achieve them: <code>cd</code> (change the shell's own working directory — a forked <code>cd</code> changes
+nothing), <code>exit</code> (with optional status), <code>pwd</code>, and <code>export</code>/<code>unset</code> (mutate the shell's own
+environment, inherited by future children). Dispatch builtins before the fork path.</li>
+</ul>
+<h3>3. Quoting</h3>
+<ul>
+<li>Implement a real tokenizer, not <code>split(&quot; &quot;)</code>: single quotes (literal, no interpretation),
+double quotes (group with spaces, allow variable expansion inside), and backslash escaping.
+<code>echo &quot;a  b&quot;</code> is one argument <code>a  b</code>; <code>echo 'a  b'</code> likewise; unquoted collapses whitespace.</li>
+</ul>
+<h3>4. Redirections</h3>
+<ul>
+<li>Parse and apply <code>&lt;</code> (stdin from file), <code>&gt;</code> (stdout to file, truncate), <code>&gt;&gt;</code> (stdout append),
+and <code>2&gt;</code> (stderr to file). In the child, <code>open</code> the target and <code>dup2</code> it onto fd 0/1/2
+<strong>before</strong> <code>exec</code>; confirm the child inherits the redirected descriptors. Redirection
+operators are not arguments to the command.</li>
+</ul>
+<h3>5. Pipelines</h3>
+<ul>
+<li>Support <code>a | b | c</code> for arbitrary N stages: create N-1 <code>pipe</code>s, fork each stage, <code>dup2</code> the
+correct pipe ends onto stdin/stdout, and <strong>close every unused descriptor</strong> in both parent
+and children (leaked fds hang pipelines — the classic bug). Wait on all stages; the
+pipeline's status is the last stage's. Redirections combine with pipes at the ends.</li>
+</ul>
+<h3>6. Signals and job control</h3>
+<ul>
+<li>Put the foreground command in its own <strong>process group</strong> and give it the terminal so
+<code>SIGINT</code> (Ctrl-C) and <code>SIGTSTP</code> (Ctrl-Z) hit the child, not the shell. The shell itself
+ignores/handles those signals and reclaims the terminal afterward.</li>
+<li>Support <code>&amp;</code> to run a command in the background (do not wait synchronously); implement a
+<code>jobs</code> listing and <code>fg</code> to bring a background/stopped job to the foreground. Reap finished
+background children (handle <code>SIGCHLD</code>) so they do not linger as zombies.</li>
+</ul>
+<h2>Examples</h2>
+<p>Behaviors the shell must exhibit:</p>
+<pre><code>$ echo &quot;hello   world&quot;          # one arg, spaces preserved
+hello   world
+$ cd /tmp &amp;&amp; pwd                 # builtin cd changes the shell's cwd
+/tmp
+$ cat &lt; in.txt | sort | uniq -c &gt; out.txt   # redirection + 3-stage pipe
+$ sleep 30 &amp;                     # background; prompt returns immediately
+[1] 4123
+$ jobs
+[1]  Running   sleep 30 &amp;
+$ sleep 30                       # Ctrl-C here kills sleep, shell survives
+^C
+$
+</code></pre>
+<h2>Constraints</h2>
+<ul>
+<li>Use the OS process primitives directly (<code>fork</code>/<code>exec</code>/<code>wait</code>/<code>pipe</code>/<code>dup2</code>/<code>open</code>/
+<code>setpgid</code>/<code>tcsetpgrp</code>/signal handling) — not a language's <code>system()</code> or high-level
+&quot;run a shell command&quot; helper, which would skip the whole lesson.</li>
+<li>Builtins that alter shell state (<code>cd</code>, <code>export</code>, <code>exit</code>) must run in the shell process,
+never a child.</li>
+<li>Close all unused pipe descriptors in every process.</li>
+</ul>
+<h2>Acceptance</h2>
+<ul>
+<li><strong>Milestone 1 (REPL + exec):</strong> runs external commands found on <code>PATH</code> and returns to the
+prompt; empty line re-prompts, unknown command errors cleanly, Ctrl-D exits.</li>
+<li><strong>Milestone 2 (builtins):</strong> <code>cd</code> changes the shell's cwd as seen by a subsequent <code>pwd</code>;
+<code>exit</code> leaves with the given status; <code>export</code> sets a variable visible to a later child.</li>
+<li><strong>Milestone 3 (quoting):</strong> single/double quotes and backslash produce the correct argument
+vector, including spaces preserved inside quotes and expansion inside double quotes only.</li>
+<li><strong>Milestone 4 (redirection):</strong> <code>&gt;</code>, <code>&gt;&gt;</code>, <code>&lt;</code>, and <code>2&gt;</code> create/append/read the right files
+and the child sees the redirected descriptors; operators are not passed as args.</li>
+<li><strong>Milestone 5 (pipelines):</strong> an N-stage pipeline produces correct output, terminates
+cleanly with no hung/leaked fds, and reports the last stage's status; pipes compose with
+end redirections.</li>
+<li><strong>Milestone 6 (signals + jobs):</strong> Ctrl-C interrupts the foreground child while the shell
+survives; <code>&amp;</code> backgrounds a job, <code>jobs</code> lists it, <code>fg</code> resumes it, and finished background
+jobs are reaped (no zombies).</li>
+</ul>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../system-administration/exercises/build-your-own-shell/">Build your own shell</a> — the exercise note this is the subject of.</li>
+<li>Source: John Crickett's <a href="https://codingchallenges.fyi/challenges/challenge-shell/" rel="noopener">Build Your Own Shell</a>
+challenge, plus the POSIX <code>fork</code>/<code>execvp</code>/<code>dup2</code>/<code>setpgid</code> manual pages, adapted here.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>UTF-8 codec + text-processing CLI — subject — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/fundamentals/exercises</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../fundamentals/">fundamentals</a><span class="tok-path">/</span><span class="tok-path">exercises</span> <span class="tok-cmd">cat</span> <span class="tok-file">utf8-codec-and-text-cli-subject</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">UTF-8 codec + text-processing CLI — subject</h1>
+        <p class="lib-lede"><span class="tok-comment"># The work statement for a hand-rolled UTF-8 encoder/decoder from RFC 3629 plus a layer-aware text CLI — byte-pattern rules, the invalid sequences to reject, and test cases from é to the family emoji.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="subject">Subject</span><span class="lib-meta-date">saved 2026-08-08</span><a class="lib-chip lib-chip-src" href="https://www.rfc-editor.org/rfc/rfc3629" rel="noopener"><svg class="lib-ico" viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 11.5a3 3 0 0 0 4.2 0l2-2a3 3 0 0 0-4.2-4.2l-1 1"/><path d="M11.5 8.5a3 3 0 0 0-4.2 0l-2 2a3 3 0 0 0 4.2 4.2l1-1"/></svg>source</a></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#unicode">#unicode</a><a class="lib-tag" href="../../../tags/#utf-8">#utf-8</a><a class="lib-tag" href="../../../tags/#encoding">#encoding</a><a class="lib-tag" href="../../../tags/#text">#text</a><a class="lib-tag" href="../../../tags/#fundamentals">#fundamentals</a><a class="lib-tag" href="../../../tags/#exercise">#exercise</a><a class="lib-tag" href="../../../tags/#subject">#subject</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Brief</h2>
+<p>&quot;Length&quot; lies, emoji slice in half, and files arrive as mojibake — all because text is three
+different things stacked: bytes, code points, and grapheme clusters. You are going to earn the
+distinction by implementing UTF-8 yourself, straight from RFC 3629, with no help from your
+language's built-in codec, and then build a small <code>wc</code>-like CLI that counts a string three
+ways and shows why the numbers disagree. Do the bit-shifting by hand once and mojibake stops
+being mysterious.</p>
+<h2>Instructions</h2>
+<h3>Encoder — code point → bytes (RFC 3629)</h3>
+<p>Map a Unicode scalar value to 1–4 bytes by range:</p>
+<ul>
+<li><code>U+0000 – U+007F</code> → 1 byte: <code>0xxxxxxx</code> (the code point as-is).</li>
+<li><code>U+0080 – U+07FF</code> → 2 bytes: <code>110xxxxx 10xxxxxx</code>.</li>
+<li><code>U+0800 – U+FFFF</code> → 3 bytes: <code>1110xxxx 10xxxxxx 10xxxxxx</code>.</li>
+<li><code>U+10000 – U+10FFFF</code> → 4 bytes: <code>11110xxx 10xxxxxx 10xxxxxx 10xxxxxx</code>.</li>
+</ul>
+<p>The <code>x</code> bits carry the code point's bits, most-significant first; each continuation byte holds
+6 bits. <strong>Reject</strong> surrogates <code>U+D800–U+DFFF</code> (never valid scalar values) and anything above
+<code>U+10FFFF</code>. Always emit the shortest form for the code point (no overlong encodings).</p>
+<h3>Decoder — bytes → code points (reject the invalid)</h3>
+<p>Read a byte stream back to code points. The lead byte's high bits give the length; each
+following byte must be <code>10xxxxxx</code>. Reject, with a clear error (or a documented replacement
+policy), every malformed case:</p>
+<ul>
+<li><strong>Overlong encodings</strong> — a code point encoded in more bytes than necessary (e.g. <code>C0 80</code>
+for NUL). Enforce the minimum code point per length (≥ <code>0x80</code> for 2-byte, ≥ <code>0x800</code> for
+3-byte, ≥ <code>0x10000</code> for 4-byte).</li>
+<li><strong>Surrogate code points</strong> <code>U+D800–U+DFFF</code> appearing in the stream.</li>
+<li><strong>Stray/lone continuation bytes</strong> (<code>10xxxxxx</code> with no lead) and invalid lead bytes
+(<code>0xC0</code>, <code>0xC1</code>, <code>0xF5</code>–<code>0xFF</code>).</li>
+<li><strong>Truncated sequences</strong> — a multi-byte sequence cut short by end-of-input or a non-
+continuation byte.</li>
+</ul>
+<p>Verify the codec against your language's built-in UTF-8 on a fixtures file (round-trip valid
+input; agree on which invalid inputs are rejected).</p>
+<h3>Self-synchronization demo</h3>
+<p>From a random byte offset into a UTF-8 buffer, find the next character boundary using only the
+high bits — a boundary is any byte that is <strong>not</strong> a continuation byte (<code>10xxxxxx</code>). Show this
+recovers cleanly mid-stream, which UTF-16 cannot do.</p>
+<h3>The layer-aware CLI</h3>
+<p>Build a small <code>wc</code>-like tool that, on the same input, reports three counts:</p>
+<ul>
+<li><strong>bytes</strong> — raw length,</li>
+<li><strong>code points</strong> — decoded scalar values (your decoder),</li>
+<li><strong>grapheme clusters</strong> — user-perceived characters (extended grapheme cluster segmentation).</li>
+</ul>
+<p>Make the three numbers visibly differ on a combining-accent <code>é</code> (<code>e</code> + U+0301: 3 bytes, 2 code
+points, 1 grapheme) and on a ZWJ emoji sequence. Add a <strong>validate</strong> subcommand (report the
+first invalid byte offset and why) and a <strong>transcode</strong> subcommand between Latin-1 and UTF-8.</p>
+<h3>Normalization pass</h3>
+<p>Add an option to NFC-normalize input, and demonstrate that two visually identical strings
+(precomposed <code>é</code> U+00E9 vs. decomposed <code>e</code>+U+0301) compare <strong>unequal as bytes but equal after
+NFC</strong>.</p>
+<h2>Examples</h2>
+<p>Test cases the tool must handle correctly:</p>
+<table>
+<thead>
+<tr>
+<th>Input</th>
+<th>bytes</th>
+<th>code points</th>
+<th>graphemes</th>
+<th>note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>A</code></td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>ASCII</td>
+</tr>
+<tr>
+<td><code>é</code> (U+00E9, precomposed)</td>
+<td>2</td>
+<td>1</td>
+<td>1</td>
+<td>2-byte encode</td>
+</tr>
+<tr>
+<td><code>é</code> (<code>e</code> + U+0301)</td>
+<td>3</td>
+<td>2</td>
+<td>1</td>
+<td>combining mark</td>
+</tr>
+<tr>
+<td><code>家</code> (U+5BB6)</td>
+<td>3</td>
+<td>1</td>
+<td>1</td>
+<td>3-byte (CJK)</td>
+</tr>
+<tr>
+<td><code>👨‍👩‍👧‍👦</code> (family, ZWJ)</td>
+<td>25</td>
+<td>7</td>
+<td>1</td>
+<td>ZWJ cluster</td>
+</tr>
+<tr>
+<td><code>\x80</code> (lone continuation)</td>
+<td>—</td>
+<td>reject</td>
+<td>—</td>
+<td>invalid: stray continuation</td>
+</tr>
+<tr>
+<td><code>\xC0\x80</code> (overlong NUL)</td>
+<td>—</td>
+<td>reject</td>
+<td>—</td>
+<td>invalid: overlong</td>
+</tr>
+<tr>
+<td><code>\xED\xA0\x80</code> (surrogate)</td>
+<td>—</td>
+<td>reject</td>
+<td>—</td>
+<td>invalid: surrogate</td>
+</tr>
+<tr>
+<td><code>\xE2\x28</code></td>
+<td>—</td>
+<td>reject</td>
+<td>—</td>
+<td>invalid: truncated/bad continuation</td>
+</tr>
+</tbody>
+</table>
+<p>(Byte counts assume UTF-8; the family emoji is 4 people-emoji joined by 3 ZWJs = 7 code
+points, one grapheme.)</p>
+<h2>Constraints</h2>
+<ul>
+<li>Do <strong>not</strong> use the language's built-in UTF-8 encode/decode for the codec itself — implement
+the bit layout by hand. The built-in may only be used as an oracle to check your results and
+for grapheme segmentation / NFC where a Unicode-data library is reasonable.</li>
+<li>Follow RFC 3629 strictly: 4 bytes max, <code>U+10FFFF</code> ceiling, no surrogates, shortest form
+only.</li>
+<li>Invalid input must be detected, not silently mangled — reject or apply a documented
+replacement policy.</li>
+</ul>
+<h2>Acceptance</h2>
+<ul>
+<li><strong>Milestone 1 (encoder):</strong> every code point in <code>U+0000–U+10FFFF</code> (minus surrogates) encodes
+to the correct 1–4 bytes; surrogates and out-of-range values are rejected. Matches the
+reference encoder on the fixtures.</li>
+<li><strong>Milestone 2 (decoder):</strong> valid streams decode to the right code points; overlongs, lone
+continuation bytes, surrogates, and truncated sequences are all rejected. Agrees with the
+language codec on the fixtures file.</li>
+<li><strong>Milestone 3 (self-sync):</strong> from an arbitrary offset the tool finds the next boundary using
+only the high bits and resumes decoding correctly.</li>
+<li><strong>Milestone 4 (layer-aware CLI):</strong> the three counts are correct and visibly differ for the
+combining-<code>é</code> and ZWJ-emoji cases per the table; <code>validate</code> and Latin-1↔UTF-8 <code>transcode</code>
+work.</li>
+<li><strong>Milestone 5 (normalization):</strong> the NFC option makes precomposed vs. decomposed <code>é</code> compare
+equal after normalization though their bytes differ.</li>
+</ul>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../fundamentals/exercises/utf8-codec-and-text-cli/">UTF-8 codec + text-processing CLI</a> — the exercise note this is
+the subject of.</li>
+<li>Source: <a href="https://www.rfc-editor.org/rfc/rfc3629" rel="noopener">RFC 3629 (UTF-8)</a> and the Unicode Standard
+Annex #29 (grapheme cluster segmentation) / #15 (normalization), restated here.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

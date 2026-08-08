@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Cryptopals — crypto challenges (sets 1–3) — subject — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/security/exercises</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../security/">security</a><span class="tok-path">/</span><span class="tok-path">exercises</span> <span class="tok-cmd">cat</span> <span class="tok-file">cryptopals-crypto-challenges-subject</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Cryptopals — crypto challenges (sets 1–3) — subject</h1>
+        <p class="lib-lede"><span class="tok-comment"># The staged work statement for Cryptopals sets 1–3 — build XOR, AES-ECB/CBC/CTR from primitives, then break them with the padding oracle — runnable offline against published test vectors.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="subject">Subject</span><span class="lib-meta-date">saved 2026-08-08</span><a class="lib-chip lib-chip-src" href="https://cryptopals.com/" rel="noopener"><svg class="lib-ico" viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 11.5a3 3 0 0 0 4.2 0l2-2a3 3 0 0 0-4.2-4.2l-1 1"/><path d="M11.5 8.5a3 3 0 0 0-4.2 0l-2 2a3 3 0 0 0 4.2 4.2l1-1"/></svg>source</a></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#cryptography">#cryptography</a><a class="lib-tag" href="../../../tags/#security">#security</a><a class="lib-tag" href="../../../tags/#encryption">#encryption</a><a class="lib-tag" href="../../../tags/#exercise">#exercise</a><a class="lib-tag" href="../../../tags/#aes">#aes</a><a class="lib-tag" href="../../../tags/#subject">#subject</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Brief</h2>
+<p>You are handed a pile of ciphertext and a promise that &quot;it's encrypted, so it's safe.&quot;
+Your job is to disprove that promise with your own code. Over three staged sets you will
+first build the primitives byte by byte — encodings, XOR ciphers, block modes — and then
+turn them against themselves: recover keys you were never given, decrypt secrets with no
+key at all, and end holding plaintext that &quot;encryption without integrity&quot; swore you could
+never read. Work in any language; the only rule is that you understand every byte that
+moves.</p>
+<h2>Instructions</h2>
+<p>Implement each stage yourself and verify it before moving on. The sets build on each
+other — set 2 reuses your set-1 XOR helpers, set 3 reuses your set-2 block code.</p>
+<h3>Set 1 — Building blocks</h3>
+<ol>
+<li><strong>Hex ↔ base64.</strong> Write conversions between raw bytes, hex, and base64. Everything
+downstream speaks bytes; these are the plumbing. Do not use a language feature that
+hides the base64 alphabet from you — lay out the 6-bit groups yourself.</li>
+<li><strong>Fixed XOR.</strong> XOR two equal-length buffers. One line, but it is the atom of everything
+that follows.</li>
+<li><strong>Single-byte XOR cipher.</strong> A buffer was XORed against one repeated byte. Try all 256
+keys, score each candidate plaintext by English letter-frequency (ETAOIN-style, or
+chi-squared against expected frequencies), and pick the winner. Recover the key byte and
+the message.</li>
+<li><strong>Detect single-char XOR.</strong> One line in a file of hex strings was produced by the above.
+Score every line's best decrypt and surface the one real message.</li>
+<li><strong>Repeating-key (Vigenère) XOR.</strong> Encrypt with a multi-byte key cycled across the
+plaintext, then break it: (a) guess the keysize by minimizing the normalized Hamming
+distance between blocks, (b) transpose the ciphertext into keysize columns, (c) solve
+each column as an independent single-byte XOR. Reassemble the key.</li>
+<li><strong>AES-128-ECB decrypt.</strong> Here you may call a library's raw AES block operation — that is
+the one primitive you are allowed to borrow. Decrypt an ECB-mode ciphertext given the
+key, and write an oracle that detects ECB by spotting repeated 16-byte blocks in a
+ciphertext (identical plaintext blocks → identical ciphertext blocks is ECB's fatal
+tell).</li>
+</ol>
+<h3>Set 2 — Block crypto</h3>
+<ol start="7">
+<li><strong>PKCS#7 padding.</strong> Pad an arbitrary buffer to a block boundary by appending N bytes of
+value N. Write both pad and validate-and-strip.</li>
+<li><strong>CBC from scratch.</strong> Implement CBC mode by hand on top of your library's <em>ECB block
+function only</em>: XOR each plaintext block with the previous ciphertext block (the IV for
+block 0) before encrypting; reverse for decrypt. You must not call a library's CBC.</li>
+<li><strong>ECB/CBC detection oracle.</strong> Build an encryption oracle that pads the input with random
+bytes and flips a coin between ECB and CBC per call; then, from the outside, detect which
+mode was used by feeding it a long run of identical bytes and watching for repeated
+blocks.</li>
+<li><strong>Byte-at-a-time ECB decryption.</strong> An oracle encrypts <code>your-input || unknown-secret</code>
+under ECB with a fixed key. Recover the secret one byte at a time by aligning it against
+a controlled prefix and matching block outputs against a dictionary you build. Do the
+simple version first, then the harder variant where the oracle prepends a fixed
+random-length prefix you must detect and account for.</li>
+</ol>
+<h3>Set 3 — The payoff</h3>
+<ol start="11">
+<li><strong>CBC padding oracle.</strong> Given only an oracle that tells you whether a ciphertext's PKCS#7
+padding is valid, recover the full plaintext of a CBC ciphertext with no key. Attack
+block by block: manipulate the previous ciphertext block to force valid padding, derive
+the intermediate state one byte at a time from the last byte inward, XOR back to
+plaintext. This is the milestone that permanently changes how you read &quot;encryption
+without authentication&quot;.</li>
+<li><strong>CTR mode.</strong> Implement CTR: encrypt a counter block stream and XOR it into the
+plaintext (encryption and decryption are the same operation). Then break <strong>fixed-nonce
+CTR</strong> — several messages encrypted under the same nonce reuse the same keystream, so the
+problem collapses into repeating-key XOR across the aligned ciphertexts. Recover the
+keystream statistically.</li>
+<li><strong>Write up the lessons.</strong> For each break, record the single design rule that would have
+stopped it: authenticate with an AEAD construction, never reuse a nonce/IV, and make
+padding checks constant-time so no oracle leaks.</li>
+</ol>
+<h2>Constraints</h2>
+<ul>
+<li><strong>Implement the primitives yourself.</strong> XOR, PKCS#7 padding, CBC, and CTR are all yours to
+build. The <em>only</em> borrowed piece is a library's raw AES-128 single-block encrypt/decrypt —
+the ECB block operation everything else is composed from.</li>
+<li><strong>No high-level mode helpers.</strong> Do not call a library's CBC, CTR, or GCM; that would skip
+the lesson.</li>
+<li>Random keys/IVs must be cryptographically random; keep them fixed only where a challenge
+says the oracle uses a fixed key.</li>
+<li>Keep the attacks black-box: an attack may only use what its oracle actually returns (a
+plaintext scoring, a mode guess, a padding-valid boolean), never the hidden key.</li>
+</ul>
+<h2>Acceptance</h2>
+<ul>
+<li><strong>Milestone 1 (Set 1 basics):</strong> each step passes its published fixture — hex/base64
+round-trips, the fixed-XOR output matches, the single-byte and repeating-key breaks
+recover the exact known plaintexts and keys, ECB detection flags the planted line, and the
+AES-ECB decrypt yields readable text. Verify against the challenge test vectors.</li>
+<li><strong>Milestone 2 (Set 2 block crypto):</strong> PKCS#7 pad/validate round-trips; your hand-rolled
+CBC decrypts what it encrypts and matches a reference CBC on the same key/IV; the
+detection oracle names the right mode across many random trials; byte-at-a-time recovers
+the full hidden secret in both the simple and random-prefix variants.</li>
+<li><strong>Milestone 3 (Set 3 payoff):</strong> the padding oracle recovers the complete plaintext of a
+CBC ciphertext with no key; CTR encrypts/decrypts correctly; the fixed-nonce CTR break
+reconstructs the messages. Each matches the known plaintext.</li>
+<li><strong>Milestone 4 (lessons):</strong> a short written note per attack names the one preventive rule
+(AEAD authentication, unique nonces, constant-time padding checks).</li>
+</ul>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../security/exercises/cryptopals-crypto-challenges/">Cryptopals — crypto challenges (sets 1–3)</a> — the
+exercise note this is the subject of.</li>
+<li>Source: the Cryptopals Crypto Challenges, <a href="https://cryptopals.com/" rel="noopener">cryptopals.com</a> (sets
+1–3), which publish the per-challenge test vectors used above.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

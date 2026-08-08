@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Stand up your own CA + mTLS between two services — subject — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/security/exercises</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../security/">security</a><span class="tok-path">/</span><span class="tok-path">exercises</span> <span class="tok-cmd">cat</span> <span class="tok-file">personal-ca-and-mtls-subject</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Stand up your own CA + mTLS between two services — subject</h1>
+        <p class="lib-lede"><span class="tok-comment"># The concrete lab spec for a private PKI — root + intermediate CA, leaf certs with SANs/EKUs, two toy services doing mutual TLS, and revocation — runnable offline with openssl or step-ca.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="subject">Subject</span><span class="lib-meta-date">saved 2026-08-08</span><a class="lib-chip lib-chip-src" href="https://smallstep.com/docs/step-ca/" rel="noopener"><svg class="lib-ico" viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 11.5a3 3 0 0 0 4.2 0l2-2a3 3 0 0 0-4.2-4.2l-1 1"/><path d="M11.5 8.5a3 3 0 0 0-4.2 0l-2 2a3 3 0 0 0 4.2 4.2l1-1"/></svg>source</a></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#tls">#tls</a><a class="lib-tag" href="../../../tags/#pki">#pki</a><a class="lib-tag" href="../../../tags/#certificates">#certificates</a><a class="lib-tag" href="../../../tags/#mtls">#mtls</a><a class="lib-tag" href="../../../tags/#security">#security</a><a class="lib-tag" href="../../../tags/#exercise">#exercise</a><a class="lib-tag" href="../../../tags/#subject">#subject</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Brief</h2>
+<p>Two internal services need to talk, and &quot;it's on the private network&quot; is not an answer your
+future self accepts. You are the PKI. You will mint a root of trust, delegate to an
+intermediate, issue the leaf certificates your services present, and configure both ends so
+that each refuses to talk to anyone who cannot prove — with a certificate your CA signed —
+that they are who they claim. By the end you can point at a rejected handshake and say
+exactly which extension, which chain link, or which expiry caused it.</p>
+<h2>Instructions</h2>
+<p>Use <code>openssl</code> throughout, or <code>smallstep/step-ca</code> if you prefer a real CA daemon; the spec is
+tool-agnostic. Keep everything in a scratch lab directory. Two &quot;services&quot; can be as small as
+two <code>openssl s_server</code> / <code>s_client</code> instances or two toy HTTP servers on localhost with
+different ports/hostnames (e.g. <code>alice.local</code> and <code>bob.local</code> via <code>/etc/hosts</code>).</p>
+<h3>1. Root and intermediate CA</h3>
+<ul>
+<li>Generate a <strong>root CA</strong> key and self-signed root certificate. Treat the root key as offline:
+after signing the intermediate, set it aside and never use it to sign leaves.</li>
+<li>Generate an <strong>intermediate CA</strong> key and CSR, and sign it with the root. Give it
+<code>basicConstraints = CA:TRUE, pathlen:0</code> and <code>keyUsage = keyCertSign, cRLSign</code>.</li>
+<li>Inspect both with <code>openssl x509 -text -noout</code> and confirm basicConstraints, key usage, and
+validity windows read as intended.</li>
+</ul>
+<h3>2. Server leaf</h3>
+<ul>
+<li>Generate a server key + CSR and sign it <strong>with the intermediate</strong> (not the root).</li>
+<li>Set <code>subjectAltName</code> to the server's DNS name(s) — the CN is ignored by modern clients, the
+SAN is what is checked. Set <code>extendedKeyUsage = serverAuth</code>.</li>
+<li>Serve it and build the chain to send: leaf + intermediate (not the root). Confirm with
+<code>openssl s_client -connect host:port -showcerts</code> that the full chain is presented.
+Deliberately reproduce the missing-intermediate bug (serve leaf only, watch verification
+fail) and then fix it.</li>
+</ul>
+<h3>3. Client leaf and mutual TLS</h3>
+<ul>
+<li>Issue a <strong>client</strong> leaf from the intermediate with <code>extendedKeyUsage = clientAuth</code> and an
+identifying subject/SAN.</li>
+<li>Configure the server to <strong>require and verify</strong> a client certificate against your CA chain
+(<code>s_server -Verify</code> / <code>verify</code> with the CA file; <code>SSL_VERIFY_PEER | FAIL_IF_NO_PEER_CERT</code>
+in code). Now both directions authenticate — this is mTLS.</li>
+<li>Confirm rejection paths: a client with <strong>no</strong> cert is refused, and a client presenting a
+cert from a <strong>different</strong> CA is refused at the handshake.</li>
+</ul>
+<h3>4. Identity enforcement</h3>
+<ul>
+<li>Have the server read the presented client certificate's subject/SAN and authorize on it
+(e.g. allow only <code>client.alice.local</code>). Show that an untrusted issuer breaks the connection
+during the TLS handshake — before any application code runs — not at the app layer.</li>
+</ul>
+<h3>5. Operate it: short lifetimes + revocation</h3>
+<ul>
+<li>Issue <strong>short-lived</strong> leaf certs (hours) and script renewal; add a check that alerts on
+imminent expiry. Observe why short lifetimes force automation and bound compromise.</li>
+<li>Exercise <strong>revocation</strong>: either publish a CRL, revoke a leaf, and have the verifier honor
+it, or lean on short-lived certs as the revocation strategy and demonstrate the window.
+Show a revoked/expired leaf being rejected.</li>
+</ul>
+<h2>Examples</h2>
+<p>Representative verification commands (adapt paths):</p>
+<pre><code># Walk a chain by hand
+openssl verify -CAfile root.crt -untrusted intermediate.crt server.crt
+
+# See what a server actually presents
+openssl s_client -connect bob.local:8443 -showcerts
+
+# mTLS: succeeds with a client cert, fails without one
+curl --cacert root.crt --cert client.crt --key client.key https://bob.local:8443/
+curl --cacert root.crt https://bob.local:8443/     # expect handshake failure
+</code></pre>
+<h2>Constraints</h2>
+<ul>
+<li>Build the trust yourself with <code>openssl</code> or <code>step-ca</code> — no public CA, no Let's Encrypt.</li>
+<li>The <strong>root key stays offline</strong> once the intermediate is signed; leaves are signed by the
+intermediate only.</li>
+<li>Leaves carry the right extensions: SANs for names, <code>serverAuth</code>/<code>clientAuth</code> EKU for role.
+A missing or wrong extension should be diagnosable, not glossed over.</li>
+</ul>
+<h2>Acceptance</h2>
+<ul>
+<li><strong>Milestone 1 (root the trust):</strong> <code>openssl x509 -text</code> on root and intermediate shows
+correct basicConstraints (CA:TRUE, pathlen), key usage, and validity; the intermediate
+verifies against the root.</li>
+<li><strong>Milestone 2 (server leaf):</strong> <code>openssl s_client -showcerts</code> shows leaf + intermediate;
+<code>openssl verify -CAfile root.crt -untrusted intermediate.crt server.crt</code> returns OK; the
+missing-intermediate failure is reproduced and then fixed.</li>
+<li><strong>Milestone 3 (client leaf + require):</strong> a <code>curl</code>/client with a valid client cert connects;
+one with no cert and one with a foreign-CA cert are both rejected at the handshake.</li>
+<li><strong>Milestone 4 (identity enforced):</strong> the server authorizes on the client cert's subject/SAN;
+swapping to an untrusted issuer fails during the handshake, not in application logic.</li>
+<li><strong>Milestone 5 (operate):</strong> short-lived leaves issue and renew via script with an expiry
+alert; a revoked (CRL) or expired leaf is rejected by the verifier.</li>
+</ul>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../security/exercises/personal-ca-and-mtls/">Stand up your own CA + mTLS between two services</a> — the exercise
+note this is the subject of.</li>
+<li>Sources: <a href="https://smallstep.com/docs/step-ca/" rel="noopener">smallstep step-ca docs</a> and the <code>openssl</code>
+<code>x509</code>/<code>s_client</code>/<code>verify</code>/<code>ca</code> manual pages, adapted into this lab spec.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

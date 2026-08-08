@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Kubernetes the Hard Way — subject — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/platform/exercises</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../platform/">platform</a><span class="tok-path">/</span><span class="tok-path">exercises</span> <span class="tok-cmd">cat</span> <span class="tok-file">kubernetes-the-hard-way-subject</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Kubernetes the Hard Way — subject</h1>
+        <p class="lib-lede"><span class="tok-comment"># The standalone assignment for the manual cluster bootstrap — what to provision by hand, in what order, and the verification commands that prove each stage.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="subject">Subject</span><span class="lib-meta-date">saved 2026-08-08</span><a class="lib-chip lib-chip-src" href="https://github.com/kelseyhightower/kubernetes-the-hard-way" rel="noopener"><svg class="lib-ico" viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 11.5a3 3 0 0 0 4.2 0l2-2a3 3 0 0 0-4.2-4.2l-1 1"/><path d="M11.5 8.5a3 3 0 0 0-4.2 0l-2 2a3 3 0 0 0 4.2 4.2l1-1"/></svg>source</a></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#exercise">#exercise</a><a class="lib-tag" href="../../../tags/#kubernetes">#kubernetes</a><a class="lib-tag" href="../../../tags/#containers">#containers</a><a class="lib-tag" href="../../../tags/#platform">#platform</a><a class="lib-tag" href="../../../tags/#subject">#subject</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Brief</h2>
+<p>You are handed three or four bare Linux machines and nothing else — no <code>kubeadm</code>, no
+managed service, no install scripts. Your assignment: turn them into a working
+Kubernetes cluster by writing every certificate, kubeconfig, and systemd unit yourself,
+so that afterwards you can name every component in the architecture and say what breaks
+without it. The original tutorial is the reference prose; this subject is the assignment
+and the checks. When stuck on a mechanism, read the tutorial's chapter for that stage —
+but the artifacts must be yours.</p>
+<h2>Instructions</h2>
+<h3>Environment</h3>
+<p>Choose one:</p>
+<ul>
+<li><strong>Local VMs</strong> (recommended for redoing cheaply): 3–4 VMs via your hypervisor of
+choice (QEMU/KVM, VirtualBox, Multipass…), Debian-family ARM64 or x86_64, ≥2 GB RAM
+each.</li>
+<li><strong>Cloud instances</strong>: any provider's smallest viable instances on a shared network.</li>
+</ul>
+<p>Roles: one <strong>jumpbox</strong> (your workbench — all commands run from here), one <strong>server</strong>
+(control plane), two <strong>workers</strong> (<code>node-0</code>, <code>node-1</code>). Requirements before anything else:</p>
+<ul>
+<li>Root SSH from the jumpbox to every machine.</li>
+<li>A <code>machines.txt</code> database (IP, FQDN, hostname, pod-subnet per worker — e.g.
+<code>10.200.0.0/24</code> for node-0, <code>10.200.1.0/24</code> for node-1) that your loops script
+against.</li>
+<li>Hostnames set and <code>/etc/hosts</code> distributed so every machine reaches every other by
+name.</li>
+<li>Kubernetes release binaries (<code>kube-apiserver</code>, <code>kube-controller-manager</code>,
+<code>kube-scheduler</code>, <code>kubectl</code>, <code>kubelet</code>, <code>kube-proxy</code>), <code>etcd</code>, <code>containerd</code> +
+<code>runc</code> + CNI plugins, and <code>crictl</code> downloaded once to the jumpbox.</li>
+</ul>
+<h3>PKI — provision by hand</h3>
+<p>Create a CA (openssl or cfssl — your choice), then issue one certificate per identity,
+each with the correct subject and SANs:</p>
+<ul>
+<li><code>admin</code> — your kubectl identity (<code>O=system:masters</code>).</li>
+<li>One <strong>kubelet cert per worker</strong> — <code>CN=system:node:&lt;host&gt;</code>, <code>O=system:nodes</code>, SANs
+covering the node's hostname and IP (Node authorizer requires this exact form).</li>
+<li><code>kube-apiserver</code> — SANs must include every name a client will dial: the server's
+IP/hostname, <code>127.0.0.1</code>, the first IP of the service range (e.g. <code>10.32.0.1</code>), and
+the <code>kubernetes.default.svc.cluster.local</code> name chain.</li>
+<li><code>kube-controller-manager</code> (<code>CN=system:kube-controller-manager</code>),
+<code>kube-scheduler</code> (<code>CN=system:kube-scheduler</code>), <code>kube-proxy</code> (<code>O=system:node-proxier</code>).</li>
+<li><code>service-accounts</code> — the key pair the apiserver uses to sign service-account tokens.</li>
+</ul>
+<p>Distribute: each worker gets the CA cert plus its own kubelet key pair; the server gets
+the CA, apiserver, and service-accounts pairs.</p>
+<h3>Configs</h3>
+<ul>
+<li>Generate a <strong>kubeconfig per component</strong> (kubelet ×2, kube-proxy,
+controller-manager, scheduler, admin), each embedding the CA, the component's cert,
+and the right endpoint (workers dial the server by name; control-plane components
+dial <code>127.0.0.1</code>). Place them where each component expects them.</li>
+<li>Write the <strong>encryption config</strong> (an <code>EncryptionConfiguration</code> with an AES-CBC key)
+for at-rest encryption of Secrets; it ships to the server.</li>
+</ul>
+<h3>Control plane</h3>
+<ol>
+<li><strong>etcd</strong> — install on the server, systemd unit, listening on localhost is fine for
+the single-server layout.</li>
+<li><strong>kube-apiserver</strong> — systemd unit wired to etcd, the cert pairs, the
+service-account key, the encryption config, and the service cluster IP range
+(e.g. <code>10.32.0.0/24</code>).</li>
+<li><strong>kube-controller-manager</strong> and <strong>kube-scheduler</strong> — systemd units using their
+kubeconfigs; the controller-manager also gets the cluster CIDR
+(e.g. <code>10.200.0.0/16</code>), the CA for signing, and the service-account key.</li>
+<li><strong>RBAC for kubelet access</strong> — a ClusterRole granting the apiserver access to
+kubelet APIs (nodes/pods proxy, logs, exec…) bound to the apiserver's kubelet-client
+identity, applied via <code>kubectl</code>.</li>
+</ol>
+<h3>Workers</h3>
+<p>On each worker: install <code>containerd</code> (+ runc), <code>kubelet</code>, <code>kube-proxy</code> as systemd
+units; write the CNI bridge + loopback configs carrying that worker's pod subnet; load
+required kernel modules and sysctls; enable swap off (or configure kubelet to tolerate
+it — know which you chose and why).</p>
+<h3>Pod networking &amp; DNS</h3>
+<ul>
+<li>The bridge CNI plugin handles intra-node traffic. Inter-node, add <strong>static routes</strong>
+on the server and each worker: every machine must route each pod subnet to the
+worker that owns it.</li>
+<li>Deploy cluster DNS (CoreDNS) as a Deployment + Service so pods resolve
+<code>kubernetes.default</code>.</li>
+</ul>
+<h3>Teardown and redo</h3>
+<p>Destroy everything — VMs included — and rebuild the entire cluster from your own notes
+without opening the tutorial. Keep the notes you used; where they failed you, fix them.</p>
+<h2>Constraints</h2>
+<ul>
+<li>No <code>kubeadm</code>, no Helm for the control plane, no provisioning scripts you didn't
+write. Anything you automate, you must have first done manually once.</li>
+<li>Keep a written run-book as you go — the redo milestone depends on it.</li>
+<li>Version pinning: pick one Kubernetes minor release and use its matching etcd,
+containerd, and CNI plugin versions throughout.</li>
+</ul>
+<h2>Acceptance</h2>
+<p>Mapped to the exercise's milestones:</p>
+<ol>
+<li><strong>Fleet</strong> — from the jumpbox, <code>ssh root@&lt;hostname&gt;</code> succeeds by name for server and
+both workers; <code>hostname</code> on each returns the expected value.</li>
+<li><strong>PKI</strong> — <code>openssl verify -CAfile ca.crt &lt;cert&gt;</code> passes for every issued cert;
+apiserver cert's SANs include the service IP and <code>kubernetes.default.svc</code>
+(<code>openssl x509 -text</code> shows them); each worker holds only its own key pair.</li>
+<li><strong>Configs</strong> — <code>kubectl config view --kubeconfig &lt;file&gt;</code> shows the right
+server/user for each component; the encryption config is on the server and
+referenced by the apiserver unit.</li>
+<li><strong>etcd</strong> — <code>etcdctl member list</code> shows one healthy member; the systemd unit
+survives a reboot.</li>
+<li><strong>Control plane</strong> — <code>kubectl cluster-info</code> and a <code>kubectl get --raw /healthz</code>
+return healthy from the jumpbox using the admin kubeconfig; the RBAC binding for
+kubelet access exists.</li>
+<li><strong>Workers</strong> — <code>kubectl get nodes</code> lists both workers <code>Ready</code> with the pinned
+version.</li>
+<li><strong>Network &amp; smoke tests</strong> — all pass:
+<ul>
+<li>a <code>kubectl run</code>/Deployment schedules and runs on a worker;</li>
+<li><code>kubectl port-forward</code>, <code>kubectl logs</code>, <code>kubectl exec</code> all work against it;</li>
+<li>a NodePort Service answers from outside the cluster;</li>
+<li>pods on node-0 can reach pod IPs on node-1 (the static routes work);</li>
+<li>a busybox pod resolves <code>kubernetes.default</code> via cluster DNS;</li>
+<li>create a Secret, then hexdump its key from etcd directly: the value must be
+<code>k8s:enc:aescbc</code>-prefixed ciphertext, not plaintext.</li>
+</ul>
+</li>
+<li><strong>Redo</strong> — the second build reaches all checks above with the tutorial closed;
+time it, and note every place your run-book was wrong.</li>
+</ol>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../platform/exercises/kubernetes-the-hard-way/">Kubernetes the Hard Way</a> — the exercise note this is
+the subject of.</li>
+<li><a href="https://github.com/kelseyhightower/kubernetes-the-hard-way" rel="noopener">Kubernetes the Hard Way (source)</a> —
+the guided tutorial whose prose this assignment deliberately leaves out.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

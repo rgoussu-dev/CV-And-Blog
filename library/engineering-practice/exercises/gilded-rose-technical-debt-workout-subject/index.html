@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Gilded Rose: a technical-debt workout — subject — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/engineering-practice/exercises</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../engineering-practice/">engineering-practice</a><span class="tok-path">/</span><span class="tok-path">exercises</span> <span class="tok-cmd">cat</span> <span class="tok-file">gilded-rose-technical-debt-workout-subject</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Gilded Rose: a technical-debt workout — subject</h1>
+        <p class="lib-lede"><span class="tok-comment"># The full work statement for the debt-management cycle — the inn's inventory rules, the sealed-estimate protocol, golden-master rules, micro-commit repayment, the conjured-items feature, and the retro deliverables.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="subject">Subject</span><span class="lib-meta-date">saved 2026-08-08</span><a class="lib-chip lib-chip-src" href="https://github.com/emilybache/GildedRose-Refactoring-Kata" rel="noopener"><svg class="lib-ico" viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 11.5a3 3 0 0 0 4.2 0l2-2a3 3 0 0 0-4.2-4.2l-1 1"/><path d="M11.5 8.5a3 3 0 0 0-4.2 0l-2 2a3 3 0 0 0 4.2 4.2l1-1"/></svg>source</a></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#exercise">#exercise</a><a class="lib-tag" href="../../../tags/#technical-debt">#technical-debt</a><a class="lib-tag" href="../../../tags/#refactoring">#refactoring</a><a class="lib-tag" href="../../../tags/#legacy-code">#legacy-code</a><a class="lib-tag" href="../../../tags/#estimation">#estimation</a><a class="lib-tag" href="../../../tags/#subject">#subject</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Brief</h2>
+<p>You have inherited the inventory system of the Gilded Rose, a small inn that buys and
+sells goods. Every item has a <code>sellIn</code> (days left to sell it) and a <code>quality</code> value;
+once a day the system updates both for every item. The previous developer is gone; the
+code is one dense conditional thicket that nobody dares touch, and there are no tests.
+The goblin in the corner owns the <code>Item</code> class and will not let you change it. The
+business has just sold a new category — <strong>conjured items</strong> — and needs the system to
+support them. Your job is not merely to add the feature: it is to run the whole
+episode as a managed debt-repayment cycle, producing the estimates, tests, commits,
+and documents a well-run team would keep.</p>
+<h3>The domain rules (the legacy behavior you must preserve)</h3>
+<ul>
+<li>Each daily update: <code>sellIn</code> decreases by 1, and <code>quality</code> changes per the rules
+below.</li>
+<li>Ordinary items lose 1 quality per day; <strong>once the sell-by date has passed
+(<code>sellIn</code> &lt; 0), degradation doubles</strong> (2 per day).</li>
+<li><code>quality</code> is never negative, and never rises above <strong>50</strong> — with one exception
+below.</li>
+<li><strong>Aged Brie</strong> gains quality as it ages instead of losing it (and, per the existing
+code's actual behavior, gains twice as fast after the sell-by date — the tests you
+write will tell you; bugs included is the contract).</li>
+<li><strong>Sulfuras, Hand of Ragnaros</strong> is legendary: never has to be sold, never changes —
+<code>sellIn</code> untouched, <code>quality</code> fixed at 80 (the exception to the 50 cap).</li>
+<li><strong>Backstage passes</strong> gain quality as the concert nears: +1 normally, <strong>+2 at 10
+days or fewer, +3 at 5 days or fewer</strong>, and drop to <strong>0 after the concert</strong>
+(<code>sellIn</code> &lt; 0).</li>
+<li><strong>New requirement — Conjured items</strong> degrade <strong>twice as fast</strong> as ordinary items
+(2 per day before sell-by, 4 after), respecting the same 0 floor.</li>
+</ul>
+<h2>Instructions</h2>
+<p>Work through the five phases in order; do not peek ahead (in particular, do not start
+reading the code &quot;for the tests&quot; before phase 1's estimates are sealed).</p>
+<h3>Phase 1 — Sealed estimates</h3>
+<ol>
+<li>Pick a language from the kata repo and set the project up so it compiles/runs.</li>
+<li>Read the legacy update method cold — no refactoring, no test-writing yet.</li>
+<li>Write down two <strong>range estimates</strong> (best case / worst case, in hours):
+<ul>
+<li>E1: implementing conjured items <strong>directly on the legacy code, now</strong>;</li>
+<li>E2: implementing conjured items <strong>after</strong> a cleanup, <em>including</em> the cleanup.
+For each, note in two or three lines what drives the range (what scares you).</li>
+</ul>
+</li>
+<li><strong>Seal them</strong>: commit the estimates file before any other work. It is not edited
+again until phase 5 — mispredictions are data, not embarrassment.</li>
+</ol>
+<h3>Phase 2 — Golden master</h3>
+<p>Pin the current behavior, bugs included, with a characterization harness:</p>
+<ul>
+<li>Drive the system over a wide input grid — every special item name plus ordinary
+ones, <code>sellIn</code> and <code>quality</code> values crossing every boundary (negative, 0, 1, 5, 6,
+10, 11, 49, 50, 80), updated over enough days to cross the sell-by line — and
+capture the full output as text.</li>
+<li>The captured output is <strong>recorded, reviewed once by eye, then committed as the
+approved master</strong>; from then on the test fails on any diff. (The repo ships
+text-based/approval test support in most languages — use it or hand-roll the
+compare.)</li>
+<li>Rules of construction: the master must be <strong>deterministic</strong> (no timestamps, no
+ordering wobble); assert on observable outputs only (names, sellIn, quality);
+don't &quot;fix&quot; anything the master captures — the current behavior <em>is</em> the spec.</li>
+<li>Check coverage (line/branch) of the update logic; extend the grid until the legacy
+method is fully covered.</li>
+</ul>
+<h3>Phase 3 — Repay in micro-commits</h3>
+<p>Refactor toward a design that makes item-specific behavior explicit (polymorphism,
+strategy map, rule table — your call), under these cadence rules:</p>
+<ul>
+<li><strong>Every commit ≤ ~5 minutes of work and one refactoring idea</strong> (rename, extract
+method, invert condition, lift special case…); the golden master is green at every
+single commit.</li>
+<li>Commit messages name the debt retired, honestly: <em>&quot;extract per-item update —
+removes 3-deep nesting on Brie path&quot;</em>, not <em>&quot;wip&quot;</em>.</li>
+<li>If a step goes red and the fix isn't obvious within a couple of minutes,
+<strong>revert, don't debug</strong> — take a smaller step.</li>
+<li>You may not modify the <code>Item</code> class or its fields (the goblin's constraint) — the
+design must absorb this.</li>
+</ul>
+<h3>Phase 4 — Ship conjured items</h3>
+<ul>
+<li>Implement the conjured-items rule on the cleaned design, tests first this time
+(real unit tests for the new behavior, alongside the master).</li>
+<li>Record the <strong>actual time</strong> for the cleanup (phase 3) and the feature (phase 4)
+separately.</li>
+</ul>
+<h3>Phase 5 — Retro and business case</h3>
+<p>Produce three documents (versioned with the code):</p>
+<ol>
+<li><strong>Estimate audit</strong> — the sealed E1/E2 vs. actuals: cleanup cost, feature-on-clean
+cost, and your honest guess of feature-on-legacy cost in hindsight. State the
+measured &quot;interest rate&quot; in one sentence: what the mess added to the price of one
+feature.</li>
+<li><strong>Debt records</strong> — ADR-style entries, written as if you'd inherited the codebase
+mid-loan: for each major debt you found (at minimum: the mega-conditional, the
+string-typed item identities, the missing tests), record its Fowler quadrant
+(deliberate/inadvertent × prudent/reckless), the interest it was charging, and
+how (or whether) it was repaid.</li>
+<li><strong>Business case</strong> — one page, addressed to a non-technical product owner: what
+this debt cost (N), what the cleanup cost (M), when it paid back, and what
+capacity you are asking for going forward. Numbers from your own measurements,
+not folklore.</li>
+</ol>
+<h2>Constraints</h2>
+<ul>
+<li>The <code>Item</code> class and its properties are untouchable, and you may not remove the
+shared items array — the kata's canonical constraint.</li>
+<li>No behavior changes before the golden master is complete — bug-for-bug
+compatibility is the phase-2 contract.</li>
+<li>The sealed estimates are never revised after phase 1; the retro compares against
+them as committed.</li>
+</ul>
+<h2>Acceptance</h2>
+<p>Mapped to the exercise's milestones:</p>
+<ol>
+<li><strong>Estimates sealed</strong> — a committed estimates file (two ranges + rationale) whose
+commit predates every test and refactoring commit in the history.</li>
+<li><strong>Golden master</strong> — mutation check: sabotage any single rule branch in the legacy
+code (flip a comparison, change a constant) and the harness fails; coverage of
+the update logic is total; two consecutive clean runs produce identical output.</li>
+<li><strong>Micro-commits</strong> — the log from master-complete to cleanup-done is a chain of
+small green commits, each naming its refactoring; no commit mixes refactoring
+with behavior change; <code>Item</code> is untouched throughout.</li>
+<li><strong>Feature</strong> — conjured items degrade 2/day before sell-by and 4/day after, never
+below 0; all pre-existing behavior still matches the master; actual times for
+phases 3 and 4 are recorded.</li>
+<li><strong>Retro</strong> — the three documents exist and are self-supporting: the audit's
+numbers trace to commits/timestamps, every debt record carries a quadrant and an
+interest statement, and the business case fits on a page and quotes only
+measured numbers.</li>
+</ol>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../engineering-practice/exercises/gilded-rose-technical-debt-workout/">Gilded Rose: a technical-debt workout</a> —
+the exercise note this is the subject of.</li>
+<li><a href="https://github.com/emilybache/GildedRose-Refactoring-Kata" rel="noopener">Gilded Rose Refactoring Kata (Emily Bache)</a> —
+the kata repo: starting code in ~40 languages and the original requirements text
+the domain rules above restate.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

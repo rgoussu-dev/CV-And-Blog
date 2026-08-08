@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Implement Raft with Gossip Glomers — subject — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/system-design/exercises</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../system-design/">system-design</a><span class="tok-path">/</span><span class="tok-path">exercises</span> <span class="tok-cmd">cat</span> <span class="tok-file">raft-with-gossip-glomers-subject</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Implement Raft with Gossip Glomers — subject</h1>
+        <p class="lib-lede"><span class="tok-comment"># The full work statement for the Gossip Glomers ladder — the Maelstrom message environment, each rung's workload contract, and the Raft assignment stated as requirements, runnable offline.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="subject">Subject</span><span class="lib-meta-date">saved 2026-08-08</span><a class="lib-chip lib-chip-src" href="https://fly.io/dist-sys/" rel="noopener"><svg class="lib-ico" viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 11.5a3 3 0 0 0 4.2 0l2-2a3 3 0 0 0-4.2-4.2l-1 1"/><path d="M11.5 8.5a3 3 0 0 0-4.2 0l-2 2a3 3 0 0 0 4.2 4.2l1-1"/></svg>source</a></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#exercise">#exercise</a><a class="lib-tag" href="../../../tags/#raft">#raft</a><a class="lib-tag" href="../../../tags/#consensus">#consensus</a><a class="lib-tag" href="../../../tags/#distributed-systems">#distributed-systems</a><a class="lib-tag" href="../../../tags/#gossip">#gossip</a><a class="lib-tag" href="../../../tags/#maelstrom">#maelstrom</a><a class="lib-tag" href="../../../tags/#subject">#subject</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Brief</h2>
+<p>You are writing the node software for a small distributed system whose network is
+actively hostile: messages are delayed, duplicated, and dropped, and the test harness
+deliberately partitions the cluster while checking your answers for consistency. The
+harness is Maelstrom (Jepsen's workbench). You climb a ladder of workloads — each one a
+distributed-systems pattern — and the top rung is a linearizable key-value store backed
+by your own Raft implementation.</p>
+<h2>Instructions</h2>
+<h3>1. The Maelstrom environment</h3>
+<p>Your node is any executable. Maelstrom launches N copies of it and speaks JSON to each:</p>
+<ul>
+<li><strong>Transport</strong> — one JSON object per line on <strong>stdin</strong> (messages in) and <strong>stdout</strong>
+(messages out). Anything for humans goes to <strong>stderr</strong>; a stray print to stdout
+corrupts the protocol.</li>
+<li><strong>Message shape</strong> — <code>{&quot;src&quot;: &quot;&lt;node-id&gt;&quot;, &quot;dest&quot;: &quot;&lt;node-id&gt;&quot;, &quot;body&quot;: {…}}</code>. Every
+body has a <code>type</code>; requests carry a unique <code>msg_id</code>; replies echo it back as
+<code>in_reply_to</code> and use the <code>&lt;type&gt;_ok</code> reply type (errors use type <code>error</code> with a
+numeric <code>code</code> and <code>text</code>).</li>
+<li><strong>Init</strong> — the first message every node receives is
+<code>{&quot;type&quot;: &quot;init&quot;, &quot;node_id&quot;: &quot;n1&quot;, &quot;node_ids&quot;: [&quot;n1&quot;,&quot;n2&quot;,…]}</code>. Store both, reply
+<code>init_ok</code>. Node ids start with <code>n</code>; client ids with <code>c</code>.</li>
+<li><strong>Inter-node RPC</strong> — nodes message each other with the same envelope. There is no
+delivery guarantee: build your own retry (with timeout) and make handlers idempotent,
+because retries mean duplicates.</li>
+<li><strong>Maelstrom services</strong> — the harness also exposes key-value stores as pseudo-nodes
+you can RPC (<code>lin-kv</code>, <code>seq-kv</code>) with <code>read</code> / <code>write</code> / <code>cas</code> operations; rung 4
+uses one.</li>
+</ul>
+<p>Run a workload as
+<code>maelstrom test -w &lt;workload&gt; --bin &lt;your-binary&gt; --node-count &lt;n&gt; --time-limit &lt;s&gt; [--rate &lt;ops/s&gt;] [--nemesis partition]</code>
+and pass when it prints &quot;Everything looks good!&quot;.</p>
+<h3>2. The ladder — one contract per rung</h3>
+<ol>
+<li><strong>Echo</strong> — handle <code>{&quot;type&quot;:&quot;echo&quot;,&quot;echo&quot;:&lt;any&gt;}</code> → reply <code>echo_ok</code> with the same
+<code>echo</code> field. This rung exists only to prove your stdin/stdout/reply plumbing.</li>
+<li><strong>Unique IDs</strong> — handle <code>{&quot;type&quot;:&quot;generate&quot;}</code> → <code>generate_ok</code> with an <code>id</code> that is
+globally unique across all nodes for the whole run, <strong>without any inter-node
+communication</strong>. The workload runs with partitions and demands total availability —
+derive ids from what a node already knows (its node id + a local counter, or
+timestamp + node id + sequence). Ids may be any JSON value.</li>
+<li><strong>Broadcast</strong> — three sub-stages against the <code>broadcast</code> workload:
+<ul>
+<li>Handle <code>{&quot;type&quot;:&quot;topology&quot;,&quot;topology&quot;:{…}}</code> (a suggested neighbor map — you may
+use it or ignore it) → <code>topology_ok</code>; <code>{&quot;type&quot;:&quot;broadcast&quot;,&quot;message&quot;:&lt;int&gt;}</code> →
+<code>broadcast_ok</code>; <code>{&quot;type&quot;:&quot;read&quot;}</code> → <code>read_ok</code> with <code>messages</code>: every value this
+node has ever seen, in any order, duplicates ignored. Gossip each new value to
+other nodes so <strong>every</strong> node eventually reads every value.</li>
+<li>Survive partitions (<code>--nemesis partition</code>): retry unacknowledged gossip until it
+lands; dedupe on receipt. Values injected during a partition must appear
+everywhere once it heals.</li>
+<li>Tune for efficiency on 25 nodes: first ≤ 30 messages per operation, then ≤ 20,
+while keeping median propagation latency within the workload's stated bounds
+(below ~1 s median / 2 s max, then ~1 s / 2 s with the lower message budget) —
+batch, and trade topology fan-out against hops.</li>
+</ul>
+</li>
+<li><strong>Grow-only counter</strong> — workload <code>g-counter</code>, partitions on. Handle
+<code>{&quot;type&quot;:&quot;add&quot;,&quot;delta&quot;:&lt;non-negative int&gt;}</code> → <code>add_ok</code> and <code>{&quot;type&quot;:&quot;read&quot;}</code> →
+<code>read_ok</code> with the counter's value. The counter is <strong>eventually consistent</strong>: reads
+may lag while partitioned but must converge to the true sum once healed. Build it on
+the <code>seq-kv</code> service (cas-loop per node key, sum on read) or as CRDT-style per-node
+counters gossiped and merged with max.</li>
+<li><strong>Kafka-style log</strong> — workload <code>kafka</code>: replicated append-only logs.
+<code>{&quot;type&quot;:&quot;send&quot;,&quot;key&quot;:&lt;log&gt;,&quot;msg&quot;:&lt;int&gt;}</code> → <code>send_ok</code> with the assigned integer
+<code>offset</code>; offsets within one key are monotonically increasing and never reused.
+<code>{&quot;type&quot;:&quot;poll&quot;,&quot;offsets&quot;:{&lt;key&gt;:&lt;from&gt;}}</code> → <code>poll_ok</code> with <code>msgs</code>: for each key,
+<code>[[offset, msg], …]</code> from the requested offset on, in order, no committed gaps.
+<code>{&quot;type&quot;:&quot;commit_offsets&quot;,&quot;offsets&quot;:{…}}</code> → <code>commit_offsets_ok</code>;
+<code>{&quot;type&quot;:&quot;list_committed_offsets&quot;,&quot;keys&quot;:[…]}</code> → the last committed offset per key.
+Start on the linearizable <code>lin-kv</code> service, then multi-node with sane performance.</li>
+<li><strong>Totally-available transactions</strong> — workload <code>txn-rw-register</code>. Handle
+<code>{&quot;type&quot;:&quot;txn&quot;,&quot;txn&quot;:[[&quot;r&quot;,&lt;key&gt;,null],[&quot;w&quot;,&lt;key&gt;,&lt;value&gt;],…]}</code> → <code>txn_ok</code> with the
+same list, reads filled in with the value seen (or null). The system must stay
+<strong>totally available</strong> under partition — never block, never refuse — which caps you
+at weak isolation: first pass Read Uncommitted (no dirty writes: the checker rejects
+two transactions' writes interleaving per key), then Read Committed (never expose a
+value from an uncommitted or aborted transaction — replicate whole transactions
+atomically).</li>
+</ol>
+<h3>3. The Raft assignment</h3>
+<p>Rung 7: make workload <code>lin-kv</code> pass — a <strong>linearizable</strong> key-value store
+(<code>read</code> / <code>write</code> / <code>cas</code> operations from clients, where <code>cas</code> compares the current
+value with <code>from</code> and sets <code>to</code> only on match, erroring on mismatch or missing key) —
+with partitions enabled, by implementing Raft yourself. Requirements, not the paper:</p>
+<ul>
+<li><strong>State</strong> — every node persists (in memory here) <code>currentTerm</code>, <code>votedFor</code>, and a
+<code>log</code> of <code>{term, command}</code> entries (1-indexed); volatile <code>commitIndex</code> and
+<code>lastApplied</code>; leaders track per-follower <code>nextIndex</code> and <code>matchIndex</code>.</li>
+<li><strong>Leader election</strong> — nodes start as followers. A follower that hears nothing from a
+valid leader within a <strong>randomized</strong> election timeout (spread the range wide enough
+that split votes are rare; hundreds of ms against Maelstrom's latencies) increments
+its term, votes for itself, and requests votes from all peers. A vote is granted at
+most once per term, and only to a candidate whose log is at least as up-to-date
+(higher last term wins; equal terms → longer log wins). A majority of votes makes a
+leader; a message bearing a higher term makes anyone step down to follower and adopt
+that term.</li>
+<li><strong>Log replication</strong> — clients' operations go to the leader (non-leaders reply with a
+&quot;not the leader&quot; error or proxy). The leader appends to its own log and sends
+append-entries RPCs carrying the previous entry's index and term; a follower rejects
+the RPC if its log disagrees at that position, and the leader backs <code>nextIndex</code> down
+and retries until logs match, then overwrites the follower's conflicting suffix.
+Heartbeats are empty append-entries on a timer well under the election timeout.</li>
+<li><strong>Commit</strong> — the leader advances <code>commitIndex</code> to the highest index replicated on a
+majority <strong>whose entry is from the leader's current term</strong>; committed entries are
+applied to the KV state machine in log order, exactly once, and only then answered to
+the client.</li>
+<li><strong>Safety under partition</strong> — at most one leader per term; a deposed leader's
+unreplicated entries are discarded, never applied; committed entries survive any
+minority partition and leader change; two nodes never apply different commands at the
+same log index. <code>cas</code> correctness is the observable proof: it only ever succeeds
+against the true committed value.</li>
+</ul>
+<h2>Constraints</h2>
+<ul>
+<li>Any language; only a JSON library is assumed. Do not use a Raft/consensus library —
+the consensus code is the exercise. Maelstrom's provided language demos may be read
+for plumbing, not copied for logic.</li>
+<li>Never write non-protocol output to stdout.</li>
+<li>Handlers must tolerate duplicate delivery at every rung from 3 up.</li>
+<li>Rungs are completed in order; each must pass before the next starts.</li>
+</ul>
+<h2>Acceptance</h2>
+<p>One check per exercise milestone, all via the Maelstrom CLI:</p>
+<ol>
+<li><strong>Echo</strong> — <code>maelstrom test -w echo --bin &lt;node&gt; --node-count 1 --time-limit 10</code>
+passes.</li>
+<li><strong>Unique IDs</strong> — <code>-w unique-ids --node-count 3 --rate 1000 --time-limit 30 --availability total --nemesis partition</code> passes: zero duplicate ids under
+partition.</li>
+<li><strong>Broadcast</strong> — <code>-w broadcast --node-count 5 --time-limit 20 --rate 10</code> passes;
+then the same with <code>--nemesis partition</code>; then <code>--node-count 25 --rate 100</code> with
+reported <code>msgs-per-op</code> ≤ 30, and finally ≤ 20, latencies within the stated bounds.</li>
+<li><strong>Grow-only counter</strong> — <code>-w g-counter --node-count 3 --rate 100 --time-limit 20 --nemesis partition</code> passes: final reads equal the sum of all acknowledged deltas.</li>
+<li><strong>Kafka-style log</strong> — <code>-w kafka --node-count 2 --concurrency 2n --time-limit 20 --rate 1000</code> passes: no lost writes, per-key order preserved, committed offsets
+honored.</li>
+<li><strong>Transactions</strong> — <code>-w txn-rw-register --node-count 2 --concurrency 2n --rate 1000 --time-limit 20 --availability total --nemesis partition</code> passes, first with
+<code>--consistency-models read-uncommitted</code>, then <code>read-committed</code>.</li>
+<li><strong>Raft</strong> — <code>-w lin-kv --node-count 3 --concurrency 2n --rate 100 --time-limit 60 --nemesis partition</code> passes: Maelstrom's linearizability checker finds no violation;
+kills/partitions during the run produce re-elections, not lost acknowledged writes.</li>
+</ol>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../system-design/exercises/raft-with-gossip-glomers/">Implement Raft with Gossip Glomers</a> — the exercise this
+is the subject of.</li>
+<li><a href="https://fly.io/dist-sys/" rel="noopener">Gossip Glomers</a> — <a href="http://Fly.io" rel="noopener">Fly.io</a>'s challenge series this statement
+is adapted from.</li>
+<li><a href="https://github.com/jepsen-io/maelstrom" rel="noopener">Maelstrom protocol &amp; workload docs</a> — the
+authoritative message and workload contracts restated above.</li>
+<li><a href="https://raft.github.io/" rel="noopener">The Raft paper</a> — the protocol §3 states as requirements.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>
