@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Variance workout — subject — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/applicative-architecture/exercises</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../applicative-architecture/">applicative-architecture</a><span class="tok-path">/</span><span class="tok-path">exercises</span> <span class="tok-cmd">cat</span> <span class="tok-file">variance-workout-subject</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Variance workout — subject</h1>
+        <p class="lib-lede"><span class="tok-comment"># The self-contained variance work statement — the six drills' rules, code seeds, compile-vs-runtime constraints, and the acceptance checks for each part.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="subject">Subject</span><span class="lib-meta-date">saved 2026-08-08</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#exercise">#exercise</a><a class="lib-tag" href="../../../tags/#variance">#variance</a><a class="lib-tag" href="../../../tags/#covariance">#covariance</a><a class="lib-tag" href="../../../tags/#contravariance">#contravariance</a><a class="lib-tag" href="../../../tags/#solid">#solid</a><a class="lib-tag" href="../../../tags/#liskov">#liskov</a><a class="lib-tag" href="../../../tags/#interface-segregation">#interface-segregation</a><a class="lib-tag" href="../../../tags/#subject">#subject</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Brief</h2>
+<p>You keep meeting variance in the wild — a wildcard you copy from Stack Overflow, a
+Kotlin <code>out</code> you cargo-cult, a TypeScript error that vanishes when you switch an arrow
+function to a method — without ever being made to <em>predict</em> what the compiler will say.
+This workout fixes that. Six short drills, three languages, one rule: for every case you
+write, say out loud whether it compiles <strong>before</strong> you find out. By the end, &quot;producers
+covariant, consumers contravariant, read-write invariant&quot; should feel less like a slogan
+and more like the obvious shape of data flow.</p>
+<h2>Instructions</h2>
+<h3>Part 1 — Break arrays (Java)</h3>
+<p>Write, in one scratch file each:</p>
+<ol>
+<li>The runtime version: assign a <code>Cat[]</code> to an <code>Animal[]</code> variable, store a <code>Dog</code>
+through it, run it, and capture the <code>ArrayStoreException</code>.</li>
+<li>The generic version: the same three lines with <code>List&lt;Cat&gt;</code> / <code>List&lt;Animal&gt;</code> — the
+assignment itself must be the compile error.</li>
+</ol>
+<p>End the commit message or a README line with one sentence: <em>where did the check move,
+and what did the compiler need to know to move it?</em></p>
+<h3>Part 2 — Rectangle/Square under property tests</h3>
+<ol>
+<li>Implement mutable <code>Rectangle</code> (<code>setWidth</code>, <code>setHeight</code>, <code>area</code>) and
+<code>Square extends Rectangle</code> keeping the square invariant (each setter sets both sides).</li>
+<li>Write a property test quantified over <em>any</em> <code>Rectangle</code> the code can hand you:
+after <code>setWidth(w)</code>, <code>area() == w * height()</code>.</li>
+<li>Run it against <code>Square</code>. It must fail — that failure is Liskov substitution violated,
+caught by a test instead of a code review.</li>
+<li>Redesign until the property holds for every member: immutable value types with
+<code>withWidth(…)</code> returning <code>Rectangle</code>, or two unrelated types behind a common
+read-only interface. Deleting the inheritance is allowed — that's a finding, not a
+defeat.</li>
+</ol>
+<h3>Part 3 — PECS drill (Java)</h3>
+<p>Implement, signatures first, bodies after:</p>
+<ul>
+<li><code>static &lt;T&gt; void copy(List&lt;? extends T&gt; src, List&lt;? super T&gt; dst)</code></li>
+<li><code>static &lt;T&gt; T max(Collection&lt;? extends T&gt; items, Comparator&lt;? super T&gt; cmp)</code></li>
+<li><code>static &lt;T&gt; void addAll(Collection&lt;? super T&gt; target, T... elements)</code></li>
+</ul>
+<p>Then build the harness: a set of call sites that <strong>must compile</strong>
+(<code>copy(List&lt;Cat&gt;, List&lt;Animal&gt;)</code>, a <code>Comparator&lt;Animal&gt;</code> ordering a <code>List&lt;Cat&gt;</code>…) and a
+set that <strong>must not</strong> (<code>copy(List&lt;Animal&gt;, List&lt;Cat&gt;)</code>, <code>max</code> over unrelated types…).
+Keep the must-not-compile cases as commented-out lines, each with the compiler's actual
+complaint pasted above it.</p>
+<h3>Part 4 — The ISP→variance kata (Java → Kotlin)</h3>
+<ol>
+<li>Write the fat interface: <code>MultiFunctionDevice</code> with <code>print(Doc)</code>, <code>Doc scan()</code>,
+<code>fax(Doc)</code>, and two implementations — a <code>MultiFunctionPrinter</code> using everything and
+an <code>OldPrinter</code> forced to stub <code>scan</code>/<code>fax</code>.</li>
+<li>Segregate: <code>Printer</code> (consumes docs), <code>Scanner</code> (produces docs), <code>Fax</code> (consumes) —
+<code>OldPrinter</code> now implements only what it honors.</li>
+<li>Port the segregated design to Kotlin and annotate: <code>Printer&lt;in D&gt;</code>, <code>Scanner&lt;out D&gt;</code>.
+Demonstrate both directions with an assignment that only variance allows
+(a <code>Scanner&lt;ColorDoc&gt;</code> used as <code>Scanner&lt;Doc&gt;</code>; a <code>Printer&lt;Doc&gt;</code> used as
+<code>Printer&lt;ColorDoc&gt;</code>).</li>
+<li>The proof: try <code>interface MultiFunctionDevice&lt;out D&gt;</code> (or <code>in D</code>) on the fat Kotlin
+interface. Keep the compiler error in a comment — the fat interface is <em>invariant by
+necessity</em>, and the segregation is what unlocked the annotations.</li>
+</ol>
+<h3>Part 5 — strictFunctionTypes koans (TypeScript)</h3>
+<p>In one file, with <code>strictFunctionTypes: false</code>, write ~10 assignability assertions
+between function types (<code>(a: Animal) =&gt; void</code> vs <code>(c: Cat) =&gt; void</code>, both directions,
+plus return-type cases and an interface with a method versus a property holding an
+arrow function). Predict each in a comment. Flip the flag to <code>true</code>, then:</p>
+<ul>
+<li>explain every new error in one line each (which parameter position broke, and why
+contravariance forbids it);</li>
+<li>keep one <strong>method</strong> case that still compiles under the flag — the documented
+bivariance loophole — and note why the flag spares methods.</li>
+</ul>
+<h3>Part 6 — LSP as contract tests</h3>
+<ol>
+<li>Pick a small interface with real semantics — <code>EmployeeRepository</code> from the Birthday
+Greetings exercise is ideal, or any repository port: <code>save</code>, <code>findById</code>, <code>findAll</code>.</li>
+<li>Write one <strong>abstract test class</strong> stating the contract in tests: what was saved can
+be found, unknown ids return empty, <code>findAll</code> reflects every save.</li>
+<li>Run it, unchanged, against every implementation: the in-memory fake and a real one.</li>
+<li>Add a deliberately broken implementation (e.g. <code>findAll</code> forgets the last insert).
+It must fail the same suite — if it passes, the contract is too weak; strengthen it.</li>
+</ol>
+<h2>Examples</h2>
+<p>Part 1, the two versions side by side:</p>
+<pre><code class="language-java">Animal[] pen = new Cat[1];
+pen[0] = new Dog();              // compiles; ArrayStoreException at runtime
+
+List&lt;Animal&gt; list = new ArrayList&lt;Cat&gt;();   // does not compile
+</code></pre>
+<p>Part 4, the variance the segregation buys (Kotlin):</p>
+<pre><code class="language-kotlin">interface Scanner&lt;out D&gt; { fun scan(): D }
+interface Printer&lt;in D&gt;  { fun print(doc: D) }
+
+val s: Scanner&lt;Doc&gt; = colorScanner        // Scanner&lt;ColorDoc&gt; — ok, produces
+val p: Printer&lt;ColorDoc&gt; = plainPrinter   // Printer&lt;Doc&gt; — ok, consumes
+</code></pre>
+<p>Part 5, one koan:</p>
+<pre><code class="language-typescript">declare let handleAnimal: (a: Animal) =&gt; void;
+declare let handleCat: (c: Cat) =&gt; void;
+handleCat = handleAnimal;   // ok — Animal handler accepts any Cat
+handleAnimal = handleCat;   // error under strictFunctionTypes — predict it first
+</code></pre>
+<h2>Constraints</h2>
+<ul>
+<li><strong>Predict before you run.</strong> Every case gets a one-line prediction comment written
+before the first compile; wrong predictions stay in the file, corrected below — they
+are the learning record.</li>
+<li>Must-not-compile cases stay in the repo as commented-out code with the actual
+compiler message; a case silently deleted teaches nothing.</li>
+<li>One part per commit, each with the one-sentence takeaway in its message.</li>
+<li>Parts 1, 3 in Java; part 4 ends in Kotlin; part 5 in TypeScript; parts 2 and 6 in
+whichever of those you like. No other tooling required than the three compilers and a
+test runner.</li>
+</ul>
+<h2>Acceptance</h2>
+<p>Mapped to the exercise's milestones:</p>
+<ol>
+<li>The array version throws <code>ArrayStoreException</code> at runtime; the <code>List</code> version fails
+to compile at the assignment; the takeaway sentence names what the compiler now knows.</li>
+<li>The property test fails on <code>Square</code> in the naive design and passes for every type in
+the redesigned one, without weakening the property.</li>
+<li>All must-compile call sites compile; every must-not-compile line carries the real
+compiler complaint; no signature uses a raw type or an unchecked cast.</li>
+<li>Kotlin's <code>out</code>/<code>in</code> annotations compile on the role interfaces, both demonstration
+assignments type-check, and the fat interface's rejection is captured verbatim.</li>
+<li>Under <code>strictFunctionTypes: true</code> every error is explained; the surviving method-
+bivariance case is present and annotated.</li>
+<li>One abstract suite runs green against the fake and the real implementation, and red
+against the sabotaged one — with no per-implementation test code beyond construction.</li>
+</ol>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../applicative-architecture/exercises/variance-workout/">Variance workout — LSP &amp; ISP through the type checker</a> — the
+exercise this is the subject of.</li>
+<li><a href="https://docs.oracle.com/javase/tutorial/java/generics/wildcards.html" rel="noopener">Java generics tutorial — wildcards</a>,
+<a href="https://kotlinlang.org/docs/generics.html" rel="noopener">Kotlin generics</a>,
+<a href="https://www.typescriptlang.org/tsconfig/#strictFunctionTypes" rel="noopener">TypeScript <code>strictFunctionTypes</code></a> —
+the language references the drills lean on.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

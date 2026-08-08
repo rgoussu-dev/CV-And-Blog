@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Coupling &amp; cohesion — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../assets/styles.css" />
+  <link rel="stylesheet" href="../../assets/theme.css" />
+</head>
+<body data-prefix="../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/applicative-architecture</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../">~/library</a><span class="tok-path">/</span><span class="tok-path">applicative-architecture</span> <span class="tok-cmd">cat</span> <span class="tok-file">coupling-and-cohesion</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Coupling &amp; cohesion</h1>
+        <p class="lib-lede"><span class="tok-comment"># The two forces every architecture balances — minimize how much modules know about each other, maximize how much each module belongs together.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-08</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../tags/#coupling">#coupling</a><a class="lib-tag" href="../../tags/#cohesion">#cohesion</a><a class="lib-tag" href="../../tags/#architecture">#architecture</a><a class="lib-tag" href="../../tags/#design">#design</a><a class="lib-tag" href="../../tags/#modularity">#modularity</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>Coupling measures how much one module depends on the internals, timing, or availability of
+another; cohesion measures how strongly the elements inside a module belong together. They
+are the oldest pair of forces in software design (Constantine &amp; Yourdon, structured design,
+1970s) and still the vocabulary behind nearly every architectural argument: good boundaries
+are the ones that keep cohesion high inside and coupling low across. Almost every modern
+pattern — layering, hexagonal ports, bounded contexts, microservices — is a strategy for
+managing this trade-off, not an escape from it.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>Low coupling ≠ no coupling.</strong> Modules must connect to be useful; the goal is depending
+on stable, narrow, explicit contracts rather than on internals. Afferent/efferent
+coupling and the stable-dependencies principle give it a measurable form.</li>
+<li><strong>Kinds of coupling, worst to best</strong> (structured-design lineage): content (reaching into
+internals) → common (shared global state) → control (passing flags that steer the callee)
+→ stamp (passing whole structures for one field) → data (passing just what's needed).
+Modern additions: <strong>temporal</strong> coupling (must run in order / at the same time) and
+<strong>deployment</strong> coupling (must ship together) — the two that distributed systems make
+expensive.</li>
+<li><strong>Kinds of cohesion, worst to best</strong>: coincidental (utility grab-bags) → logical →
+temporal → procedural → communicational → sequential → <strong>functional</strong> (one reason to
+exist). &quot;God classes&quot; and <code>utils/</code> folders are cohesion failures before they are size
+problems.</li>
+<li><strong>Cohesion decides where code lives; coupling decides how it talks.</strong> A boundary drawn
+through a cohesive cluster converts cheap in-process calls into expensive cross-boundary
+coupling — the classic distributed-monolith failure.</li>
+<li><strong>Connascence</strong> (Meilir Page-Jones) refines the vocabulary: two elements are connascent
+when changing one forces changing the other; prefer weaker (name, type) over stronger
+(order, timing, values), and keep strong connascence local.</li>
+<li><strong>Heuristics</strong>: put things that change together, together (common closure); depend in the
+direction of stability; make coupling explicit (interfaces, events, contracts) so it can
+be seen and tested; measure change-coupling in version history, not just imports.</li>
+</ul>
+<h2>Practice</h2>
+<ul>
+<li><strong>Connascence hunt</strong> (<a href="https://connascence.io/" rel="noopener">source</a>) — pick one module and classify
+every connascence instance you find, then refactor the strongest (position, timing,
+values) down toward the weakest (name, type); recognition drill for invisible coupling.</li>
+<li><strong>Trip Service kata</strong> (<a href="https://github.com/sandromancuso/trip-service-kata" rel="noopener">source</a>) —
+the code can't even be tested until you break its coupling to statics and singletons;
+the best hands-on lesson on why coupling direction matters.</li>
+<li><strong>Racing Car katas</strong> (<a href="https://github.com/emilybache/Racing-Car-Katas" rel="noopener">source</a>) — each
+small exercise is rigged so one coupling violation blocks testability; fix the coupling
+to get the test in.</li>
+<li><strong>ArchUnit fitness tests</strong> (<a href="https://www.archunit.org/" rel="noopener">source</a>) — encode your intended
+dependency directions as executable tests on a real codebase and watch what fails:
+coupling made visible and enforceable.</li>
+<li><strong>Change-coupling archaeology</strong> (<a href="https://github.com/adamtornhill/code-maat" rel="noopener">source</a>) —
+mine a repo's git history (code-maat or CodeScene) for files that always change together
+but live apart — cohesion failures no import graph will show; the exercises from
+Tornhill's <em>Your Code as a Crime Scene</em>.</li>
+<li><strong>Gilded Rose — legacy rescue</strong> (<a href="../../applicative-architecture/exercises/gilded-rose-legacy-rescue/">exercise</a>) —
+the flagship cohesion workout: extract a design from one god function, under tests.</li>
+<li><strong>Birthday Greetings — hexagonal extraction</strong> (<a href="../../applicative-architecture/exercises/birthday-greetings-hexagonal/">exercise</a>) —
+the coupling workout at architecture scale: start from a deliberately coupled script
+and cut the boundary — cohesive pure core behind ports, I/O pushed into adapters.</li>
+</ul>
+<h2>Related</h2>
+<ul>
+<li><a href="../../applicative-architecture/clean-code/">Clean code</a> — SOLID is largely coupling/cohesion at class scale (SRP is
+cohesion; DIP manages coupling direction).</li>
+<li><a href="../../applicative-architecture/hexagonal-architecture/">Hexagonal architecture</a> — ports keep domain↔infrastructure
+coupling narrow and directed inward.</li>
+<li><a href="../../applicative-architecture/ddd/">DDD</a> — bounded contexts are cohesion boundaries drawn on the business domain.</li>
+<li><a href="../../applicative-architecture/refactoring-techniques/">Refactoring techniques</a> — most catalog moves raise cohesion
+or loosen coupling.</li>
+<li><a href="../../system-design/microservice-architecture/">Microservice architecture</a> — gets its cost
+model from deployment and temporal coupling across the network.</li>
+<li><a href="../../applicative-architecture/covariance-and-contravariance/">Covariance &amp; contravariance</a> — variance annotations
+narrow what a contract exposes, shrinking what clients can couple to.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../assets/planks.js"></script>
+  <script src="../../assets/search.js" defer></script>
+</body>
+</html>
