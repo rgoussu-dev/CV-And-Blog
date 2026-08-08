@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Rendering strategies &amp; meta-frameworks — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../assets/styles.css" />
+  <link rel="stylesheet" href="../../assets/theme.css" />
+</head>
+<body data-prefix="../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/frontend</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../">~/library</a><span class="tok-path">/</span><span class="tok-path">frontend</span> <span class="tok-cmd">cat</span> <span class="tok-file">rendering-strategies-and-meta-frameworks</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Rendering strategies &amp; meta-frameworks</h1>
+        <p class="lib-lede"><span class="tok-comment"># Where HTML gets made — CSR, SSR, SSG, streaming, islands, RSC — the cost model of each, and the meta-frameworks that package the trade-offs.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-08</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../tags/#frontend">#frontend</a><a class="lib-tag" href="../../tags/#ssr">#ssr</a><a class="lib-tag" href="../../tags/#rendering">#rendering</a><a class="lib-tag" href="../../tags/#nextjs">#nextjs</a><a class="lib-tag" href="../../tags/#meta-frameworks">#meta-frameworks</a><a class="lib-tag" href="../../tags/#hydration">#hydration</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>&quot;Where does the HTML come from, and when?&quot; is the first architecture decision of any web
+product, and every acronym in this space — CSR, SSR, SSG, ISR, islands, RSC — is one
+answer with one cost profile. The pendulum swung from server-rendered pages to
+client-side apps and is swinging back with the server in a new role; meta-frameworks
+(Next.js, Remix/React Router, Astro, SvelteKit, Nuxt) exist to package these strategies
+with routing, data loading, and deployment. Choosing well means knowing what each
+strategy costs in latency, complexity, and infrastructure — not which one is fashionable.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>The strategy spectrum</strong>: CSR (empty shell + JS builds everything — cheap to host,
+slow first paint, SEO friction), SSR (HTML per request — fast first paint, needs a
+server, TTFB on the critical path), SSG (HTML at build time — fastest and cheapest,
+only for content known ahead), ISR/on-demand revalidation (SSG that heals itself),
+streaming SSR (send the shell, flush the slow parts later).</li>
+<li><strong>Hydration is the tax collector</strong>: server HTML is inert until the JS re-attaches;
+users see a page they can't use yet (<a href="../../frontend/web-performance/">web performance</a>'s INP and
+the uncanny valley). Everything after classic SSR — islands, progressive/selective
+hydration, resumability (Qwik), React Server Components — is an attempt to shrink or
+dodge this tax.</li>
+<li><strong>Islands &amp; partial hydration</strong> (Astro): static HTML by default, hydration only for
+the interactive widgets — the right default for content-heavy sites with sprinkles of
+interactivity.</li>
+<li><strong>React Server Components</strong>: components that run <em>only</em> on the server — zero client
+bundle, direct data access — composed with client components at explicit
+<code>&quot;use client&quot;</code> boundaries; data flows down as serialized UI, mutations return via
+server actions. A real shift in where the data layer lives, with real complexity added
+to the mental model.</li>
+<li><strong>Pick by page, not by app</strong>: marketing pages want SSG, dashboards behind login are
+fine as CSR, feeds want SSR/streaming. Meta-frameworks let strategies mix per route —
+the skill is matching strategy to content volatility and interactivity.</li>
+<li><strong>The deployment story is part of the choice</strong>: SSR means servers or edge runtimes,
+SSG means a CDN; edge rendering moves TTFB close to users but constrains the runtime.
+Vendor coupling (notably Next.js ↔ Vercel) is an architectural dependency to weigh
+like any other.</li>
+</ul>
+<h2>Details</h2>
+<h3>Choosing, honestly</h3>
+<table>
+<thead>
+<tr>
+<th>Page profile</th>
+<th>Strategy</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Content known at build (docs, blog, marketing)</td>
+<td>SSG (+ islands for widgets)</td>
+<td>CDN-cheap, instant, nothing to operate</td>
+</tr>
+<tr>
+<td>Content per-user or per-request (feed, search results)</td>
+<td>SSR, streaming when slow parts exist</td>
+<td>First paint with real data</td>
+</tr>
+<tr>
+<td>Behind-login, interaction-dense (dashboard, editor)</td>
+<td>CSR (or SSR shell + CSR)</td>
+<td>SEO irrelevant; optimize for app feel</td>
+</tr>
+<tr>
+<td>Huge catalog, mostly stable (e-commerce)</td>
+<td>ISR / on-demand revalidation</td>
+<td>Build can't render millions; CDN still serves</td>
+</tr>
+</tbody>
+</table>
+<h3>The meta-framework landscape</h3>
+<p>Next.js (App Router: RSC-first, the most capability and the most conceptual surface),
+Remix / React Router (web-fundamentals posture — loaders/actions over forms, progressive
+enhancement), Astro (content-first, islands, framework-agnostic), SvelteKit/Nuxt (the
+same ideas for their ecosystems). They converge on the same primitives: file/route-based
+data loading, nested layouts, server mutations, per-route rendering choice.</p>
+<h2>Practice</h2>
+<ul>
+<li><strong>Same page, three ways</strong> — build one product page as CSR, SSG, and streamed SSR (any
+meta-framework); measure TTFB/LCP/INP on a throttled connection and write down the
+table you observe rather than the one the docs promise.</li>
+<li><strong>Islands retrofit</strong> (<a href="https://astro.build/" rel="noopener">source</a>) — rebuild a JS-heavy content
+page in Astro with only the carousel hydrated; watch the bundle drop by an order of
+magnitude.</li>
+<li><strong>RSC boundary kata</strong> (<a href="https://react.dev/reference/rsc/server-components" rel="noopener">source</a>) —
+take a small Next.js App Router app and justify every <code>&quot;use client&quot;</code> directive out
+loud; the exercise is drawing the server/client line deliberately.</li>
+<li><strong>RealWorld full-stack build</strong> (<a href="../../frontend/exercises/realworld-fullstack/">source</a>) — milestone
+4 migrates the CSR app to a meta-framework and measures what it bought.</li>
+</ul>
+<h2>Related</h2>
+<ul>
+<li><a href="../../frontend/browser-internals/">Browser internals</a> — what the browser does with the HTML each
+strategy produces.</li>
+<li><a href="../../frontend/web-performance/">Web performance</a> — the metrics these strategies are traded
+against.</li>
+<li><a href="../../frontend/component-architecture-and-state/">Component architecture &amp; state management</a> —
+server rendering relocates state; the classification still decides where it goes.</li>
+<li><a href="../../system-design/cache-management/">Cache management</a> — ISR and CDN revalidation are
+cache invalidation wearing a frontend badge.</li>
+<li><a href="../../system-design/api-design/">API design</a> — loaders, server actions, and BFFs are the
+API seam of the meta-framework world.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../assets/planks.js"></script>
+  <script src="../../assets/search.js" defer></script>
+</body>
+</html>

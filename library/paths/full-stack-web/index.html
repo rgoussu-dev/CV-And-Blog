@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>The full-stack web — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../assets/styles.css" />
+  <link rel="stylesheet" href="../../assets/theme.css" />
+</head>
+<body data-prefix="../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/paths</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../">~/library</a><span class="tok-path">/</span><span class="tok-path">paths</span> <span class="tok-cmd">cat</span> <span class="tok-file">full-stack-web</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">The full-stack web</h1>
+        <p class="lib-lede"><span class="tok-comment"># From browser internals to a shipped product — the frontend discipline in full, the API seam, and the RealWorld capstone where every piece must hold hands.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="path">Path</span><span class="lib-meta-date">saved 2026-08-08</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../tags/#path">#path</a><a class="lib-tag" href="../../tags/#frontend">#frontend</a><a class="lib-tag" href="../../tags/#fullstack">#fullstack</a><a class="lib-tag" href="../../tags/#react">#react</a><a class="lib-tag" href="../../tags/#css">#css</a><a class="lib-tag" href="../../tags/#testing">#testing</a><a class="lib-tag" href="../../tags/#api">#api</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Goal</h2>
+<p>Full-stack means owning everything between the database and the pixel. The backend half
+is covered by <a href="../../paths/software-craft/">software craft</a> and
+<a href="../../paths/distributed-systems-and-data/">systems at scale</a>; this path builds the half most
+backend-leaning engineers skip — the browser as a runtime, components and state as an
+architecture, CSS as engineering, accessibility and performance as requirements — then
+closes the loop through the API seam and a capstone where the whole stack ships as one
+product.</p>
+<h2>Prerequisites</h2>
+<ul>
+<li><a href="../../paths/software-craft/">Software craft</a> modules 1–4 (the capstone's backend expects
+them).</li>
+<li><a href="../../paths/language-craft/">Language craft</a> module 2 (TypeScript).</li>
+</ul>
+<h2>Modules</h2>
+<h3>1. The browser as a runtime</h3>
+<ul>
+<li><strong>Read</strong>: <a href="../../frontend/browser-internals/">Browser internals</a>.</li>
+<li><strong>Do</strong>: <a href="../../frontend/exercises/toy-browser-engine/">Toy browser engine</a> — at minimum
+through layout; the full build is its own reward.</li>
+<li><strong>Proof</strong>: the stage checks per the subject; the URL-to-pixels walk, now including
+the rendering half started in <a href="../../paths/foundations/">Foundations</a> module 5.</li>
+</ul>
+<h3>2. Components &amp; state</h3>
+<ul>
+<li><strong>Read</strong>: <a href="../../frontend/component-architecture-and-state/">Component architecture &amp; state management</a>.</li>
+<li><strong>Do</strong>: the note's drills — TodoMVC twice, the query-cache refactor, the compound
+component kata.</li>
+<li><strong>Proof</strong>: for any piece of state in your app you can name its category and owner in
+one sentence, and the vanilla-vs-framework cost comparison is written down.</li>
+</ul>
+<h3>3. CSS, owned</h3>
+<ul>
+<li><strong>Read</strong>: <a href="../../frontend/css-architecture-and-layout/">CSS architecture &amp; layout</a>.</li>
+<li><strong>Do</strong>: the note's drills — layout warm-ups, the no-framework clone of a dense
+production page, the Every Layout primitives.</li>
+<li><strong>Proof</strong>: the clone holds at 320px–4K and 200% zoom without a media-query thicket.</li>
+</ul>
+<h3>4. The design system</h3>
+<ul>
+<li><strong>Read</strong>: <a href="../../frontend/design-systems/">Design systems</a> and
+<a href="../../frontend/atomic-design/">Atomic design</a>.</li>
+<li><strong>Do</strong>: <a href="../../frontend/exercises/design-system-from-scratch/">Design system from scratch</a>.</li>
+<li><strong>Proof</strong>: the theme swap per the subject — dark mode lands by swapping the token
+layer only.</li>
+</ul>
+<h3>5. Accessibility as a requirement</h3>
+<ul>
+<li><strong>Read</strong>: <a href="../../frontend/accessibility/">Accessibility</a>.</li>
+<li><strong>Do</strong>: the note's drills, plus retrofit: audit the module-4 components with axe and
+a keyboard-only session, fix what surfaces.</li>
+<li><strong>Proof</strong>: per-component a11y contracts documented; the audit's before/after list.</li>
+</ul>
+<h3>6. Rendering strategies</h3>
+<ul>
+<li><strong>Read</strong>: <a href="../../frontend/rendering-strategies-and-meta-frameworks/">Rendering strategies &amp; meta-frameworks</a>.</li>
+<li><strong>Do</strong>: the note's &quot;same page, three ways&quot; drill with real measurements.</li>
+<li><strong>Proof</strong>: your observed CSR/SSG/SSR table, and a per-page-profile recommendation
+you can defend.</li>
+</ul>
+<h3>7. Performance as a budget</h3>
+<ul>
+<li><strong>Read</strong>: <a href="../../frontend/web-performance/">Web performance</a>.</li>
+<li><strong>Do</strong>: the note's drills — profile and fix a slow real page, set a CWV budget in CI.</li>
+<li><strong>Proof</strong>: a before/after trace where the fix follows the metric, not the hunch.</li>
+</ul>
+<h3>8. Frontend testing</h3>
+<ul>
+<li><strong>Read</strong>: <a href="../../frontend/frontend-testing/">Frontend testing</a>.</li>
+<li><strong>Do</strong>: the note's drills — test the design system, the MSW retrofit, the Playwright
+money-path suite.</li>
+<li><strong>Proof</strong>: a deliberately broken API contract is caught by the integration layer; the
+E2E suite survives a cosmetic refactor untouched.</li>
+</ul>
+<h3>9. The API seam</h3>
+<ul>
+<li><strong>Read</strong>: <a href="../../system-design/api-design/">API design</a> and
+<a href="../../security/authentication-and-authorization/">Authentication &amp; authorization</a>.</li>
+<li><strong>Do</strong>: their practice drills — the contract-first kata and the PKCE login build are
+the two that matter here.</li>
+<li><strong>Proof</strong>: an OpenAPI contract with generated client types flowing into the
+frontend's single source of API truth.</li>
+</ul>
+<h3>10. Capstone: RealWorld</h3>
+<ul>
+<li><strong>Read</strong>: nothing new — that's the point.</li>
+<li><strong>Do</strong>: <a href="../../frontend/exercises/realworld-fullstack/">RealWorld full-stack build</a>, all
+five milestones.</li>
+<li><strong>Proof</strong>: the subject's acceptance gates, from the external API test collection to
+the tag-to-deploy release.</li>
+</ul>
+<h2>Related</h2>
+<ul>
+<li><a href="../../paths/path-to-excellence/">The path to excellence</a> — the master path; Stage 3's core.</li>
+<li><a href="../../paths/software-craft/">Software craft</a> — the backend discipline the capstone leans on.</li>
+<li><a href="../../paths/security-path/">Security</a> — runs alongside; the capstone's auth and TLS come from
+there.</li>
+<li><a href="../../paths/platform-and-production/">Platform &amp; production</a> — where the capstone's deploy
+pipeline is industrialized.</li>
+<li>Themes drawn on: <a href="../../frontend/">Frontend</a>,
+<a href="../../system-design/">System Design</a>, <a href="../../security/">Security</a>.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../assets/planks.js"></script>
+  <script src="../../assets/search.js" defer></script>
+</body>
+</html>

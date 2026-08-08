@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Frontend testing — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../assets/styles.css" />
+  <link rel="stylesheet" href="../../assets/theme.css" />
+</head>
+<body data-prefix="../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/frontend</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../">~/library</a><span class="tok-path">/</span><span class="tok-path">frontend</span> <span class="tok-cmd">cat</span> <span class="tok-file">frontend-testing</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Frontend testing</h1>
+        <p class="lib-lede"><span class="tok-comment"># Testing UIs without testing the framework — behavior-first component tests, network mocking at the boundary, E2E for the money paths, and visual regression for the rest.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-08</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../tags/#frontend">#frontend</a><a class="lib-tag" href="../../tags/#testing">#testing</a><a class="lib-tag" href="../../tags/#testing-library">#testing-library</a><a class="lib-tag" href="../../tags/#playwright">#playwright</a><a class="lib-tag" href="../../tags/#msw">#msw</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>Frontend tests have a bad reputation because the wrong ones were written for years:
+snapshot dumps nobody reads, shallow renders asserting implementation details, E2E
+suites that fail when the CSS changes. The modern consensus inverts the pyramid into
+Kent C. Dodds's <em>trophy</em>: lean on integration-level component tests that interact with
+the UI the way a user does, mock the network at the HTTP boundary, keep a thin E2E layer
+for the flows that pay the bills, and let visual tools cover what assertions can't.
+The unit of confidence is a user-visible behavior, never a component's internals.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>Test what the user sees, not how it's built</strong>: Testing Library's guiding principle —
+query by role/label/text (<code>getByRole('button', {name: /save/i})</code>), interact via
+<code>user-event</code>, assert on the DOM. If a refactor that preserves behavior breaks the
+test, the test was wrong.</li>
+<li><strong>The trophy, not the pyramid</strong>: static (TypeScript + lint) at the base, few pure-unit
+tests (logic extracted from components), a thick middle of component/integration
+tests, a thin crown of E2E. UI logic lives at the integration level; that's where the
+return on confidence is.</li>
+<li><strong>Mock the network, not your modules</strong>: MSW intercepts at the HTTP layer, so the whole
+data path (client, cache, serialization) stays real and the same handlers serve
+tests, Storybook, and local dev. Mocking your own API client couples tests to
+implementation.</li>
+<li><strong>E2E with Playwright for the money paths only</strong>: signup, login, checkout, the core
+loop — real browser, real backend where feasible, auto-waiting assertions, trace
+viewer for the failures. Every E2E test is an ongoing operational cost; budget them.</li>
+<li><strong>What assertions can't catch, tools can</strong>: visual regression (Chromatic/Percy or
+Playwright screenshots) for the pixels, <code>jest-axe</code>/<code>axe-core</code> in component tests plus
+keyboard-walk E2E for <a href="../../frontend/accessibility/">accessibility</a> — automated a11y catches the
+~30–40% that is machine-checkable, no more.</li>
+<li><strong>Flakiness is a design smell, not weather</strong>: no arbitrary <code>sleep</code>, await visible
+outcomes, isolate test data, control the clock; a retried-until-green suite is a
+suite nobody trusts — same discipline as
+<a href="../../applicative-architecture/testing-strategies/">testing strategies</a> at large.</li>
+</ul>
+<h2>Details</h2>
+<h3>The shape in code</h3>
+<pre><code class="language-tsx">test(&quot;saves the article and shows it in the feed&quot;, async () =&gt; {
+  server.use(http.post(&quot;/api/articles&quot;, () =&gt; HttpResponse.json(article)));
+  render(&lt;Editor /&gt;, { wrapper: AppProviders });
+  await user.type(screen.getByRole(&quot;textbox&quot;, { name: /title/i }), &quot;CQRS in anger&quot;);
+  await user.click(screen.getByRole(&quot;button&quot;, { name: /publish/i }));
+  expect(await screen.findByRole(&quot;heading&quot;, { name: /cqrs in anger/i })).toBeVisible();
+});
+</code></pre>
+<p>One test: real component tree, real query cache, real router, fake HTTP. This is the
+trophy's thick middle in one frame.</p>
+<h3>Tooling map</h3>
+<p>Vitest (runner, jsdom or browser mode) + Testing Library (queries/interactions) + MSW
+(network) for the middle; Playwright for E2E and screenshots; Storybook stories reused
+as test cases (portable stories / play functions) so docs and tests stop diverging.</p>
+<h2>Practice</h2>
+<ul>
+<li><strong>Test the design system</strong> (<a href="../../frontend/exercises/design-system-from-scratch/">source</a>) — add
+behavior tests + <code>jest-axe</code> to the components from the design-system build; per-state
+stories become the test cases.</li>
+<li><strong>MSW retrofit</strong> (<a href="https://mswjs.io/" rel="noopener">source</a>) — take a fetch-heavy feature and write
+integration tests with MSW handlers; then break the real API contract on purpose and
+watch which tests catch it (and which lie).</li>
+<li><strong>Playwright money-path suite</strong> (<a href="https://playwright.dev/" rel="noopener">source</a>) — pick the three
+flows a real product would die without, automate them with trace-on-failure, wire them
+into CI as the merge gate.</li>
+<li><strong>RealWorld full-stack build</strong> (<a href="../../frontend/exercises/realworld-fullstack/">source</a>) —
+milestone 3 is this note as a deliverable: trophy-shaped suite, axe clean, E2E in CI.</li>
+</ul>
+<h2>Related</h2>
+<ul>
+<li><a href="../../applicative-architecture/testing-strategies/">Testing strategies</a> — the
+general strategy this note specializes to the UI.</li>
+<li><a href="../../frontend/component-architecture-and-state/">Component architecture &amp; state management</a> —
+behavior-first tests are what make that architecture refactorable.</li>
+<li><a href="../../frontend/accessibility/">Accessibility</a> — the a11y checks that belong inside every
+component test.</li>
+<li><a href="../../frontend/design-systems/">Design systems</a> — Storybook as the shared surface of docs and
+tests.</li>
+<li><a href="../../platform/ci-cd-and-delivery-engineering/">CI/CD &amp; delivery engineering</a> — where
+these suites gate the pipeline.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../assets/planks.js"></script>
+  <script src="../../assets/search.js" defer></script>
+</body>
+</html>

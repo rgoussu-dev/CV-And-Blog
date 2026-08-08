@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>RealWorld full-stack build — subject — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/frontend/exercises</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../frontend/">frontend</a><span class="tok-path">/</span><span class="tok-path">exercises</span> <span class="tok-cmd">cat</span> <span class="tok-file">realworld-fullstack-subject</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">RealWorld full-stack build — subject</h1>
+        <p class="lib-lede"><span class="tok-comment"># The work statement for the Conduit build — the RealWorld API contract, frontend behavior rules, per-milestone acceptance gates from passing test collection to measured deploy.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="subject">Subject</span><span class="lib-meta-date">saved 2026-08-08</span><a class="lib-chip lib-chip-src" href="https://realworld-docs.netlify.app/" rel="noopener"><svg class="lib-ico" viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 11.5a3 3 0 0 0 4.2 0l2-2a3 3 0 0 0-4.2-4.2l-1 1"/><path d="M11.5 8.5a3 3 0 0 0-4.2 0l-2 2a3 3 0 0 0 4.2 4.2l1-1"/></svg>source</a></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#subject">#subject</a><a class="lib-tag" href="../../../tags/#fullstack">#fullstack</a><a class="lib-tag" href="../../../tags/#realworld">#realworld</a><a class="lib-tag" href="../../../tags/#api">#api</a><a class="lib-tag" href="../../../tags/#testing">#testing</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Brief</h2>
+<p>You are building <strong>Conduit</strong>, a Medium-style publishing platform: users register and
+log in, write and edit articles in Markdown, follow authors, favorite articles, comment,
+and browse a global or personalized feed filtered by tags. The twist: the product spec
+and the API contract are already fixed — the RealWorld project publishes both. Your job
+is everything the spec leaves open: architecture, data model, state design, testing,
+and delivery. Treat it as a real product handed to a senior engineer: no shortcuts you
+would not defend in review.</p>
+<h2>Instructions</h2>
+<h3>Milestone 1 — the API</h3>
+<ul>
+<li>Implement the full RealWorld endpoint set: authentication (register/login/current
+user/update), profiles (+ follow/unfollow), articles (CRUD, list with tag/author/
+favorited filters, personal feed, pagination via <code>limit</code>/<code>offset</code>), comments,
+favorites, tags.</li>
+<li>Architecture is hexagonal: a domain core with no framework or SQL imports; ports for
+persistence, identity, and clock; HTTP and Postgres as adapters. The domain is
+developed test-first.</li>
+<li>Auth: JWT via the <code>Authorization: Token &lt;jwt&gt;</code> scheme; passwords hashed with a
+modern KDF (argon2/bcrypt); authorization enforced in the domain (only the author
+edits an article, etc.).</li>
+<li>Errors follow the spec's <code>{&quot;errors&quot;: {&quot;field&quot;: [&quot;message&quot;]}}</code> shape with correct
+status codes (401/403/404/422).</li>
+</ul>
+<h3>Milestone 2 — the frontend</h3>
+<ul>
+<li>All Conduit pages: home (global/your feed, tag filter, pagination), auth pages,
+editor (create/edit), article view with comments and favoriting, profile with tabs,
+settings.</li>
+<li>State discipline is the assignment: server data lives in a query cache with explicit
+invalidation; filters, tab, and page number live in the URL (a refresh loses
+nothing); forms in a form library with field-level errors from the API's 422s;
+optimistic updates for favorite/follow.</li>
+<li>TypeScript strict; API types generated or hand-derived from the contract in one
+place; styling built on semantic design tokens.</li>
+</ul>
+<h3>Milestone 3 — quality</h3>
+<ul>
+<li>Component/integration tests with Testing Library + MSW covering: feed rendering and
+pagination, auth flows including failure states, editor validation, favoriting with
+optimistic rollback on error.</li>
+<li>Playwright E2E for the money path: register → publish → see it in the feed →
+comment → favorite, running against the real API in CI.</li>
+<li>Accessibility: <code>axe</code> reports zero violations per page; the money path is completable
+by keyboard alone.</li>
+<li>Performance: a Lighthouse/CWV budget file exists and CI fails when the home feed
+breaks it.</li>
+</ul>
+<h3>Milestone 4 — rendering migration</h3>
+<ul>
+<li>Port the SPA to a meta-framework. The public feed and article pages render on the
+server (crawlable without JS); authenticated pages choose CSR/SSR deliberately, each
+choice written down.</li>
+<li>Measure TTFB, LCP, and INP on a throttled profile before and after; produce the
+comparison table and a paragraph of honest conclusions.</li>
+</ul>
+<h3>Milestone 5 — ship</h3>
+<ul>
+<li>One-command local stack (compose or equivalent); production deploy of API +
+frontend + Postgres behind TLS.</li>
+<li>Structured JSON logs with request IDs across frontend → API; an uptime check on the
+feed; a tagged release deploys from CI with no manual steps.</li>
+</ul>
+<h2>Constraints</h2>
+<ul>
+<li>The API contract is law: do not invent, rename, or &quot;improve&quot; endpoints — milestone 1
+is judged by someone else's tests.</li>
+<li>No ORM-driven design: the domain model comes first, persistence adapts to it.</li>
+<li>No mocking your own modules in frontend tests; the network boundary (MSW) is the only
+seam.</li>
+<li>Each milestone lands as a reviewable PR train on its own; <code>main</code> is deployable after
+every merge.</li>
+</ul>
+<h2>Acceptance</h2>
+<ol>
+<li><strong>M1</strong>: the official RealWorld API test collection (Postman/newman) passes 100%
+against your endpoint; domain test suite runs without HTTP or DB; a fresh clone
+reaches green in one documented command.</li>
+<li><strong>M2</strong>: every page functions against your API; a full-page refresh on any filtered/
+paginated view restores the exact state from the URL; zero duplicated server state
+outside the query cache (code-reviewable claim).</li>
+<li><strong>M3</strong>: CI runs unit + integration + E2E + axe + CWV budget and blocks on each; the
+E2E money path passes against a clean database.</li>
+<li><strong>M4</strong>: public pages render meaningful HTML with JavaScript disabled; the
+before/after metrics table exists and the after is not worse on LCP.</li>
+<li><strong>M5</strong>: <code>git tag</code> → live deployment with no human in the loop; logs show one request
+traceable end to end; the uptime check has fired at least once in anger (kill the
+API and watch it).</li>
+</ol>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../frontend/exercises/realworld-fullstack/">RealWorld full-stack build</a> — the exercise note this is the
+subject of.</li>
+<li><a href="https://realworld-docs.netlify.app/" rel="noopener">RealWorld docs</a> — the canonical spec, API
+contract, and test collection.</li>
+<li><a href="../../../applicative-architecture/exercises/birthday-greetings-hexagonal-subject/">Birthday Greetings — hexagonal extraction — subject</a> —
+the small-scale rehearsal of the same architectural bar.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

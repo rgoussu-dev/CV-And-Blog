@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Component architecture &amp; state management — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../assets/styles.css" />
+  <link rel="stylesheet" href="../../assets/theme.css" />
+</head>
+<body data-prefix="../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/frontend</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../">~/library</a><span class="tok-path">/</span><span class="tok-path">frontend</span> <span class="tok-cmd">cat</span> <span class="tok-file">component-architecture-and-state</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Component architecture &amp; state management</h1>
+        <p class="lib-lede"><span class="tok-comment"># How UI code stays sane as it grows — one-way data flow, composition patterns, and the discipline of putting each piece of state where it belongs.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-08</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../tags/#frontend">#frontend</a><a class="lib-tag" href="../../tags/#react">#react</a><a class="lib-tag" href="../../tags/#state-management">#state-management</a><a class="lib-tag" href="../../tags/#components">#components</a><a class="lib-tag" href="../../tags/#architecture">#architecture</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>Every non-trivial UI is a state machine wearing a costume, and most frontend pain is
+state put in the wrong place. Component architecture is the set of habits that keep the
+costume from tearing: one-way data flow, components composed rather than configured, and
+state classified by <em>what owns it</em> — local, shared client, server cache, or URL — before
+choosing any library. The framework matters less than the discipline; React is the
+lingua franca but the questions are identical in Vue, Svelte, or Angular.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>One-way data flow is the constitution</strong>: data down via props, events up via
+callbacks; the moment two components write the same value from different directions,
+bugs become non-local.</li>
+<li><strong>Classify state before storing it</strong>: <em>server state</em> (someone else's data, needs
+caching/refetching/invalidation — TanStack Query, SWR, RTK Query), <em>client state</em>
+(yours truly — <code>useState</code>/<code>useReducer</code>, a store), <em>URL state</em> (filters, pagination,
+anything shareable — the router), <em>form state</em> (its own beast — react-hook-form).
+Most &quot;we need Redux&quot; moments dissolve once server state moves to a query cache.</li>
+<li><strong>Lift state to the lowest common owner, no higher</strong>: global stores are for genuinely
+global things (session, theme, feature flags); everything else colocated. Context is a
+dependency-injection mechanism, not a state manager — every consumer re-renders on
+change.</li>
+<li><strong>Composition over configuration</strong>: <code>children</code> and slots beat prop explosions;
+compound components (<code>&lt;Tabs&gt;</code>, <code>&lt;Tabs.Panel&gt;</code>) beat 30-prop monoliths; hooks extract
+<em>behavior</em>, headless components extract behavior + accessibility (Radix, React Aria).</li>
+<li><strong>Derive, don't duplicate</strong>: state that can be computed from other state must be
+computed, not stored — the second copy always drifts. Reach for <code>useMemo</code>/selectors,
+not another <code>useEffect</code> syncing copies (most <code>useEffect</code>s are a design smell).</li>
+<li><strong>The store landscape, read coldly</strong>: Redux Toolkit (predictable, verbose, great
+devtools), Zustand (a store without ceremony), signals (Solid, Preact, Vue — fine-grained
+reactivity moving the recompute burden from vdom-diff to dependency graph). Choose per
+<em>shape of writes</em>, not fashion.</li>
+</ul>
+<h2>Details</h2>
+<h3>Where each kind of state lives</h3>
+<table>
+<thead>
+<tr>
+<th>Kind</th>
+<th>Smell when misplaced</th>
+<th>Home</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Server cache</td>
+<td>&quot;loading spinner flashes stale data&quot;, hand-rolled <code>isLoading</code> flags</td>
+<td>Query cache (TanStack Query / RTK Query)</td>
+</tr>
+<tr>
+<td>Global client</td>
+<td>Prop-drilled session/theme through 6 layers</td>
+<td>Small store (Zustand/RTK) or context if write-rare</td>
+</tr>
+<tr>
+<td>Local</td>
+<td>A component's open/closed flag in Redux</td>
+<td><code>useState</code> next to its use</td>
+</tr>
+<tr>
+<td>URL</td>
+<td>Filters lost on refresh or unshareable links</td>
+<td>Router / search params</td>
+</tr>
+<tr>
+<td>Form</td>
+<td>Field values mirrored into a store keystroke by keystroke</td>
+<td>Form library, submitted as an event</td>
+</tr>
+</tbody>
+</table>
+<h3>Rendering discipline</h3>
+<p>Re-renders are the tax on state design: a render is a pure function of props + state, so
+the fix for a slow tree is structural (move state down, split components, memoize the
+expensive leaf) before it is <code>memo</code>-everything. Profiling first, per
+<a href="../../frontend/web-performance/">web performance</a>.</p>
+<h2>Practice</h2>
+<ul>
+<li><strong>TodoMVC twice</strong> (<a href="https://todomvc.com/" rel="noopener">source</a>) — once in vanilla TypeScript
+(manual DOM, hand-rolled store), once in React; what the framework actually buys you
+becomes visible, and so does what it costs.</li>
+<li><strong>Query-cache refactor</strong> (<a href="https://tanstack.com/query/latest" rel="noopener">source</a>) — take any
+fetch-heavy side project and move every server interaction into TanStack Query;
+count the <code>useState</code>/<code>useEffect</code> pairs that disappear.</li>
+<li><strong>Compound component kata</strong> (<a href="https://www.radix-ui.com/" rel="noopener">source</a>) — build <code>&lt;Tabs&gt;</code>
+as a compound component with keyboard support, then compare with the Radix
+primitive; drills composition and the a11y you'd otherwise hand-roll.</li>
+<li><strong>RealWorld full-stack build</strong> (<a href="../../frontend/exercises/realworld-fullstack/">source</a>) — the
+capstone: every state category present in one honest app.</li>
+</ul>
+<h2>Related</h2>
+<ul>
+<li><a href="../../frontend/typescript-deep-dive/">TypeScript deep dive</a> — types that make invalid states
+unrepresentable are half of state management.</li>
+<li><a href="../../frontend/design-systems/">Design systems</a> — the component library this architecture
+composes from.</li>
+<li><a href="../../frontend/atomic-design/">Atomic design</a> — the composition hierarchy, from the design side.</li>
+<li><a href="../../frontend/frontend-testing/">Frontend testing</a> — behavior-first tests are what make
+refactoring this architecture safe.</li>
+<li><a href="../../frontend/rendering-strategies-and-meta-frameworks/">Rendering strategies &amp; meta-frameworks</a> —
+where this state lives when rendering moves to the server.</li>
+<li><a href="../../frontend/web-performance/">Web performance</a> — re-render cost is a state-placement problem
+before it is an optimization problem.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../assets/planks.js"></script>
+  <script src="../../assets/search.js" defer></script>
+</body>
+</html>
