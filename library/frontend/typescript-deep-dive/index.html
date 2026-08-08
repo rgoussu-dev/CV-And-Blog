@@ -78,6 +78,20 @@ remain the sharpest operational edge.</li>
 <code>satisfies</code> vs. annotation vs. assertion, monorepo project references, the type-system's
 Turing-completeness (as a warning, mostly).</li>
 </ul>
+<h2>Practice</h2>
+<ul>
+<li><strong>Exercism TypeScript track</strong> (<a href="https://exercism.org/tracks/typescript" rel="noopener">source</a>) —
+small mentored exercises to make narrowing, unions, and generics reflexive.</li>
+<li><strong>type-challenges</strong> (<a href="https://github.com/type-challenges/type-challenges" rel="noopener">source</a>) —
+the type-level toolkit as a kata ladder: mapped/conditional types, <code>infer</code>,
+template literals — implement <code>Pick</code> before you reach for it.</li>
+<li><strong>Validate a real edge with Zod</strong> (<a href="https://zod.dev/" rel="noopener">source</a>) — take an API your code
+consumes, write the schema, infer the static type from it, and delete every <code>as</code> cast
+on that path; one definition, both worlds, in practice.</li>
+<li><strong>Coding Challenges in TypeScript</strong> (<a href="https://codingchallenges.fyi/challenges/intro/" rel="noopener">source</a>) —
+build a JSON parser or <code>wc</code> clone with a discriminated-union AST and exhaustive
+<code>switch</code>es; &quot;invalid states unrepresentable&quot; on a real program.</li>
+</ul>
 <h2>Related</h2>
 <ul>
 <li><a href="../../frontend/browser-internals/">Browser internals</a> — the runtime the erased types leave behind.</li>

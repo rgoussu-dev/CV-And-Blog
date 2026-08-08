@@ -89,6 +89,22 @@ buffering middleboxes break SSE unless flushing/<code>X-Accel-Buffering</code> i
 <li>To explore: GraphQL subscriptions, MQTT (the IoT sibling), CRDTs/OT for the
 collaborative-editing layer above the transport, backpressure on slow consumers.</li>
 </ul>
+<h2>Practice</h2>
+<ul>
+<li><strong>Protohackers: Budget Chat</strong> (<a href="https://protohackers.com/problem/3" rel="noopener">source</a>) — a TCP
+chat room from spec: framing, joins and leaves, concurrent connections — the raw
+material under every realtime protocol.</li>
+<li><strong>SSE with resume</strong> (<a href="https://html.spec.whatwg.org/multipage/server-sent-events.html" rel="noopener">source</a>) —
+a live feed over <code>text/event-stream</code> with <code>Last-Event-ID</code> replay; prove a dropped
+client misses nothing, and feel why SSE is the right default for one-way push.</li>
+<li><strong>WebSocket server from RFC 6455</strong> (<a href="https://datatracker.ietf.org/doc/html/rfc6455" rel="noopener">source</a>) —
+implement the handshake, frame parsing (masking, fragmentation), and ping/pong
+straight from the RFC, then run the
+<a href="https://github.com/crossbario/autobahn-testsuite" rel="noopener">Autobahn testsuite</a> against it.</li>
+<li><strong>Load balancer, upgraded</strong> (<a href="../../system-design/exercises/load-balancer-and-rate-limiter/">source</a>) —
+the stretch goals add <code>Upgrade</code> passthrough, idle timeouts, and sticky routing:
+long-lived connections meet the LB, exactly where production pain lives.</li>
+</ul>
 <h2>Related</h2>
 <ul>
 <li><a href="../../system-administration/networking-fundamentals/">Networking fundamentals</a> — the

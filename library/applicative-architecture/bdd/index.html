@@ -65,6 +65,19 @@ stay honest because they execute.</li>
 scenarios should express business intent, not implementation steps.</li>
 <li>To explore: example mapping, specification by example (Gojko Adzic).</li>
 </ul>
+<h2>Practice</h2>
+<ul>
+<li><strong>Cucumber 10-minute tutorial</strong> (<a href="https://cucumber.io/docs/guides/10-minute-tutorial/" rel="noopener">source</a>) —
+run the Gherkin toolchain end to end once, so the mechanics never distract again.</li>
+<li><strong>Lift kata</strong> (<a href="https://kata-log.rocks/lift-kata" rel="noopener">source</a>) — behavior-rich and UI-free;
+formulate Given/When/Then scenarios that express intent, not click-scripts — the
+anti-pattern drill.</li>
+<li><strong>Mars Rover, double-loop</strong> (<a href="https://kata-log.rocks/mars-rover-kata" rel="noopener">source</a>) — one
+failing acceptance scenario per feature driving inner red/green/refactor cycles.</li>
+<li><strong>Event-sourced bank account</strong> (<a href="../../applicative-architecture/exercises/event-sourced-bank-account/">exercise</a>) —
+Given/When/Then as the native shape of event-sourced tests: given past events, when a
+command, then new events.</li>
+</ul>
 <h2>Related</h2>
 <ul>
 <li><a href="../../applicative-architecture/tdd/">TDD</a> — BDD grew out of it; the inner loop is still TDD.</li>

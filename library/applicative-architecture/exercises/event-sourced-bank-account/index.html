@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Event-sourced bank account — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/applicative-architecture/exercises</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../applicative-architecture/">applicative-architecture</a><span class="tok-path">/</span><span class="tok-path">exercises</span> <span class="tok-cmd">cat</span> <span class="tok-file">event-sourced-bank-account</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Event-sourced bank account</h1>
+        <p class="lib-lede"><span class="tok-comment"># A bank account built event-sourced from scratch — aggregate, append-only event store, projections — to feel where CQRS and event sourcing pay off and where they cost.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="exercise">Exercise</span><span class="lib-meta-date">saved 2026-08-08</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#exercise">#exercise</a><a class="lib-tag" href="../../../tags/#event-sourcing">#event-sourcing</a><a class="lib-tag" href="../../../tags/#cqrs">#cqrs</a><a class="lib-tag" href="../../../tags/#ddd">#ddd</a><a class="lib-tag" href="../../../tags/#tdd">#tdd</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Goal</h2>
+<p>Build a small banking service where the event log is the source of truth: commands go
+through an aggregate that emits domain events, an append-only store persists them, and
+read models are projections over the stream. Every cost the concept note warns about —
+concurrency, rebuilds, eventual consistency — shows up concretely, at toy scale, where
+it can teach instead of hurt.</p>
+<h2>Practices</h2>
+<ul>
+<li><a href="../../../applicative-architecture/cqrs-and-event-sourcing/">CQRS &amp; event sourcing</a> — the
+subject itself: write model, event store, projections, and their real costs.</li>
+<li><a href="../../../applicative-architecture/ddd/">DDD</a> — the aggregate as consistency boundary,
+events as past-tense facts in the ubiquitous language.</li>
+<li><a href="../../../applicative-architecture/tdd/">TDD</a> — given-events / when-command / then-events as
+the test template for every behavior.</li>
+<li><a href="../../../applicative-architecture/hexagonal-architecture/">Hexagonal architecture</a> — the
+event store and projections sit behind driven ports; the domain stays pure.</li>
+</ul>
+<h2>Milestones</h2>
+<ol>
+<li><strong>Model the events.</strong> <code>AccountOpened</code>, <code>MoneyDeposited</code>, <code>MoneyWithdrawn</code> — immutable,
+past tense, domain language. Build the given/when/then test helper: given a history of
+events, when a command, then expect new events (or a rejection).</li>
+<li><strong>The aggregate.</strong> <code>BankAccount</code> rebuilds state as a left-fold over its events;
+command methods enforce invariants (no overdraft) and emit events. Pure in-memory,
+fully TDD'd — no persistence yet.</li>
+<li><strong>The event store.</strong> Append-only, one stream per account, optimistic concurrency via
+an expected-version check on append. In-memory first, then file- or SQLite-backed
+behind the same interface.</li>
+<li><strong>Command handlers.</strong> The load → fold → decide → append pipeline, with retry on
+concurrency conflict. This is the whole write side.</li>
+<li><strong>Projections.</strong> Current-balance and account-statement read models updated from
+events; handlers idempotent (events will be redelivered); a full rebuild from event
+zero must reproduce them exactly.</li>
+<li><strong>Consistency in the UX.</strong> Make read-your-own-writes work after a deposit; add
+snapshots and measure what they actually buy at this scale.</li>
+</ol>
+<h2>Stretch goals</h2>
+<ul>
+<li>Evolve an event schema: rename a field on <code>MoneyDeposited</code>, write the upcaster, keep
+old streams replayable — events are forever.</li>
+<li>A transfer between two accounts via a process manager: two aggregates, no distributed
+transaction.</li>
+<li>Swap the store for a real one (EventStoreDB, Postgres-as-event-store) behind the
+existing port; compare Greg Young's reference implementation
+(<a href="https://github.com/gregoryyoung/m-r" rel="noopener">SimpleCQRS / m-r</a>) with what you built.</li>
+</ul>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../applicative-architecture/cqrs-and-event-sourcing/">CQRS &amp; event sourcing</a>,
+<a href="../../../applicative-architecture/ddd/">DDD</a>, <a href="../../../applicative-architecture/tdd/">TDD</a>,
+<a href="../../../applicative-architecture/bdd/">BDD</a> — the concept notes whose <code># Practice</code> cites
+this project (event-sourced tests are Given/When/Then natively).</li>
+<li><a href="../../../applicative-architecture/hexagonal-architecture/">Hexagonal architecture</a> — the
+store as a driven port.</li>
+<li><a href="../../../applicative-architecture/exercises/birthday-greetings-hexagonal/">Birthday Greetings — hexagonal extraction</a> and
+<a href="../../../applicative-architecture/exercises/gilded-rose-legacy-rescue/">Gilded Rose — legacy rescue</a> — sibling exercises.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

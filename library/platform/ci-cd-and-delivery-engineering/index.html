@@ -70,6 +70,14 @@ is an attack surface (see the Security theme).</li>
 <li>To explore: GitOps (declared state, reconciliation), merge queues, ephemeral preview
 environments, platform engineering as the productized form of all this.</li>
 </ul>
+<h2>Practice</h2>
+<ul>
+<li><strong>Staged pipeline for a toy service</strong> (<a href="https://docs.github.com/en/actions/quickstart" rel="noopener">source</a>) — build a GitHub Actions pipeline that lints and unit-tests in minutes, then builds one artifact and promotes that same artifact through staging to &quot;prod&quot;; teaches build-once-promote and fast-feedback staging on your own code.</li>
+<li><strong>Expand–migrate–contract drill</strong> (<a href="https://martinfowler.com/bliki/ParallelChange.html" rel="noopener">source</a>) — rename a column on a toy app under live traffic in three deploys, never a breaking change in one; teaches the database half of zero-downtime delivery.</li>
+<li><strong>Home-made feature flag</strong> (<a href="https://openfeature.dev/" rel="noopener">source</a>) — ship a feature dark behind your own flag with a percentage rollout and a kill switch, then retire the flag; teaches deploy/release decoupling and flag debt in miniature.</li>
+<li><strong>Canary with Argo Rollouts</strong> (<a href="https://argo-rollouts.readthedocs.io/" rel="noopener">source</a>) — replace a Deployment with a Rollout, shift traffic in steps against a metric, and trigger an automated rollback by shipping a bad version on purpose; teaches progressive delivery end to end.</li>
+<li><strong>GitOps loop with Argo CD</strong> (<a href="https://argo-cd.readthedocs.io/en/stable/getting_started/" rel="noopener">source</a>) — deploy an app purely by committing manifests, then break the live state by hand and watch reconciliation repair it; teaches declared-state delivery as a build project.</li>
+</ul>
 <h2>Related</h2>
 <ul>
 <li><a href="../../platform/observability-and-sre/">Observability &amp; SRE practice</a> — canaries and error budgets

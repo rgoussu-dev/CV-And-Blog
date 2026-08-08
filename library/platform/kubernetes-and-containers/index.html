@@ -81,6 +81,15 @@ feels native.</li>
 service mesh, GitOps deployment flows, when Kubernetes is overkill (it often is —
 managed PaaS/serverless first for small estates).</li>
 </ul>
+<h2>Practice</h2>
+<ul>
+<li><strong>Killercoda scenarios</strong> (<a href="https://killercoda.com/" rel="noopener">source</a>) — browser-based Kubernetes playgrounds: kubectl drills, broken-cluster debugging, CKA/CKAD-style tasks; teaches the object model with zero setup cost.</li>
+<li><strong>Image-slimming kata</strong> (<a href="https://docs.docker.com/build/building/multi-stage/" rel="noopener">source</a>) — take a fat single-stage Dockerfile, reorder layers for caching, convert to multi-stage on a distroless base, pin digests, and compare sizes; teaches image discipline measurably.</li>
+<li><strong>Probe &amp; limits lab</strong> (<a href="https://killercoda.com/" rel="noopener">source</a>) — deploy a service with wrong requests/limits and a liveness probe on a slow-start path, watch the eviction and restart storm, then fix both; teaches the config that causes most production k8s incidents.</li>
+<li><strong>Build your own container runtime</strong> (<a href="../../platform/exercises/build-your-own-container-runtime/">exercise</a>) — implement <code>run</code> from namespaces, pivot_root, and cgroups up; teaches that a container is just a dressed-up Linux process.</li>
+<li><strong>Kubernetes the Hard Way</strong> (<a href="../../platform/exercises/kubernetes-the-hard-way/">exercise</a>) — bootstrap a cluster with no installers: PKI, etcd, control plane, kubelets, pod network, all by hand; teaches what every arrow in the architecture diagram actually is.</li>
+<li><strong>Write an operator</strong> (<a href="https://book.kubebuilder.io/" rel="noopener">source</a>) — define a CRD for a domain object of yours and write the controller that reconciles it; teaches the reconciliation loop by making you implement one.</li>
+</ul>
 <h2>Related</h2>
 <ul>
 <li><a href="../../system-administration/linux-deep-dive/">Linux system deep dive</a> — namespaces and

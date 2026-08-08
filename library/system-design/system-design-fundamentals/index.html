@@ -70,6 +70,24 @@ degradation — design for the failure modes, not the happy path.</li>
 <li>To explore: consensus (Raft/Paxos), CDNs &amp; edge, rate limiting, idempotency, the
 classic interview canon (URL shortener, news feed, chat) as practice drills.</li>
 </ul>
+<h2>Practice</h2>
+<ul>
+<li><strong>Protohackers: Smoke Test</strong> (<a href="https://protohackers.com/problem/0" rel="noopener">source</a>) — a TCP
+echo server from spec: the smallest possible taste of sockets, servers, and reading
+requirements precisely.</li>
+<li><strong>Coding Challenges catalogue</strong> (<a href="https://codingchallenges.fyi/challenges/intro/" rel="noopener">source</a>) —
+build the interview canon small but real: URL shortener, web server, DNS resolver —
+each one exercises a handful of the building blocks above.</li>
+<li><strong>System Design Primer</strong> (<a href="https://github.com/donnemartin/system-design-primer" rel="noopener">source</a>) —
+drill back-of-envelope estimation and the classic design questions against worked
+solutions.</li>
+<li><strong>Build a load balancer &amp; rate limiter</strong> (<a href="../../system-design/exercises/load-balancer-and-rate-limiter/">source</a>) —
+two core building blocks built from scratch, then composed into an API edge and
+load-tested.</li>
+<li><strong>Gossip Glomers</strong> (<a href="https://fly.io/dist-sys/" rel="noopener">source</a>) — <a href="http://Fly.io" rel="noopener">Fly.io</a>'s distributed-systems
+challenges: replication, ordering, and the consistency spectrum with partitions
+actually injected.</li>
+</ul>
 <h2>Related</h2>
 <ul>
 <li><a href="../../system-design/cache-management/">Cache management</a></li>

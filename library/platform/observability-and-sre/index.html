@@ -72,6 +72,14 @@ that separates SRE from traditional ops.</li>
 <li>To explore: continuous profiling as the fourth signal, chaos engineering, on-call
 health, OpenTelemetry semantic conventions.</li>
 </ul>
+<h2>Practice</h2>
+<ul>
+<li><strong>SadServers</strong> (<a href="https://sadservers.com/" rel="noopener">source</a>) — timed &quot;why is this server sad?&quot; troubleshooting scenarios on real broken machines; teaches diagnosis under pressure, the raw skill incident response runs on.</li>
+<li><strong>RED dashboard for your own service</strong> (<a href="https://prometheus.io/docs/introduction/overview/" rel="noopener">source</a>) — instrument a side project with Prometheus metrics, build a rate/errors/duration dashboard in Grafana, and add one symptom-based alert; teaches the metrics signal and alerting on user pain, not causes.</li>
+<li><strong>OpenTelemetry demo, then break it</strong> (<a href="https://github.com/open-telemetry/opentelemetry-demo" rel="noopener">source</a>) — run the OTel demo shop, follow one request across services via traces, then inject a failure with its feature flags and find it from telemetry alone; teaches trace-first debugging and correlation across the three signals.</li>
+<li><strong>Write real SLOs</strong> (<a href="https://sre.google/workbook/implementing-slos/" rel="noopener">source</a>) — pick a service you run (even a hobby one), define SLIs from what users experience, set SLO targets, and compute the error budget; teaches that the hard part is choosing what to measure, not the arithmetic.</li>
+<li><strong>Blameless postmortem drill</strong> (<a href="https://sre.google/sre-book/postmortem-culture/" rel="noopener">source</a>) — write a full postmortem for a real past failure (yours or a public one): timeline, contributing factors, action items tracked like features; teaches incidents-as-learning-material by producing the artifact.</li>
+</ul>
 <h2>Related</h2>
 <ul>
 <li><a href="../../system-design/microservice-architecture/">Microservice architecture</a> — where

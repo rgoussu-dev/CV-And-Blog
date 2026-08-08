@@ -80,6 +80,14 @@ in code or state where avoidable
 workspaces for multi-env layout, ephemeral environments per PR, immutable
 infrastructure (replace, don't patch).</li>
 </ul>
+<h2>Practice</h2>
+<ul>
+<li><strong>Terraform tutorials, plan-first</strong> (<a href="https://developer.hashicorp.com/terraform/tutorials" rel="noopener">source</a>) — work the getting-started track but read every plan line by line before applying, predicting the diff; teaches the plan/apply loop as a review habit, not a formality.</li>
+<li><strong>Drift-and-import drill</strong> (<a href="https://developer.hashicorp.com/terraform/tutorials" rel="noopener">source</a>) — break your own stack from the console (rename a tag, tweak a rule), watch the next plan want to undo it, then <code>import</code> a resource created entirely by hand; teaches drift detection and state surgery on a stack you can afford to lose.</li>
+<li><strong>Extract a module</strong> (<a href="https://developer.hashicorp.com/terraform/language/modules" rel="noopener">source</a>) — refactor a copy-pasted &quot;service&quot; shape (LB + service + DNS + alarms) into a parameterized, versioned module with thin roots and separate state per environment; teaches composition and blast-radius layout.</li>
+<li><strong>Test a module with Terratest</strong> (<a href="https://terratest.gruntwork.io/" rel="noopener">source</a>) — write Go tests that apply your module against a real account, assert on outputs and reachability, and destroy; teaches infrastructure code as testable software.</li>
+<li><strong>Plan-on-PR pipeline with Atlantis</strong> (<a href="https://www.runatlantis.io/" rel="noopener">source</a>) — wire plan-as-PR-comment and apply-on-merge with a policy check as gate; teaches the full CI/CD treatment of infrastructure, review artifact included.</li>
+</ul>
 <h2>Related</h2>
 <ul>
 <li><a href="../../platform/ci-cd-and-delivery-engineering/">CI/CD &amp; delivery engineering</a> — the same review

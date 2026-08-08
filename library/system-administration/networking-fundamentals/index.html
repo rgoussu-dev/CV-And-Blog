@@ -70,6 +70,14 @@ capture of one HTTPS request end-to-end is the single best exercise.</li>
 <li>To explore: NAT and its traversal, BGP at the internet scale, load-balancer L4 vs. L7
 behavior, service mesh as networking moved into the platform.</li>
 </ul>
+<h2>Practice</h2>
+<ul>
+<li><strong>Dissect one HTTPS request in Wireshark</strong> (<a href="https://www.wireshark.org/" rel="noopener">source</a>) — capture and read a single request end to end: TCP handshake, TLS handshake, HTTP, teardown — this note's own &quot;single best exercise&quot;.</li>
+<li><strong>Beej's Guide to Network Programming</strong> (<a href="https://beej.us/guide/bgnet/" rel="noopener">source</a>) — write TCP and UDP socket clients and servers from scratch; feel the difference below the abstractions.</li>
+<li><strong>Implement DNS in a Weekend</strong> (<a href="https://implement-dns.wizardzines.com/" rel="noopener">source</a>) — build a toy resolver from the wire format up, walking from the root servers.</li>
+<li><strong>Build Your Own Load Balancer</strong> (<a href="https://codingchallenges.fyi/challenges/challenge-load-balancer/" rel="noopener">source</a>) — L7 forwarding with health checks and connection reuse — the keep-alive and pooling vocabulary made real.</li>
+<li><strong>Protohackers ladder</strong> (<a href="../../go/exercises/protohackers-ladder/">exercise</a>) — network servers against black-box specs, from TCP echo to a chat server to a MITM proxy — socket programming sustained across a whole project.</li>
+</ul>
 <h2>Related</h2>
 <ul>
 <li><a href="../../system-administration/linux-deep-dive/">Linux system deep dive</a> — the kernel side: sockets, epoll,

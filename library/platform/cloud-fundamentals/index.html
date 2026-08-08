@@ -82,6 +82,13 @@ tag everything, budget-alert everything — the bill is the cloud's other API.</
 <li>To explore: the shared-responsibility model in detail, Well-Architected frameworks,
 landing zones/organizations for multi-account, FinOps as a practice.</li>
 </ul>
+<h2>Practice</h2>
+<ul>
+<li><strong>flAWS</strong> (<a href="http://flaws.cloud/" rel="noopener">source</a>) — a self-paced AWS CTF that walks you through real IAM and S3 misconfigurations by exploiting them; teaches why <code>*</code> in the wrong policy is <code>chmod 777</code>, from the attacker's side.</li>
+<li><strong>VPC from scratch</strong> (<a href="https://docs.aws.amazon.com/vpc/" rel="noopener">source</a>) — build a VPC by hand: public/private subnets, internet gateway vs. NAT, security groups, and a private endpoint to S3 — then diagnose why the private instance can't reach the internet; teaches the layer behind most &quot;it can't connect&quot; tickets.</li>
+<li><strong>One app, four runtimes</strong> (<a href="https://aws.amazon.com/getting-started/" rel="noopener">source</a>) — deploy the same small service to a VM, managed Kubernetes, a serverless container, and a function; compare setup effort, constraints, and projected bill; teaches the compute spectrum as an ops-responsibility dial by feel.</li>
+<li><strong>Cloud Resume Challenge</strong> (<a href="https://cloudresumechallenge.dev/" rel="noopener">source</a>) — the classic end-to-end build: static site on object storage + CDN, DNS, a serverless API with a database, all wired with IaC and CI/CD; teaches how the five core pieces compose into a real, billed, public system.</li>
+</ul>
 <h2>Related</h2>
 <ul>
 <li><a href="../../platform/infrastructure-as-code/">Infrastructure as code</a> — how these resources are

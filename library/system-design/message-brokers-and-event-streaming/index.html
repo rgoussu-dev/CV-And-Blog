@@ -73,6 +73,21 @@ the contract layer for events.</li>
 <li>To explore: partitioning strategy &amp; hot-key skew, retention vs. compaction, tiered
 storage, when RabbitMQ or NATS is honestly the better fit.</li>
 </ul>
+<h2>Practice</h2>
+<ul>
+<li><strong>Gossip Glomers: Kafka-Style Log</strong> (<a href="https://fly.io/dist-sys/" rel="noopener">source</a>) — implement a
+replicated log with offsets and committed reads: the append-only model in miniature,
+checked by Maelstrom.</li>
+<li><strong>Build a message broker (NATS)</strong> (<a href="https://codingchallenges.fyi/challenges/intro/" rel="noopener">source</a>) —
+Crickett's challenge: pub/sub from the wire protocol up — the queue side of the
+log-vs-queue split.</li>
+<li><strong>Build your own Redis — pub/sub stretch</strong> (<a href="../../system-design/exercises/build-your-own-redis/">source</a>) —
+add <code>SUBSCRIBE</code>/<code>PUBLISH</code> to the Redis build: fan-out with no retention, the exact
+opposite corner from Kafka's durable history.</li>
+<li><strong>Build your own Kafka</strong> (<a href="https://codecrafters.io/" rel="noopener">source</a>) — CodeCrafters' staged
+build: speak the Kafka wire protocol, then add partitions and consumer offsets;
+the anatomy above stops being folklore.</li>
+</ul>
 <h2>Related</h2>
 <ul>
 <li><a href="../../system-design/asynchronous-and-distributed-system-patterns/">Asynchronous and distributed system patterns</a> —

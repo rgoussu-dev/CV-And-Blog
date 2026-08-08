@@ -73,6 +73,13 @@ matters.</li>
 <li>To explore: envelope encryption &amp; KMS key hierarchies, sealed secrets for GitOps,
 SPIFFE/SVID for service identity, HSMs for root keys.</li>
 </ul>
+<h2>Practice</h2>
+<ul>
+<li><strong>gitleaks</strong> (<a href="https://github.com/gitleaks/gitleaks" rel="noopener">source</a>) — scan a repo's full history for leaked secrets and wire it as a pre-commit hook; feel why &quot;removed&quot; ≠ &quot;not leaked&quot;.</li>
+<li><strong>GitHub secret scanning &amp; push protection</strong> (<a href="https://docs.github.com/en/code-security/secret-scanning/introduction/about-secret-scanning" rel="noopener">source</a>) — enable the CI gate on a repo and watch it block a planted credential before it lands.</li>
+<li><strong>sops + age</strong> (<a href="https://github.com/getsops/sops" rel="noopener">source</a>) — encrypt secrets at rest inside a repo with age keys and decrypt only in the deploy step — the GitOps-safe pattern.</li>
+<li><strong>Vault dev-server lab</strong> (<a href="https://developer.hashicorp.com/vault/tutorials" rel="noopener">source</a>) — run a dev server, then issue <em>dynamic</em>, TTL'd database credentials — short-lived beats vaulted, made concrete.</li>
+</ul>
 <h2>Related</h2>
 <ul>
 <li><a href="../../security/tls-https-and-certificates/">TLS/HTTPS &amp; certificate management</a> — private keys

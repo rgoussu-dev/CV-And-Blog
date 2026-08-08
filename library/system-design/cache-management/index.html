@@ -68,6 +68,23 @@ revalidate — the cheapest cache is the one in the client or CDN.</li>
 <li>To explore: cache coherence in CPUs (MESI) as the low-level mirror of the same problem,
 materialized views as &quot;caches with a schema&quot;.</li>
 </ul>
+<h2>Practice</h2>
+<ul>
+<li><strong>LRU cache</strong> (<a href="https://leetcode.com/problems/lru-cache/" rel="noopener">source</a>) — the classic kata:
+O(1) get/put from a hash map + doubly linked list, the mechanics under every eviction
+discussion.</li>
+<li><strong>LFU cache</strong> (<a href="https://leetcode.com/problems/lfu-cache/" rel="noopener">source</a>) — the harder
+sibling; maintaining frequency buckets shows why real systems settle for
+approximations like TinyLFU.</li>
+<li><strong>Build your own Memcached</strong> (<a href="https://codingchallenges.fyi/challenges/intro/" rel="noopener">source</a>) —
+Crickett's challenge: a networked cache speaking the memcached text protocol, with
+TTLs and concurrent clients.</li>
+<li><strong>Build your own Redis</strong> (<a href="../../system-design/exercises/build-your-own-redis/">exercise</a>) —
+the full build: RESP protocol, passive + active expiry, eviction under a memory cap,
+and a benchmark to prove it.</li>
+<li><strong>Tokio mini-redis</strong> (<a href="../../rust/exercises/tokio-mini-redis/">exercise</a>) — the same
+server async in Rust: shared state across tasks, framing, and cancellation-by-drop.</li>
+</ul>
 <h2>Related</h2>
 <ul>
 <li><a href="../../system-design/system-design-fundamentals/">System design fundamentals</a></li>

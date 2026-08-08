@@ -71,6 +71,24 @@ inward, not the database schema outward.</li>
 <li>To explore: API gateways vs. BFFs, hypermedia (when HATEOAS earns its keep), AsyncAPI
 for event contracts, gRPC error model.</li>
 </ul>
+<h2>Practice</h2>
+<ul>
+<li><strong>Build your own URL shortener</strong> (<a href="https://codingchallenges.fyi/challenges/intro/" rel="noopener">source</a>) —
+a deliberately small surface: resource modeling, honest status codes, and idempotent
+creation, done right end to end.</li>
+<li><strong>Contract-first kata</strong> (<a href="https://spec.openapis.org/oas/latest.html" rel="noopener">source</a>) — write
+the OpenAPI document <em>before</em> the code for a small service, generate client and server
+stubs, and put a contract test in CI.</li>
+<li><strong>REST endpoint, re-served as gRPC</strong> (<a href="https://grpc.io/docs/" rel="noopener">source</a>) — port one of
+your endpoints to a protobuf contract with server streaming; the style trade stops
+being theoretical.</li>
+<li><strong>Build your own web server</strong> (<a href="https://codingchallenges.fyi/challenges/intro/" rel="noopener">source</a>) —
+Crickett's challenge: HTTP from the socket up, where method semantics, status codes,
+and headers earn their meaning.</li>
+<li><strong>Build a load balancer &amp; rate limiter</strong> (<a href="../../system-design/exercises/load-balancer-and-rate-limiter/">source</a>) —
+the operational surface (<code>429</code>, <code>Retry-After</code>, rate-limit headers) as running code
+instead of a paragraph in the docs.</li>
+</ul>
 <h2>Related</h2>
 <ul>
 <li><a href="../../system-design/microservice-architecture/">Microservice architecture</a> — service independence lives

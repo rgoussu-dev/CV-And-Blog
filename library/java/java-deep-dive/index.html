@@ -71,6 +71,21 @@ injection, JPMS modules, profiling with JFR/Async-profiler.</li>
 <li>To explore: Valhalla (value types), Panama (FFM API replacing JNI), mechanical
 sympathy (false sharing, cache lines) on the JVM.</li>
 </ul>
+<h2>Practice</h2>
+<ul>
+<li><strong>Exercism Java track</strong> (<a href="https://exercism.org/tracks/java" rel="noopener">source</a>) — warm-up katas;
+deliberately reach for records, sealed types, and pattern matching where the older
+idiom would do.</li>
+<li><strong>Virtual-threads rewrite</strong> (<a href="https://openjdk.org/jeps/444" rel="noopener">source</a>) — take a
+thread-pool-based concurrent crawler (or write one), port it to virtual threads +
+structured concurrency, and compare thread counts and code shape under load.</li>
+<li><strong>Coding Challenges in Java</strong> (<a href="https://codingchallenges.fyi/challenges/intro/" rel="noopener">source</a>) —
+build your own Redis or <code>wc</code>; good scale for practicing JFR profiling on something
+real.</li>
+<li><strong>One Billion Row Challenge</strong> (<a href="../../java/exercises/one-billion-row-challenge/">source</a>) —
+the flagship: aggregate a billion rows as fast as the JVM allows, profiling and
+measuring every step from naive baseline to memory-mapped byte crunching.</li>
+</ul>
 <h2>Related</h2>
 <ul>
 <li><a href="../../system-design/concurrency-and-parallelism/concurrency-and-parallelism/">Concurrency and Parallelism</a> —

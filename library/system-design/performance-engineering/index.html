@@ -73,6 +73,21 @@ pools, queues, and explains why saturated systems' latency explodes.</li>
 <li>To explore: tail-latency amplification in fan-out systems, GC tuning as a last resort,
 eBPF-based production tracing, capacity planning.</li>
 </ul>
+<h2>Practice</h2>
+<ul>
+<li><strong>Flame-graph a real service</strong> (<a href="https://www.brendangregg.com/flamegraphs.html" rel="noopener">source</a>) —
+profile something you actually run (<code>perf</code>, async-profiler, pprof), read the widest
+towers, and explain them <em>before</em> changing anything.</li>
+<li><strong>Microbenchmark pitfalls with JMH</strong> (<a href="https://github.com/openjdk/jmh" rel="noopener">source</a>) — work
+through the official samples: watch dead-code elimination and missing warmup destroy a
+naive loop, then measure the same thing honestly.</li>
+<li><strong>Load-test without lying</strong> (<a href="https://github.com/giltene/wrk2" rel="noopener">source</a>) — put a
+service under constant-throughput load and compare wrk2's percentiles with a naive
+request loop's: coordinated omission, demonstrated on your own numbers.</li>
+<li><strong>One Billion Row Challenge</strong> (<a href="../../java/exercises/one-billion-row-challenge/">exercise</a>) — the
+full loop at scale: baseline, profile, fix the biggest cost, repeat — I/O, parsing,
+allocation churn, parallelism, and mechanical sympathy each get their turn.</li>
+</ul>
 <h2>Related</h2>
 <ul>
 <li><a href="../../system-administration/linux-deep-dive/">Linux system deep dive</a> — the tools and

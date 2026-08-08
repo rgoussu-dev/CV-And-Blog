@@ -71,6 +71,23 @@ runtime; <code>unsafe</code> narrows trust to audited blocks, it doesn't turn ch
 <li>To explore: smart pointers (<code>Box</code>/<code>Rc</code>/<code>Cow</code>), zero-copy parsing, FFI, embedded/no_std,
 <code>miri</code> for UB detection.</li>
 </ul>
+<h2>Practice</h2>
+<ul>
+<li><strong>Rustlings</strong> (<a href="https://github.com/rust-lang/rustlings" rel="noopener">source</a>) — fix-the-compile-error
+drills that turn borrow-checker fights into muscle memory; the canonical first mile.</li>
+<li><strong>Exercism Rust track</strong> (<a href="https://exercism.org/tracks/rust" rel="noopener">source</a>) — small mentored
+problems where idiomatic <code>Result</code>/<code>Option</code>/iterator solutions are the point, not just
+passing tests.</li>
+<li><strong>PNGme</strong> (<a href="https://jrdngr.github.io/pngme_book/" rel="noopener">source</a>) — a guided build of a PNG
+chunk encoder/decoder; ownership, byte parsing, and error-as-values on a real binary
+format.</li>
+<li><strong>Advent of Code in Rust</strong> (<a href="https://adventofcode.com/" rel="noopener">source</a>) — a season of puzzles
+as the vehicle for iterators, lifetimes at API boundaries, and knowing when to <code>clone</code>
+and when to restructure.</li>
+<li><strong>Tokio mini-redis</strong> (<a href="../../rust/exercises/tokio-mini-redis/">source</a>) — the flagship:
+an async Redis server that makes <code>Arc&lt;Mutex&lt;T&gt;&gt;</code>, framing, channels, and
+cancellation-by-drop concrete.</li>
+</ul>
 <h2>Related</h2>
 <ul>
 <li><a href="../../system-design/concurrency-and-parallelism/concurrency-and-parallelism/">Concurrency and Parallelism</a> —

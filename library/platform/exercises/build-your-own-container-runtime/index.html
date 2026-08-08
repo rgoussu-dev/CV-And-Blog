@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Build your own container runtime — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/platform/exercises</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../platform/">platform</a><span class="tok-path">/</span><span class="tok-path">exercises</span> <span class="tok-cmd">cat</span> <span class="tok-file">build-your-own-container-runtime</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Build your own container runtime</h1>
+        <p class="lib-lede"><span class="tok-comment"># A run-a-process-in-a-box runtime built up from Linux primitives — namespaces, pivot_root, cgroups, layered images — until docker run holds no mystery.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="exercise">Exercise</span><span class="lib-meta-date">saved 2026-08-08</span><a class="lib-chip lib-chip-src" href="https://github.com/lizrice/containers-from-scratch" rel="noopener"><svg class="lib-ico" viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 11.5a3 3 0 0 0 4.2 0l2-2a3 3 0 0 0-4.2-4.2l-1 1"/><path d="M11.5 8.5a3 3 0 0 0-4.2 0l-2 2a3 3 0 0 0 4.2 4.2l1-1"/></svg>source</a></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#exercise">#exercise</a><a class="lib-tag" href="../../../tags/#containers">#containers</a><a class="lib-tag" href="../../../tags/#linux">#linux</a><a class="lib-tag" href="../../../tags/#platform">#platform</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Goal</h2>
+<p>Write a small program (Go is the classic choice — Liz Rice's <em>Containers from Scratch</em>
+is the seed, and John Crickett's &quot;Build Your Own Docker&quot;
+<a href="https://codingchallenges.fyi/challenges/intro/" rel="noopener">challenge</a> covers the same ground) that
+runs a command in its own container: isolated view, limited resources, its own root
+filesystem, eventually a real image pulled from a registry. It proves, in code you
+wrote, that a container is an ordinary Linux process wearing kernel features.</p>
+<h2>Practices</h2>
+<ul>
+<li><a href="../../../platform/kubernetes-and-containers/">Kubernetes &amp; containers deep dive</a> —
+namespaces, cgroups, and OCI images, implemented instead of recited.</li>
+<li><a href="../../../system-administration/linux-deep-dive/">Linux system deep dive</a> — processes,
+mounts, and cgroup v2 as working material.</li>
+<li><a href="../../../system-administration/networking-fundamentals/">Networking fundamentals</a> — the
+veth-pair milestone is network plumbing by hand.</li>
+</ul>
+<h2>Milestones</h2>
+<ol>
+<li><strong>Isolate the view</strong> — <code>mycontainer run &lt;cmd&gt;</code> re-executes itself with new UTS and
+PID namespaces (clone flags), sets a hostname inside. Shippable: the hostname change
+is invisible outside; <code>ps</code> inside will still lie until milestone 2.</li>
+<li><strong>A root of one's own</strong> — extract an Alpine rootfs, <code>pivot_root</code> (or chroot) into
+it, mount a fresh <code>/proc</code>. Shippable: the process sees itself as PID 1 in a clean
+filesystem and can't reach the host's.</li>
+<li><strong>Limit the resources</strong> — create a cgroup v2 group, set memory and CPU limits, add
+the child to it. Shippable: a memory-hog inside gets OOM-killed at your limit while
+the host shrugs.</li>
+<li><strong>Give it a network</strong> — a new network namespace wired to the host with a veth pair,
+addresses assigned, NAT out. Shippable: <code>ping</code> from inside the container reaches the
+internet.</li>
+<li><strong>Real images</strong> — pull an image from a registry (OCI distribution API: manifest,
+then layers), unpack the layers in order — or assemble them with overlayfs for
+proper copy-on-write. Shippable: <code>mycontainer run alpine sh</code> with nothing
+pre-extracted.</li>
+<li><strong>The UX</strong> — argument parsing, <code>--mem</code>/<code>--cpu</code> flags, exit-code propagation, cleanup
+on exit. Shippable: a colleague can use it without reading the source.</li>
+</ol>
+<h2>Stretch goals</h2>
+<ul>
+<li>Rootless mode with user namespaces — the hard mode that explains Podman's design.</li>
+<li><code>mycontainer exec</code> into a running container (enter its namespaces via <code>setns</code>).</li>
+<li>Speak the OCI runtime spec (a <code>config.json</code>-driven <code>create</code>/<code>start</code>) and compare
+against <code>runc</code>.</li>
+</ul>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../platform/kubernetes-and-containers/">Kubernetes &amp; containers deep dive</a> — the
+concept note this drills; its Practice section cites this exercise.</li>
+<li><a href="../../../system-administration/linux-deep-dive/">Linux system deep dive</a> — the kernel
+features this exercise turns into muscle memory.</li>
+<li><a href="../../../platform/exercises/kubernetes-the-hard-way/">Kubernetes the Hard Way</a> — the same demystification one
+layer up.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

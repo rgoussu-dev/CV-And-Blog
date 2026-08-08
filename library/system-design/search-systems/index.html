@@ -80,6 +80,20 @@ highlighting.</li>
 typo-tolerant engines (Typesense, Meilisearch), learning-to-rank, RRF for hybrid
 fusion.</li>
 </ul>
+<h2>Practice</h2>
+<ul>
+<li><strong>Analyzer archaeology</strong> (<a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis.html" rel="noopener">source</a>) —
+feed the <code>_analyze</code> API a handful of real queries and watch tokenization, stemming,
+and n-grams reshape them; most &quot;search returns garbage&quot; bugs become visible right
+here.</li>
+<li><strong>Full-text search engine from scratch</strong> (<a href="https://github.com/codecrafters-io/build-your-own-x" rel="noopener">source</a>) —
+inverted index over a real corpus (Wikipedia abstracts work well): tokenize, build
+posting lists, intersect them for queries, then add BM25 ranking and n-gram
+autocomplete.</li>
+<li><strong>Hybrid retrieval</strong> (<a href="https://github.com/nmslib/hnswlib" rel="noopener">source</a>) — bolt vector
+search onto the lexical engine: embed the corpus, build an HNSW index, fuse BM25 + ANN
+results, and measure whether hybrid actually wins on your queries.</li>
+</ul>
 <h2>Related</h2>
 <ul>
 <li><a href="../../data-storage/databases-and-storage-systems/">Databases and other storage systems</a> —

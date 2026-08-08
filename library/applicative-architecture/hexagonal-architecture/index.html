@@ -66,6 +66,20 @@ services, pays off when the domain has real logic.</li>
 <li>To explore: where transaction boundaries live, mapping strategies at the ports,
 hexagonal + <a href="../../applicative-architecture/ddd/">DDD</a> tactical patterns as the interior.</li>
 </ul>
+<h2>Practice</h2>
+<ul>
+<li><strong>Trip Service Kata</strong> (<a href="https://github.com/sandromancuso/trip-service-kata" rel="noopener">source</a>) —
+warm-up on seams: get code with hard-wired dependencies under test without touching
+the untouchable parts.</li>
+<li><strong>Racing Car katas</strong> (<a href="https://github.com/emilybache/Racing-Car-Katas" rel="noopener">source</a>) —
+dependency-breaking drills; each kata is a small dependency-inversion refactor.</li>
+<li><strong>Birthday Greetings — hexagonal extraction</strong> (<a href="../../applicative-architecture/exercises/birthday-greetings-hexagonal/">exercise</a>) —
+extract a pure domain from a coupled script; ports and adapters earned by refactoring,
+then proven by swapping adapters.</li>
+<li><strong>Build Your Own Redis, hexagonally</strong> (<a href="https://codingchallenges.fyi/challenges/challenge-redis" rel="noopener">source</a>) —
+greenfield practice: keep the wire protocol and storage behind ports and watch the
+core stay framework-free.</li>
+</ul>
 <h2>Related</h2>
 <ul>
 <li><a href="../../applicative-architecture/ddd/">DDD</a> — supplies the domain model the hexagon protects.</li>

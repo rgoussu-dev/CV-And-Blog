@@ -84,6 +84,13 @@ ownership back to producers (<a href="../../system-design/api-design/">API desig
 <li>To explore: streaming joins &amp; exactly-once sinks, reverse ETL, feature stores (the
 ML consumer), cost engineering in pay-per-query warehouses.</li>
 </ul>
+<h2>Practice</h2>
+<ul>
+<li><strong>dbt jaffle shop</strong> (<a href="https://github.com/dbt-labs/jaffle_shop" rel="noopener">source</a>) — dbt's canonical toy project: raw seeds → staging → marts with tests and docs; teaches the ELT workflow and SQL-as-versioned-code in an afternoon.</li>
+<li><strong>Star-schema drill</strong> (<a href="https://www.kimballgroup.com/" rel="noopener">source</a>) — dimensionally model a domain you know cold (your expenses, a side project's events): pick the grain, split facts from dimensions, add a type-2 slowly changing dimension; teaches Kimball modeling as decisions, not diagrams.</li>
+<li><strong>Event-time windows with Kafka Streams</strong> (<a href="https://kafka.apache.org/documentation/streams/" rel="noopener">source</a>) — build a small windowed aggregation, then feed it out-of-order and late events and watch results change with the watermark strategy; teaches the event-time vs. processing-time gap that makes streaming hard.</li>
+<li><strong>End-to-end ELT pipeline</strong> (<a href="../../data-storage/exercises/end-to-end-elt-pipeline/">exercise</a>) — the full stack on a laptop: ingestion, warehouse transforms, dimensional marts, orchestration with backfills, data tests, and CI; the build project that connects every key point above.</li>
+</ul>
 <h2>Related</h2>
 <ul>
 <li><a href="../../data-storage/databases-and-storage-systems/">Databases and other storage systems</a> — the

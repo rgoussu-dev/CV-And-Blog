@@ -80,6 +80,19 @@ retry path that holds one.</li>
 <li>To explore: adaptive/concurrency limits (AIMD, gradient), quota systems vs. rate
 limits, exactly-once semantics as idempotency wearing a suit.</li>
 </ul>
+<h2>Practice</h2>
+<ul>
+<li><strong>Rate limiter algorithms</strong> (<a href="https://codingchallenges.fyi/challenges/intro/" rel="noopener">source</a>) —
+Crickett's challenge: token bucket, leaky bucket, fixed and sliding windows behind one
+interface; unit-test each one's burst behavior at the window edge — the actual
+differentiator.</li>
+<li><strong>Stripe-style idempotency keys</strong> (<a href="https://stripe.com/blog/idempotency" rel="noopener">source</a>) —
+middleware storing key → response with the check and the operation atomic; race two
+concurrent duplicates to prove the unique constraint earns its keep.</li>
+<li><strong>Build a load balancer &amp; rate limiter</strong> (<a href="../../system-design/exercises/load-balancer-and-rate-limiter/">source</a>) —
+the limiter grown up: per-key limits at an edge tier, then Redis-backed distributed
+counters — approximately-right-and-fast vs. exact, measured.</li>
+</ul>
 <h2>Related</h2>
 <ul>
 <li><a href="../../system-design/api-design/">API design</a> — both are contract surface: headers, status codes,

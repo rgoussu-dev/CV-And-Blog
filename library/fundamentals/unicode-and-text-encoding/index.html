@@ -84,6 +84,13 @@ invisible characters (zero-width, bidi controls — the &quot;Trojan Source&quot
 and charset detection's limits), Punycode, ICU as the reference library, how
 emoji ZWJ sequences work.</li>
 </ul>
+<h2>Practice</h2>
+<ul>
+<li><strong>&quot;The Absolute Minimum About Unicode&quot;</strong> (<a href="https://www.joelonsoftware.com/2003/10/08/the-absolute-minimum-every-software-developer-absolutely-positively-must-know-about-unicode-and-character-sets-no-excuses/" rel="noopener">source</a>) — Spolsky's canonical read-first; the bytes/code-points mental model in one sitting.</li>
+<li><strong>UTF-8 codec + text CLI</strong> (<a href="../../fundamentals/exercises/utf8-codec-and-text-cli/">exercise</a>) — encode and decode UTF-8 by hand from RFC 3629, then build a small text-processing tool on top — the three-layer tower made concrete.</li>
+<li><strong>Build Your Own JSON parser</strong> (<a href="https://codingchallenges.fyi/challenges/challenge-json-parser/" rel="noopener">source</a>) — handle <code>\uXXXX</code> escapes and surrogate pairs correctly; where astral characters go wrong in practice.</li>
+<li><strong>Grapheme segmentation drill</strong> (<a href="https://unicode.org/reports/tr29/" rel="noopener">source</a>) — implement (or exercise a library's) grapheme iteration and prove naive <code>.length</code> mis-slices an emoji ZWJ sequence.</li>
+</ul>
 <h2>Related</h2>
 <ul>
 <li><a href="../../fundamentals/time-timezones-and-datetime/">Time, timezones &amp; datetime</a> — the sibling

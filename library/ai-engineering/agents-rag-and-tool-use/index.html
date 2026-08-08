@@ -82,6 +82,21 @@ prompts and pipelines like code, because they are.</li>
 <li>To explore: MCP as the emerging tool-integration standard, agentic RAG (retrieval as
 a tool), memory architectures, multi-agent orchestration costs.</li>
 </ul>
+<h2>Practice</h2>
+<ul>
+<li><strong>Gandalf prompt-injection game</strong> (<a href="https://gandalf.lakera.ai/" rel="noopener">source</a>) — extract the
+password level by level; half an hour of attacking makes &quot;design assuming injection
+happens&quot; visceral in a way reading never will.</li>
+<li><strong>Write an MCP server</strong> (<a href="https://modelcontextprotocol.io/" rel="noopener">source</a>) — expose a small
+tool surface (this repo's notes are a fine target) over the emerging standard; tool
+definitions as API design, practiced for real.</li>
+<li><strong>Build an agent from scratch</strong> (<a href="../../ai-engineering/exercises/build-an-agent-from-scratch/">source</a>) —
+the loop, tools, and eval harness with a raw LLM API and no framework, until the magic
+is demonstrably a while-loop.</li>
+<li><strong>RAG over the knowledge base</strong> (<a href="../../ai-engineering/exercises/rag-over-the-knowledge-base/">source</a>) —
+chunk → embed → hybrid retrieve → cite, over this very repo, with retrieval evals to
+prove where the bottleneck actually is.</li>
+</ul>
 <h2>Related</h2>
 <ul>
 <li><a href="../../ai-engineering/llm-fundamentals/">LLM fundamentals for engineers</a> — the primitives underneath.</li>

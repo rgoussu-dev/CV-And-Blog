@@ -82,6 +82,13 @@ feedback loop isn't.</li>
 measuring review health (time-to-first-review, rework rate), AI-assisted review as
 first-pass filter.</li>
 </ul>
+<h2>Practice</h2>
+<ul>
+<li><strong>Severity-labeling pass</strong> (<a href="https://conventionalcomments.org/" rel="noopener">source</a>) — rewrite your last ten review comments in the labeled form (blocking / suggestion / nit / question, with the why); teaches explicit severity and comment-on-the-code phrasing as a habit, not an intention.</li>
+<li><strong>Reviewer-guide shadow review</strong> (<a href="https://google.github.io/eng-practices/review/reviewer/" rel="noopener">source</a>) — pick a merged open-source PR you didn't write, review it cold against Google's reviewer standard, then compare with what the real reviewers said; teaches calibration — what you catch, what you miss, what you'd wrongly block.</li>
+<li><strong>Split-the-monster drill</strong> (<a href="https://trunkbaseddevelopment.com/" rel="noopener">source</a>) — take one of your own oversized past PRs and re-plan it as a stacked chain of small, individually reviewable PRs with a narrative description each; teaches that small diffs are authored, not hoped for.</li>
+<li><strong>Join a PR review club</strong> (<a href="https://bitcoincore.reviews/" rel="noopener">source</a>) — Bitcoin Core's weekly club walks a real PR with maintainers: prepare, annotate, discuss; teaches review of unfamiliar, high-stakes code alongside people who do it at reference level.</li>
+</ul>
 <h2>Related</h2>
 <ul>
 <li><a href="../../applicative-architecture/clean-code/">Clean code</a> — the shared bar review

@@ -76,6 +76,18 @@ renders disagreed); islands/server components shrink the JS that must hydrate at
 <code>content-visibility</code>, the RAIL model as budgets — and
 <a href="../../frontend/web-performance/">web performance</a> for the measurement side.</li>
 </ul>
+<h2>Practice</h2>
+<ul>
+<li><strong>Event-loop prediction katas</strong> (<a href="http://latentflip.com/loupe/" rel="noopener">source</a>) — write
+task/microtask/rAF snippets, predict the output order, then check in Loupe or DevTools;
+drills the loop until &quot;why did this run first&quot; stops being a mystery.</li>
+<li><strong>Layout-thrashing lab</strong> (<a href="https://developer.chrome.com/docs/devtools/performance" rel="noopener">source</a>) —
+write a loop that interleaves DOM writes with <code>offsetHeight</code> reads, watch the forced
+reflows in the Performance panel, then batch reads/writes and measure the difference.</li>
+<li><strong>Toy browser engine</strong> (<a href="../../frontend/exercises/toy-browser-engine/">source</a>) — build a
+browser in Python following <em>Web Browser Engineering</em>; the whole pipeline, in code you
+wrote yourself.</li>
+</ul>
 <h2>Related</h2>
 <ul>
 <li><a href="../../frontend/web-performance/">Web performance</a> — the metrics layer over this machinery.</li>

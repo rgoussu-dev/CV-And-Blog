@@ -82,6 +82,20 @@ are the levers; evals — not vibes — are how you know a prompt or model chang
 local inference, multimodality, inference mechanics (KV cache — why long contexts
 cost).</li>
 </ul>
+<h2>Practice</h2>
+<ul>
+<li><strong>Build a BPE tokenizer</strong> (<a href="https://github.com/karpathy/minbpe" rel="noopener">source</a>) — implement
+byte-pair encoding from scratch following minbpe; after this, &quot;pricing counts tokens&quot;
+and tokenizer weirdness (spaces, numbers, non-English) stop being abstract.</li>
+<li><strong>Neural Networks: Zero to Hero</strong> (<a href="https://karpathy.ai/zero-to-hero.html" rel="noopener">source</a>) —
+Karpathy's build-it-yourself series from backprop to a small GPT; the single best way
+to make &quot;autoregressive next-token prediction&quot; a thing you've <em>implemented</em>, not read.</li>
+<li><strong>Embeddings mini-search</strong> (<a href="https://www.sbert.net/" rel="noopener">source</a>) — embed a folder of your own
+notes, implement cosine-similarity top-k by hand, and probe where semantic ≈ distance
+holds and breaks; the cheap primitive, made concrete.</li>
+<li><strong>RAG over the knowledge base</strong> (<a href="../../ai-engineering/exercises/rag-over-the-knowledge-base/">source</a>) —
+the countermeasure to hallucination, built end-to-end on this very repo.</li>
+</ul>
 <h2>Related</h2>
 <ul>
 <li><a href="../../ai-engineering/agents-rag-and-tool-use/">Agents, RAG &amp; tool use</a> — the systems layer on top of

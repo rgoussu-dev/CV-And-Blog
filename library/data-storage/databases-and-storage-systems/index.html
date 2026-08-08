@@ -70,6 +70,14 @@ store — that's what warehouses and lakehouses are for.</li>
 <li>To explore: query planning &amp; EXPLAIN, connection pooling, CDC as the bridge from
 database to event stream, backup/restore as the real durability test.</li>
 </ul>
+<h2>Practice</h2>
+<ul>
+<li><strong>PostgreSQL Exercises</strong> (<a href="https://pgexercises.com/" rel="noopener">source</a>) — work the query sets, then rerun your answers under <code>EXPLAIN ANALYZE</code> and read the plans; teaches indexing and the planner on a schema small enough to reason about.</li>
+<li><strong>Isolation-anomaly lab</strong> (<a href="https://www.postgresql.org/docs/current/transaction-iso.html" rel="noopener">source</a>) — open two psql sessions and reproduce each anomaly (non-repeatable read, phantom, write skew) at each isolation level; teaches what the levels actually permit, from memory of having caused them.</li>
+<li><strong>Build your own Redis</strong> (<a href="https://codingchallenges.fyi/challenges/intro/" rel="noopener">source</a>) — John Crickett's challenge: a RESP-speaking in-memory key-value server with expiry and persistence; teaches the key-value model and why the single-threaded event loop is fast.</li>
+<li><strong>Build your own database</strong> (<a href="../../data-storage/exercises/build-your-own-database/">exercise</a>) — a SQLite-style engine from REPL to B-tree to WAL; teaches pages, indexes, and durability by making you write them.</li>
+<li><strong>CMU 15-445 BusTub projects</strong> (<a href="https://15445.courses.cs.cmu.edu/" rel="noopener">source</a>) — implement the buffer pool, B+-tree index, query executors, and concurrency control inside a real teaching DBMS, with autograded tests; the substantial internals workout once the from-scratch build has warmed you up.</li>
+</ul>
 <h2>Related</h2>
 <ul>
 <li><a href="../../system-design/system-design-fundamentals/">System design fundamentals</a></li>

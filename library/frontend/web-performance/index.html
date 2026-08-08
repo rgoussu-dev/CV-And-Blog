@@ -75,6 +75,22 @@ RUM dashboards with alerts — performance is a regression class, not a project.
 rendering, the cost model of third-party scripts (tag managers as the usual culprit),
 <code>bfcache</code> eligibility.</li>
 </ul>
+<h2>Practice</h2>
+<ul>
+<li><strong>Instrument real users</strong> (<a href="https://github.com/GoogleChrome/web-vitals" rel="noopener">source</a>) — add
+the <code>web-vitals</code> library to a site you run, beacon LCP/INP/CLS somewhere, and compare
+p75 field numbers against your Lighthouse score; the gap is the first lesson.</li>
+<li><strong>Fix a deliberately slow page</strong> (<a href="https://www.webpagetest.org/" rel="noopener">source</a>) — take a
+heavy page (or sabotage one: unsized images, blocking scripts, a fat bundle), profile
+it with WebPageTest/Lighthouse, and drive all three vitals green — one metric at a
+time, measuring each fix.</li>
+<li><strong>Image pipeline overhaul</strong> (<a href="https://web.dev/" rel="noopener">source</a>) — convert a real site to
+AVIF/WebP with <code>srcset</code> and correct sizing, <code>fetchpriority</code> on the LCP image,
+lazy-loading below the fold; usually the single biggest before/after you'll get.</li>
+<li><strong>Budget in CI</strong> (<a href="https://github.com/GoogleChrome/lighthouse-ci" rel="noopener">source</a>) — wire
+Lighthouse CI assertions and a bundle-size check into a project's pipeline, then try
+to break them; turns performance from a project into a regression class.</li>
+</ul>
 <h2>Related</h2>
 <ul>
 <li><a href="../../frontend/browser-internals/">Browser internals</a> — the pipeline these metrics measure.</li>

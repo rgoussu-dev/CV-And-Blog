@@ -90,6 +90,13 @@ most TLS incidents are chain, name, or clock problems.</li>
 <li>To explore: TLS termination vs. passthrough trade-offs, HSTS and certificate pinning
 (and why pinning is now discouraged), post-quantum key exchange rollout.</li>
 </ul>
+<h2>Practice</h2>
+<ul>
+<li><strong><a href="http://badssl.com" rel="noopener">badssl.com</a></strong> (<a href="https://badssl.com/" rel="noopener">source</a>) — click through dozens of broken and valid TLS configs in the browser; learn what every chain, name, and clock failure looks like.</li>
+<li><strong>Qualys SSL Labs test</strong> (<a href="https://www.ssllabs.com/ssltest/" rel="noopener">source</a>) — grade a real server's TLS and read the findings: cipher suites, chain issues, forward secrecy, protocol versions.</li>
+<li><strong>Certbot on your own domain</strong> (<a href="https://certbot.eff.org/" rel="noopener">source</a>) — issue a real DV certificate over ACME and automate renewal — the 90-day norm made routine.</li>
+<li><strong>Stand up your own CA + mTLS</strong> (<a href="../../security/exercises/personal-ca-and-mtls/">exercise</a>) — run a private CA, issue leaf certs, and require both sides to present one between two services.</li>
+</ul>
 <h2>Related</h2>
 <ul>
 <li><a href="../../system-administration/networking-fundamentals/">Networking fundamentals</a> — where

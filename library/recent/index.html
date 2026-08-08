@@ -42,6 +42,46 @@
     </div>
     <article class="lib-doc lib-log"><h3>2026-08-08</h3>
 <ul>
+<li><strong>Update</strong>: Adopted the practice-material conventions in AGENTS.md — concept
+notes may carry a <code># Practice</code> section of curated exercises, and build projects get their
+own <code>Exercise</code> notes in per-theme <code>exercises/</code> collections.</li>
+<li><strong>Update</strong>: Added <code># Practice</code> sections (katas, coding challenges, build projects) to all
+ten <a href="../applicative-architecture/">Applicative Architecture</a> concepts.</li>
+<li><strong>Update</strong>: Added <code># Practice</code> sections to all twelve <a href="../system-design/">System Design</a>
+concepts, including the Concurrency and Parallelism group note.</li>
+<li><strong>Creation</strong>: Added exercise <a href="../system-design/exercises/build-your-own-redis/">Build your own Redis</a> — RESP server with expiry, eviction, and a benchmark.</li>
+<li><strong>Creation</strong>: Added exercise <a href="../system-design/exercises/raft-with-gossip-glomers/">Implement Raft with Gossip Glomers</a> — <a href="http://Fly.io" rel="noopener">Fly.io</a>'s distributed-systems ladder up to Raft under Maelstrom.</li>
+<li><strong>Creation</strong>: Added exercise <a href="../system-design/exercises/load-balancer-and-rate-limiter/">Build a load balancer &amp; rate limiter</a> — an API edge composed from two builds, with a measured p99.</li>
+<li><strong>Update</strong>: Added <code># Practice</code> sections to all five <a href="../platform/">Platform</a>, both
+<a href="../data-storage/">Data Storage</a>, and all four
+<a href="../engineering-practice/">Engineering Practice</a> concepts.</li>
+<li><strong>Creation</strong>: Added exercise <a href="../platform/exercises/kubernetes-the-hard-way/">Kubernetes the Hard Way</a> — the no-scripts cluster bootstrap replanned as milestones.</li>
+<li><strong>Creation</strong>: Added exercise <a href="../platform/exercises/build-your-own-container-runtime/">Build your own container runtime</a> — namespaces, pivot_root, cgroups, layered images.</li>
+<li><strong>Creation</strong>: Added exercise <a href="../data-storage/exercises/build-your-own-database/">Build your own database</a> — REPL to pager to B-tree to WAL.</li>
+<li><strong>Creation</strong>: Added exercise <a href="../data-storage/exercises/end-to-end-elt-pipeline/">End-to-end ELT pipeline</a> — the modern data stack on a laptop, shipped through CI.</li>
+<li><strong>Creation</strong>: Added exercise <a href="../engineering-practice/exercises/gilded-rose-technical-debt-workout/">Gilded Rose: a technical-debt workout</a> — the kata as a full debt-management cycle.</li>
+<li><strong>Update</strong>: Added <code># Practice</code> sections to all six <a href="../security/">Security</a>, three
+<a href="../system-administration/">System Administration</a> (the port-check snippet excepted),
+and both <a href="../fundamentals/">Fundamentals</a> concepts.</li>
+<li><strong>Creation</strong>: Added exercise <a href="../security/exercises/cryptopals-crypto-challenges/">Cryptopals — crypto challenges (sets 1–3)</a> — implement then break real cryptography.</li>
+<li><strong>Creation</strong>: Added exercise <a href="../security/exercises/personal-ca-and-mtls/">Stand up your own CA + mTLS between two services</a> — the PKI trust chain built by hand.</li>
+<li><strong>Creation</strong>: Added exercise <a href="../system-administration/exercises/build-your-own-shell/">Build your own shell</a> — fork/exec, pipes, redirection, job control.</li>
+<li><strong>Creation</strong>: Added exercise <a href="../system-administration/exercises/write-yourself-a-git/">Write Yourself a Git</a> — Git's core reimplemented from the object store up.</li>
+<li><strong>Creation</strong>: Added exercise <a href="../fundamentals/exercises/utf8-codec-and-text-cli/">UTF-8 codec + text-processing CLI</a> — the bytes/code-points/graphemes tower as working code.</li>
+<li><strong>Update</strong>: Added <code># Practice</code> sections to all six <a href="../frontend/">Frontend</a>, both
+<a href="../ai-engineering/">AI Engineering</a>, and the <a href="../algorithms/">Algorithms</a>,
+<a href="../java/">Java</a>, <a href="../go/">Go</a> and <a href="../rust/">Rust</a> concepts.</li>
+<li><strong>Creation</strong>: Added exercise <a href="../frontend/exercises/design-system-from-scratch/">Design system from scratch</a> — tokens to accessible components to a documented, versioned package.</li>
+<li><strong>Creation</strong>: Added exercise <a href="../frontend/exercises/toy-browser-engine/">Toy browser engine</a> — Web Browser Engineering, URL to pixels.</li>
+<li><strong>Creation</strong>: Added exercise <a href="../ai-engineering/exercises/build-an-agent-from-scratch/">Build an agent from scratch</a> — raw LLM API, tools, the loop — no framework.</li>
+<li><strong>Creation</strong>: Added exercise <a href="../ai-engineering/exercises/rag-over-the-knowledge-base/">RAG over the knowledge base</a> — a cited retrieval pipeline over this very repo, with evals.</li>
+<li><strong>Creation</strong>: Added exercise <a href="../algorithms/exercises/interview-prep-track/">Interview-prep track</a> — a NeetCode-150-shaped syllabus with spaced re-solves.</li>
+<li><strong>Creation</strong>: Added exercise <a href="../java/exercises/one-billion-row-challenge/">One Billion Row Challenge</a> — profiling from naive baseline to memory-mapped byte crunching.</li>
+<li><strong>Creation</strong>: Added exercise <a href="../go/exercises/protohackers-ladder/">Protohackers ladder</a> — network servers in Go, TCP echo to MITM proxy, race-detector clean.</li>
+<li><strong>Creation</strong>: Added exercise <a href="../rust/exercises/tokio-mini-redis/">Tokio mini-redis</a> — async Rust ownership, framing, channels, cancellation-by-drop.</li>
+<li><strong>Creation</strong>: Added exercise <a href="../applicative-architecture/exercises/gilded-rose-legacy-rescue/">Gilded Rose — legacy rescue</a> — the kata run as a full legacy-rescue project.</li>
+<li><strong>Creation</strong>: Added exercise <a href="../applicative-architecture/exercises/birthday-greetings-hexagonal/">Birthday Greetings — hexagonal extraction</a> — extracting a pure domain core behind ports &amp; adapters.</li>
+<li><strong>Creation</strong>: Added exercise <a href="../applicative-architecture/exercises/event-sourced-bank-account/">Event-sourced bank account</a> — CQRS/ES built from scratch at teaching scale.</li>
 <li><strong>Update</strong>: Adopted the publication policy in AGENTS.md — the bundle now
 ships publicly as the virtual library (rendered by <code>kb-site/</code>, deployed under
 <code>/library/</code>); <code>visibility: private</code> in frontmatter opts a document out. Swept the

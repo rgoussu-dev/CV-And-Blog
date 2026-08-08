@@ -89,6 +89,23 @@ deterministic time/randomness injection.</li>
 <li>To explore: approval/snapshot testing (and its rubber-stamp failure mode), fuzzing
 as security-grade property testing, test impact analysis at scale.</li>
 </ul>
+<h2>Practice</h2>
+<ul>
+<li><strong>Diamond kata, property-based</strong> (<a href="https://kata-log.rocks/diamond-kata" rel="noopener">source</a>) — solve
+it with properties instead of examples (&quot;symmetric&quot;, &quot;widest at the middle&quot;) and let
+the framework shrink the counterexamples.</li>
+<li><strong>Mutation-test a real suite</strong> (<a href="https://pitest.org/" rel="noopener">source</a>) — run PIT (or Stryker)
+on a project whose suite you trust; every surviving mutant is a test you thought you
+had.</li>
+<li><strong>Pact contract-testing workshop</strong> (<a href="https://docs.pact.io/" rel="noopener">source</a>) — consumer-driven
+contracts between two small services; retire the shared integration environment they
+replace.</li>
+<li><strong>Build Your Own JSON parser</strong> (<a href="https://codingchallenges.fyi/challenges/challenge-json-parser" rel="noopener">source</a>) —
+an ideal property-based target: parse∘serialize round-trips plus a torture suite of
+malformed inputs.</li>
+<li><strong>Load-test with k6</strong> (<a href="https://k6.io/" rel="noopener">source</a>) — script a realistic scenario against
+a side project with percentile assertions, not averages.</li>
+</ul>
 <h2>Related</h2>
 <ul>
 <li><a href="../../applicative-architecture/tdd/">TDD</a> and <a href="../../applicative-architecture/bdd/">BDD</a> — the inner disciplines this strategy arranges.</li>

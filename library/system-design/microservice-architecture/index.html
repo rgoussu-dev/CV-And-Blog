@@ -71,6 +71,21 @@ self-contained systems); migration via strangler fig, not big bang.</li>
 <li>To explore: service mesh, serverless as the extreme of the same axis, micro-frontends
 as the front-end analogue.</li>
 </ul>
+<h2>Practice</h2>
+<ul>
+<li><strong>Saga, twice</strong> (<a href="https://microservices.io/patterns/data/saga.html" rel="noopener">source</a>) —
+implement an order/payment saga as choreography, then as orchestration, with a
+compensating action for every failure point; the trade-off writes itself.</li>
+<li><strong>FTGO application</strong> (<a href="https://github.com/microservices-patterns/ftgo-application" rel="noopener">source</a>) —
+Richardson's reference implementation: trace one service's boundaries, then add a
+small feature end to end — API, events, saga.</li>
+<li><strong>Strangler fig migration</strong> (<a href="https://martinfowler.com/bliki/StranglerFigApplication.html" rel="noopener">source</a>) —
+carve one bounded context out of a monolithic side project behind a routing facade,
+without breaking the rest.</li>
+<li><strong>Build the edge</strong> (<a href="../../system-design/exercises/load-balancer-and-rate-limiter/">source</a>) —
+the gateway tier every service system needs — load balancing, health checks, per-key
+limits — built from scratch.</li>
+</ul>
 <h2>Related</h2>
 <ul>
 <li><a href="../../applicative-architecture/ddd/">DDD</a> — supplies the decomposition principle.</li>

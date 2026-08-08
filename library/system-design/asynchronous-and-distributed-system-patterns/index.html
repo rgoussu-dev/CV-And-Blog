@@ -70,6 +70,23 @@ breakers, bulkheads, dead-letter queues, backpressure (reactive streams).</li>
 <li>To explore: consensus (Raft), exactly-once in Kafka (transactions), CQRS, workflow
 engines (Temporal) as durable execution.</li>
 </ul>
+<h2>Practice</h2>
+<ul>
+<li><strong>Gossip Glomers: Echo &amp; Unique IDs</strong> (<a href="https://fly.io/dist-sys/" rel="noopener">source</a>) — warm up
+with the Maelstrom harness, then generate globally unique IDs without coordination.</li>
+<li><strong>Gossip Glomers: Broadcast</strong> (<a href="https://fly.io/dist-sys/" rel="noopener">source</a>) — gossip a value to
+every node through injected partitions: retries, at-least-once delivery, and
+idempotent handlers in the flesh.</li>
+<li><strong>Transactional outbox relay</strong> (<a href="https://microservices.io/patterns/data/transactional-outbox.html" rel="noopener">source</a>) —
+implement the pattern against a real database: state + event in one transaction, an
+async relay, and a consumer that provably tolerates the duplicates.</li>
+<li><strong>Build a message broker</strong> (<a href="https://codingchallenges.fyi/challenges/intro/" rel="noopener">source</a>) —
+Crickett's NATS challenge: pub/sub and queue groups from the wire protocol up, where
+delivery guarantees stop being abstract.</li>
+<li><strong>Implement Raft with Gossip Glomers</strong> (<a href="../../system-design/exercises/raft-with-gossip-glomers/">source</a>) —
+the escape hatch when order must be total: build the consensus these patterns exist to
+avoid paying for.</li>
+</ul>
 <h2>Related</h2>
 <ul>
 <li><a href="../../system-design/system-design-fundamentals/">System design fundamentals</a></li>

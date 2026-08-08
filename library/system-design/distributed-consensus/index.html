@@ -79,6 +79,18 @@ consistency — the pattern is always &quot;consensus for coordination, replicat
 tolerance (when nodes lie — blockchain territory), flexible quorums, the Raft paper
 itself (genuinely readable).</li>
 </ul>
+<h2>Practice</h2>
+<ul>
+<li><strong>Raft, animated</strong> (<a href="http://thesecretlivesofdata.com/raft/" rel="noopener">source</a>) — step through
+elections, terms, and log replication visually before writing a line; the
+<a href="https://raft.github.io/" rel="noopener">raft.github.io</a> guide and paper sit one click away.</li>
+<li><strong>Implement Raft with Gossip Glomers</strong> (<a href="../../system-design/exercises/raft-with-gossip-glomers/">source</a>) —
+climb the <a href="http://Fly.io" rel="noopener">Fly.io</a> challenges to a Raft-backed linearizable KV store, with Maelstrom
+injecting the partitions the safety argument is about.</li>
+<li><strong>MIT 6.5840 Raft labs</strong> (<a href="https://pdos.csail.mit.edu/6.824/" rel="noopener">source</a>) — the full
+treatment: leader election, log replication, persistence, and snapshots against a
+deliberately brutal test harness.</li>
+</ul>
 <h2>Related</h2>
 <ul>
 <li><a href="../../system-design/system-design-fundamentals/">System design fundamentals</a> — the consistency spectrum

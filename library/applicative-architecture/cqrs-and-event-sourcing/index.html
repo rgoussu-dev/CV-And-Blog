@@ -76,6 +76,17 @@ can do the former without the latter — most should.</li>
 <li>To explore: event stores (EventStoreDB, Postgres-as-event-store, Kafka's fit and
 misfit), Axon/eventuate frameworks, process managers vs. sagas atop event streams.</li>
 </ul>
+<h2>Practice</h2>
+<ul>
+<li><strong>Banking kata, event-sourced twist</strong> (<a href="https://kata-log.rocks/banking-kata" rel="noopener">source</a>) —
+warm-up: store deposits and withdrawals as events and derive the printed statement as
+a projection — a left-fold in miniature.</li>
+<li><strong>SimpleCQRS (m-r)</strong> (<a href="https://github.com/gregoryyoung/m-r" rel="noopener">source</a>) — Greg Young's
+reference implementation; read it, then port it to your language without peeking.</li>
+<li><strong>Event-sourced bank account</strong> (<a href="../../applicative-architecture/exercises/event-sourced-bank-account/">exercise</a>) —
+the full build from scratch: aggregate, event store with optimistic concurrency,
+idempotent projections, and the eventual-consistency UX handled honestly.</li>
+</ul>
 <h2>Related</h2>
 <ul>
 <li><a href="../../applicative-architecture/ddd/">DDD</a> — aggregates and domain events are the vocabulary both patterns build on.</li>

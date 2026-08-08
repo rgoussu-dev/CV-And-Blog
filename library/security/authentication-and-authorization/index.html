@@ -78,6 +78,14 @@ long-lived API keys between services.</li>
 <li>To explore: SAML (enterprise SSO's legacy standard), session fixation &amp; token binding,
 fine-grained authorization latency trade-offs, OIDC token exchange.</li>
 </ul>
+<h2>Practice</h2>
+<ul>
+<li><strong>PortSwigger Authentication labs</strong> (<a href="https://portswigger.net/web-security/authentication" rel="noopener">source</a>) — attack login, MFA, and session logic to internalize what &quot;rolled our own&quot; breaks.</li>
+<li><strong>PortSwigger JWT labs</strong> (<a href="https://portswigger.net/web-security/jwt" rel="noopener">source</a>) — exploit <code>alg</code> confusion, <code>none</code>, and unverified signatures — the pitfalls list turned into hands-on breakage.</li>
+<li><strong>PortSwigger OAuth labs</strong> (<a href="https://portswigger.net/web-security/oauth" rel="noopener">source</a>) — walk the flaws in real OAuth flows (redirect_uri, state, token leakage).</li>
+<li><strong>OpenID Connect Playground</strong> (<a href="https://openidconnect.net/" rel="noopener">source</a>) — step through an auth-code flow end to end and inspect the ID token's claims.</li>
+<li><strong>Build your own login</strong> (<a href="https://www.oauth.com/" rel="noopener">source</a>) — implement Authorization Code + PKCE against a real IdP, then verify the JWT server-side (pinned <code>alg</code>, checked aud/iss/exp) — proves you understand delegation vs. authentication.</li>
+</ul>
 <h2>Related</h2>
 <ul>
 <li><a href="../../security/appsec-fundamentals/">AppSec fundamentals</a> — broken access control is its #1.</li>

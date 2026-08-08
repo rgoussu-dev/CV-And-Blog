@@ -54,6 +54,21 @@
 <li><strong>Amdahl's Law</strong>: the speedup from parallelism is bounded by the serial fraction of the work — most programs hit this ceiling sooner than expected.</li>
 <li><strong>Platform matters</strong>: the JVM (virtual threads in Java 21+), Go (goroutines + CSP), Rust (fearless concurrency via ownership), and the OS model each impose their own primitives and costs.</li>
 </ul>
+<h2>Practice</h2>
+<ul>
+<li><strong>Dining philosophers</strong> (<a href="https://en.wikipedia.org/wiki/Dining_philosophers_problem" rel="noopener">source</a>) —
+implement it three ways (lock ordering, arbitrator, try-lock with backoff) — and make
+it deadlock on purpose first, so you recognize the symptom.</li>
+<li><strong>Worker pool</strong> (<a href="https://gobyexample.com/worker-pools" rel="noopener">source</a>) — bounded queue, N
+workers, graceful shutdown; build it in Java, Go, and Rust and feel three models'
+costs for the same design.</li>
+<li><strong>One Billion Row Challenge</strong> (<a href="https://github.com/gunnarmorling/1brc" rel="noopener">source</a>) —
+parallelize a real aggregation and watch Amdahl's law and contention — not the core
+count — decide the speedup.</li>
+<li><strong>Build your own Redis</strong> (<a href="../../../system-design/exercises/build-your-own-redis/">source</a>) —
+choose the concurrency model for a real server (event loop vs. thread-per-connection)
+and live with the consequences under concurrent clients.</li>
+</ul>
 <h2>Related</h2>
 <ul>
 <li><a href="../../../system-design/concurrency-and-parallelism/references/concurrency-crossroad-devoxx-slides/">Concurrency crossroad — Devoxx slides</a></li>

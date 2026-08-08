@@ -69,6 +69,22 @@ the fork-per-team drift, tokens defined but bypassed with hard-coded values.</li
 (Chromatic), multi-brand theming, <a href="../../frontend/atomic-design/">atomic design</a> as the structuring
 methodology.</li>
 </ul>
+<h2>Practice</h2>
+<ul>
+<li><strong>Token retrofit</strong> (<a href="https://www.w3.org/community/design-tokens/" rel="noopener">source</a>) — take an existing side
+project, extract every hard-coded color/space value into semantic tokens (CSS
+variables), then add dark mode by swapping only the token layer; proves the tokens
+earn their keep.</li>
+<li><strong>Storybook-driven component build</strong> (<a href="https://storybook.js.org/" rel="noopener">source</a>) — build
+three components in isolation with a story per state, do/don't docs, and the a11y
+addon wired in; documentation-first is the habit being drilled.</li>
+<li><strong>Headless re-skin</strong> (<a href="https://www.radix-ui.com/" rel="noopener">source</a>) — wrap Radix (or React
+Aria) primitives in your own tokens; teaches the behavior/skin separation and how much
+a11y you get to <em>not</em> rewrite.</li>
+<li><strong>Design system from scratch</strong> (<a href="../../frontend/exercises/design-system-from-scratch/">source</a>) —
+the full flagship build: tokens → accessible atomic components → documented, versioned
+library.</li>
+</ul>
 <h2>Related</h2>
 <ul>
 <li><a href="../../frontend/atomic-design/">Atomic design</a> — the composition methodology beneath most systems.</li>
