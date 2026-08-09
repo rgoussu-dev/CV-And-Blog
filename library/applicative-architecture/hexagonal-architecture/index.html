@@ -94,13 +94,14 @@ hexagonal + <a href="../../applicative-architecture/ddd/">DDD</a> tactical patte
 </pre>
 <h2>Details</h2>
 <h3>The house reference principles</h3>
-<p>Three reference implementations —
+<p>Four reference implementations —
 <a href="../../java/hexagonal-reference-implementation/hexagonal-reference-implementation/">Java</a>,
 <a href="../../go/hexagonal-reference-implementation/">Go</a>,
-<a href="../../rust/hexagonal-reference-implementation/">Rust</a> — realize one shared set of
-principles, each with its own enforcement mechanism (Maven module graph, nested
-<code>internal/</code> + linter, Cargo crate graph). Each implementation stands on its own; the
-principles live here:</p>
+<a href="../../rust/hexagonal-reference-implementation/">Rust</a>,
+<a href="../../frontend/hexagonal-reference-implementation/">Frontend (web components)</a> — realize
+one shared set of principles, each with its own enforcement mechanism (Maven module
+graph, nested <code>internal/</code> + linter, Cargo crate graph, npm workspace + TS project
+references). Each implementation stands on its own; the principles live here:</p>
 <ul>
 <li><strong>Trisection</strong>: <code>application/</code> (primary adapters), <code>domain/</code> (the hexagon),
 <code>infrastructure/</code> (secondary adapters), plus a <code>deployment/</code> home for IaC.</li>
@@ -151,8 +152,9 @@ Postgres at the ports, judged by an external test suite.</li>
 standing on its own:
 <a href="../../java/hexagonal-reference-implementation/hexagonal-reference-implementation/">Java</a>
 (a concept group with per-layer guideline notes),
-<a href="../../go/hexagonal-reference-implementation/">Go</a>, and
-<a href="../../rust/hexagonal-reference-implementation/">Rust</a>.</li>
+<a href="../../go/hexagonal-reference-implementation/">Go</a>,
+<a href="../../rust/hexagonal-reference-implementation/">Rust</a>, and
+<a href="../../frontend/hexagonal-reference-implementation/">Frontend — web components</a>.</li>
 <li><a href="../../applicative-architecture/ddd/">DDD</a> — supplies the domain model the hexagon protects.</li>
 <li><a href="../../applicative-architecture/clean-code/">Clean code</a> — dependency inversion is SOLID's &quot;D&quot;.</li>
 <li><a href="../../applicative-architecture/tdd/">TDD</a> — ports make outside-in test-first design practical.</li>

@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Hexagonal architecture reference implementation — Frontend (web components) — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../assets/styles.css" />
+  <link rel="stylesheet" href="../../assets/theme.css" />
+</head>
+<body data-prefix="../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/frontend</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../">~/library</a><span class="tok-path">/</span><span class="tok-path">frontend</span> <span class="tok-cmd">cat</span> <span class="tok-file">hexagonal-reference-implementation</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Hexagonal architecture reference implementation — Frontend (web components)</h1>
+        <p class="lib-lede"><span class="tok-comment"># The house hexagonal reference realized for the browser — an npm workspace whose package graph and TS project references are the walls, custom elements as the driving adapters, every browser API behind a driven port, and the WCCG Context protocol wiring ports from each unit's assembly point.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../tags/#hexagonal-architecture">#hexagonal-architecture</a><a class="lib-tag" href="../../tags/#architecture">#architecture</a><a class="lib-tag" href="../../tags/#frontend">#frontend</a><a class="lib-tag" href="../../tags/#web-components">#web-components</a><a class="lib-tag" href="../../tags/#typescript">#typescript</a><a class="lib-tag" href="../../tags/#reference-implementation">#reference-implementation</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>The house reference implementation of
+<a href="../../applicative-architecture/hexagonal-architecture/">hexagonal architecture</a> for the
+frontend, standing on its own terms. The shared principles live in that note —
+trisection, one deployment unit per primary adapter, a contract face and an
+implementation face for the domain, containerisation beside its unit,
+<code>README.md</code>/<code>AGENTS.md</code> at every level. The frontend realization takes <strong>the browser and
+the DOM API as the framework</strong>: the UI is built exclusively from web components (custom
+elements + Shadow DOM + <code>&lt;template&gt;</code>), the domain is pure TypeScript that never touches
+the DOM, and every browser capability — <code>fetch</code>, storage, sockets, the clock — sits
+behind a driven port. JavaScript has no compiler-enforced module walls, so <strong>the npm
+workspace package graph, TypeScript project references and <code>exports</code> maps hold the
+architecture</strong>. Derived 2026-08-09; the wiring stance was settled the same day (the
+Context protocol) — the remaining open point sits at the end.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>The hexagon inverts the backend intuition: the UI is the driving side, the backend
+is a driven one.</strong> A frontend's domain is client-side application logic — commands,
+workflows, validation, view-independent state. Components <em>drive</em> it through driving
+ports; the server is infrastructure it reaches through a gateway port, exactly like a
+database seen from a backend hexagon.</li>
+<li><strong>One npm workspace per frontend service; one <code>application/&lt;app&gt;/</code> per deployment
+unit.</strong> Each app shell (<code>public-app</code>, <code>backoffice-app</code>) is an <code>index.html</code> + entry
+<code>main.ts</code>, bundled to static files and shipped in its own container (nginx/caddy) with
+the Dockerfile beside it. The unit's primary adapter is the shell as a whole — its
+element set plus its History-API router; individual custom elements are the adapter's
+parts, as handlers are to a REST adapter.</li>
+<li><strong>The domain is two packages.</strong> <code>domain-api</code> holds port interfaces (driving and
+driven), command/result types and domain events — zero dependencies; <code>domain-core</code>
+holds entities, services and stores, and its <code>package.json</code> <code>exports</code> map exposes
+<strong>only factory entry points returning driving-port interfaces</strong>. Deep imports fail at
+module resolution — the frontend's nested <code>internal/</code>, held by the resolver and the
+bundler rather than a compiler.</li>
+<li><strong>The domain compiles without the DOM.</strong> The two domain packages set
+<code>&quot;lib&quot;: [&quot;ES2022&quot;]</code> — no <code>&quot;DOM&quot;</code> — in their <code>tsconfig</code>, so <code>document</code>, <code>fetch</code>,
+<code>HTMLElement</code> and friends are unresolvable identifiers <em>inside the hexagon</em>. &quot;The
+domain never touches the browser&quot; is a tsc error, not a convention.</li>
+<li><strong>Custom elements are the driving adapters</strong>: they translate DOM events into commands
+on driving ports, subscribe to read models for state, and render by cloning
+<code>&lt;template&gt;</code>s and patching only what changed — no virtual DOM, no render framework.
+Shadow DOM walls the styles; domain events cross the contract face as plain objects,
+and only the application layer re-emits them as DOM <code>CustomEvent</code>s when elements need
+to talk outward.</li>
+<li><strong>Secondary adapters wrap browser capabilities</strong>, granularity ad-hoc per context as in
+the other references: <code>gateway-rest</code> (fetch against the backend), <code>storage-indexeddb</code>,
+<code>push-websocket</code>; ubiquitous ports (clock, id generation via <code>crypto.randomUUID</code>) sit
+together in <code>commons</code>. The unit's import graph decides what ships — the bundler
+tree-shakes from <code>main.ts</code>, so an unimported adapter costs the bundle nothing.</li>
+<li><strong>The assembly point is each unit's <code>main.ts</code></strong>: construct infra adapters, call domain
+factories, register the context provider that answers <code>context-request</code> with the wired
+ports, then define the elements. Dependency injection stays a pattern, never a
+container.</li>
+<li><strong>The wiring rule (settled 2026-08-09): the WCCG Context protocol.</strong> The <em>parser</em>, not
+your code, instantiates elements from markup, so constructor injection is off the
+table. Instead, components request their ports with a composed, bubbling
+<code>context-request</code> event; a plain listener registered by <code>main.ts</code> answers from the
+port map it built — the assembly point keeps the graph. The protocol is built from
+baseline DOM events, so there is <strong>no browser-support surface at all</strong>. Ruled out:
+module-scope singletons (a service locator with a hidden graph) and reflection DI
+containers.</li>
+<li><strong>Test strategy per the house rule</strong>: the domain is unit-tested in Node with no DOM
+lib; components are tested in a real browser against the domain's own in-memory
+fakes; <code>gateway-rest</code> is integration-tested against the real API contract. No
+contract testing between infrastructure and the domain contract.</li>
+</ul>
+<h2>Details</h2>
+<h3>The derived tree</h3>
+<pre><code>acme-front/
+├── README.md / AGENTS.md
+├── package.json                   # npm workspaces root; tsconfig with project references
+├── application/
+│   ├── public-app/                # deployment unit: index.html + main.ts (assembly)
+│   │   ├── Dockerfile             # static-file container, beside its unit
+│   │   ├── src/
+│   │   │   ├── main.ts            # the assembly point
+│   │   │   ├── router.ts          # History API → commands (part of the adapter)
+│   │   │   └── components/        # port-bound custom elements
+│   │   └── custom-elements.json   # generated manifest — only where outside consumers exist
+│   └── backoffice-app/
+├── domain/
+│   ├── domain-api/                # ports, commands, events — zero deps, no DOM lib
+│   └── domain-core/               # entities, services, stores — exports map: factories only
+├── infrastructure/
+│   ├── commons/                   # ubiquitous ports: clock, id generation
+│   ├── gateway-rest/              # fetch adapter implementing the backend gateway ports
+│   ├── storage-indexeddb/
+│   └── push-websocket/
+├── compose.yaml
+└── deployment/                    # IaC: OpenTofu modules + per-environment stacks
+</code></pre>
+<p>The package graph, held by the workspace + project references (an arrow reads &quot;depends
+on&quot;):</p>
+<pre class="mermaid">flowchart TB
+    subgraph application[&quot;application/public-app (deployment unit)&quot;]
+        MAIN[&quot;main.ts (the assembly point)&quot;]
+        ELEMS[&quot;custom elements + router (driving adapter)&quot;]
+    end
+    subgraph domain[&quot;domain/&quot;]
+        CORE[&quot;domain-core (exports map: factories only)&quot;]
+        API[&quot;domain-api (ports, commands, events — no deps, no DOM lib)&quot;]
+    end
+    subgraph infrastructure[&quot;infrastructure/&quot;]
+        REST[&quot;gateway-rest (fetch)&quot;]
+        IDB[&quot;storage-indexeddb&quot;]
+        WS[&quot;push-websocket&quot;]
+    end
+    CORE --&gt; API
+    REST --&gt; API
+    IDB --&gt; API
+    WS --&gt; API
+    ELEMS --&gt; API
+    MAIN --&gt; CORE
+    MAIN --&gt; REST
+    MAIN --&gt;|&quot;defines; answers context-request with ports&quot;| ELEMS
+    ELEMS -.-&gt;|&quot;blocked at resolution&quot;| CORE
+</pre>
+<h3>The walls and what enforces them</h3>
+<p>TypeScript's types are erased at runtime, so no wall lives in the type system itself —
+they live at module <em>resolution</em> and build time, which the bundler consumes too: a
+rule-breaking import fails CI before it can ship.</p>
+<table>
+<thead>
+<tr>
+<th>Rule</th>
+<th>Enforced by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>the domain never touches the browser</td>
+<td>domain packages compile with <code>&quot;lib&quot;: [&quot;ES2022&quot;]</code> and no <code>&quot;DOM&quot;</code> — <code>document</code>, <code>fetch</code>, <code>HTMLElement</code> are unresolvable: tsc</td>
+</tr>
+<tr>
+<td>the domain core is invisible to adapters and mains</td>
+<td><code>domain-core</code>'s <code>exports</code> map — only factory entry points resolve; deep imports fail in Node, tsc and the bundler alike</td>
+</tr>
+<tr>
+<td><code>domain</code> imports nothing from <code>application</code>/<code>infrastructure</code>; <code>infrastructure</code> never imports <code>application</code>; adapters never import each other</td>
+<td>workspace <code>package.json</code> dependencies + TS project references, backed by dependency-cruiser in CI</td>
+</tr>
+<tr>
+<td>a deployment unit ships only what it uses</td>
+<td>the unit's import graph — the bundler tree-shakes from <code>main.ts</code></td>
+</tr>
+<tr>
+<td>published UI contracts exist only where real</td>
+<td>a generated Custom Elements Manifest (<code>custom-elements.json</code>) only when outside consumers embed the elements — the pair is earned, never imposed</td>
+</tr>
+<tr>
+<td>the assembly point stays boring</td>
+<td>plain <code>main.ts</code> wiring; one context-provider listener</td>
+</tr>
+</tbody>
+</table>
+<h3>Wiring web components — the platform-forced decision</h3>
+<p>Every reference has one decision its platform forces (Java's configurator, Go's DI
+stance, Rust's dyn-vs-generics). The browser's is element construction: the parser
+instantiates a custom element the moment its tag appears in markup — you never call
+<code>new</code>, so you can never pass a constructor argument. The stance, settled 2026-08-09:
+<strong>the Context community protocol is the wiring mechanism</strong> [1].</p>
+<ul>
+<li><strong>How it works.</strong> A consumer dispatches a <code>context-request</code> event
+(<code>bubbles: true, composed: true</code> — it climbs through shadow roots) carrying a typed
+context key and a callback. The first ancestor listening that recognizes the key calls
+<code>stopPropagation()</code> and invokes the callback <strong>synchronously</strong>. The provider needn't
+be an element: <code>main.ts</code> registers a plain listener on the document answering from
+the map of ports it constructed. The protocol is ~10 lines of event class the
+workspace owns — no library, no new browser API, and interoperable by design with
+outside implementations such as <code>@lit/context</code> [2].</li>
+<li><strong>Context keys are application-layer artifacts, typed by <code>domain-api</code> ports</strong>
+(<code>createContext&lt;PlaceOrder&gt;('acme.place-order')</code>): the key couples consumer to
+contract, TypeScript carries the port type through the callback, and the domain never
+learns a DOM-flavored DI mechanism exists.</li>
+<li><strong>Fail fast.</strong> A present provider answers synchronously, so absence is detectable
+immediately: request in <code>connectedCallback</code>, then throw loudly if the port field is
+still empty. Runtime resolution reduces to one guard clause.</li>
+<li><strong>Context delivers ports once; reactivity stays with the read models.</strong> The
+protocol's <code>subscribe</code> mode goes unused — the driving side already has subscriptions,
+and keeping the two mechanisms separate keeps both honest.</li>
+<li><strong>The scoping prize.</strong> First-ancestor-wins means a per-route provider, a preview
+subtree running on the domain's in-memory fakes, or several units on one page each
+answering their own subtree — without touching any element. Tests wrap the element in
+a test provider: same tag everywhere, no registry games.</li>
+<li><strong>The stated caveat — upgrade ordering.</strong> A consumer that requests before its
+provider listens gets silence. At startup the assembly shape prevents it (<code>main.ts</code>
+registers the listener <em>before</em> defining elements — definitions upgrade parsed markup
+and fire <code>connectedCallback</code> synchronously). It reappears with lazy-loaded,
+element-based providers; the cure is the ContextRoot pattern — buffer unanswered
+requests and replay them when a provider announces itself [2].</li>
+<li><strong>Rejected alternatives</strong> (2026-08-09 discussion): <em>definition-time closure
+injection</em> (factories at <code>define</code> — explicit, but fuses one tag to one wiring and
+threads factories through every composition layer; demoted from default to niche
+trick), <em>constructor injection via code-only construction</em> of port-bound organisms
+(honest signatures, but bans port-bound elements from markup and gives up the scoping
+wins), <em>property injection</em> (temporal coupling, wiring scattered across creation
+sites), and — with prejudice — module-scope singletons and reflection containers.</li>
+</ul>
+<h3>Rendering and state without a framework</h3>
+<ul>
+<li>A component clones its <code>&lt;template&gt;</code> once in <code>connectedCallback</code>, keeps references to
+the nodes it owns, and <strong>patches only what changed</strong> when notified — targeted DOM
+updates instead of re-render-and-diff.</li>
+<li>The subscription is the reactivity: driving-side read models in <code>domain-api</code> expose
+<code>subscribe</code>; the component subscribes in <code>connectedCallback</code> and unsubscribes in
+<code>disconnectedCallback</code>. State classification per
+<a href="../../frontend/component-architecture-and-state/">component architecture &amp; state</a> still applies —
+server state lives behind the gateway port, client state in domain stores, URL state
+in the router; only element-local UI state (an open/closed flag) stays in the
+component.</li>
+<li>Styling: open shadow roots with <code>adoptedStyleSheets</code> fed by the
+<a href="../../frontend/design-systems/">design system</a>'s tokens; where each atomic level of that system
+lives is settled in the next section.</li>
+<li>Server rendering is out of scope by design: this reference is CSR-only; declarative
+Shadow DOM and the trade-offs in
+<a href="../../frontend/rendering-strategies-and-meta-frameworks/">rendering strategies</a> enter only if a
+real need does.</li>
+</ul>
+<h3>Where atomic design fits — the interior of the driving adapter</h3>
+<p><a href="../../frontend/atomic-design/">Atomic design</a> and the hexagon are orthogonal and compose: hexagonal
+architecture organizes the <em>application</em>, atomic design organizes the <em>inside of the
+driving adapter</em> — the same relationship DDD tactical patterns have to the inside of the
+domain. The architectural line through the atomic hierarchy is drawn by <strong>port-awareness,
+not atomic level</strong> — though in practice it falls at the organism line:</p>
+<ul>
+<li><strong>Tokens (sub-atomic), atoms, molecules — and any presentational organism — are
+domain-blind and live in the design-system package</strong> (its own workspace member, or its
+own repo when other products consume it). They speak pure web-component vocabulary:
+attributes/properties in, <code>CustomEvent</code>s out, a render that is a function of their
+inputs. They depend on the DOM and the tokens, and <strong>never on <code>domain-api</code></strong> — the
+design system is to the UI adapter what a serialization library is to a REST adapter:
+infrastructure <em>of the adapter</em>, invisible to the hexagon. The package graph enforces
+it: the design-system package declares no dependency on the domain packages, so a
+domain-aware &quot;atom&quot; is a wall violation CI catches, not a review debate.</li>
+<li><strong>Port-bound organisms are the adapter's parts and belong to their deployment unit.</strong>
+They are where the two composition worlds meet: context-supplied ports on one side,
+design-system children on the other — subscribe to a read model and push state <em>down</em>
+as properties; listen to child <code>CustomEvent</code>s and translate them <em>up</em> into commands on
+a driving port. The container/presentational split re-emerges here, drawn by the
+architecture instead of taste. Duplicating a port-bound organism between units is
+accepted over cross-unit coupling, per the house rule.</li>
+<li><strong>Templates and pages are always unit-owned</strong>: templates are the shell's routed
+views — layout compositions of organisms; pages are those templates mounted by the
+unit's router with real data flowing through the ports.</li>
+<li><strong>Testing falls out along the same line</strong>: design-system levels are tested in
+isolation (Storybook as the workbench) with no domain anywhere in sight; port-bound
+organisms are tested against the domain's in-memory fakes like any driving adapter.</li>
+<li>The design-system package is also where the <strong>Custom Elements Manifest is naturally
+real</strong> — it is a published, consumed contract by construction, where an app unit's
+manifest stays earned-only.</li>
+</ul>
+<p>Atomic taxonomy debates (molecule vs organism) stay as cheap as the atomic-design note
+says they should be: they never move the architectural line, because the line is drawn
+by whether a component knows a port exists.</p>
+<h3>Still open</h3>
+<ul>
+<li><strong>Micro-frontend composition</strong> — several deployment units on one page. The Context
+protocol already scopes each unit's wiring to its own subtree naturally, but who owns
+the global custom element registry and the tag namespace is deliberately not covered;
+scoped custom element registries are the platform feature to revisit when this
+becomes real.</li>
+</ul>
+<h2>Examples</h2>
+<p>The protocol, owned by the workspace — the whole mechanism:</p>
+<pre><code class="language-ts">// context.ts — application layer
+export interface Context&lt;T&gt; { readonly name: string }
+export const createContext = &lt;T&gt;(name: string): Context&lt;T&gt; =&gt; ({ name });
+
+export class ContextRequestEvent&lt;T&gt; extends Event {
+  constructor(
+    readonly context: Context&lt;T&gt;,
+    readonly callback: (value: T) =&gt; void,
+  ) {
+    super('context-request', { bubbles: true, composed: true });
+  }
+}
+</code></pre>
+<p><code>application/public-app/src/main.ts</code> as the configurator — provider first, definitions
+last (definitions upgrade parsed markup and fire <code>connectedCallback</code> synchronously, so
+the listener must already be in place):</p>
+<pre><code class="language-ts">import { createPlaceOrder, createOrderStore } from '@acme/domain-core';
+import { RestOrderGateway } from '@acme/gateway-rest';
+import { systemClock } from '@acme/commons';
+import { placeOrderContext, ordersContext } from './context-keys.js';
+import { OrderForm } from './components/order-form.js';
+import { OrderList } from './components/order-list.js';
+
+const gateway = new RestOrderGateway(import.meta.env.API_BASE_URL); // driven adapter
+const orders = createOrderStore();                                  // read model
+const placeOrder = createPlaceOrder(gateway, orders, systemClock);  // driving port
+
+const ports = new Map&lt;Context&lt;unknown&gt;, unknown&gt;([
+  [placeOrderContext, placeOrder],
+  [ordersContext, orders],
+]);
+document.addEventListener('context-request', (e) =&gt; {
+  const req = e as ContextRequestEvent&lt;unknown&gt;;
+  if (!ports.has(req.context)) return;   // let another provider answer
+  req.stopPropagation();
+  req.callback(ports.get(req.context));
+});
+
+customElements.define('acme-order-form', OrderForm);
+customElements.define('acme-order-list', OrderList);
+</code></pre>
+<p>A port-bound element — statically defined, ports arriving via context, failing fast:</p>
+<pre><code class="language-ts">// components/order-form.ts — application layer: DOM in, commands out
+import type { PlaceOrder } from '@acme/domain-api';
+import { ContextRequestEvent } from '../context.js';
+import { placeOrderContext } from '../context-keys.js';
+
+export class OrderForm extends HTMLElement {
+  #root = this.attachShadow({ mode: 'open' });
+  #placeOrder?: PlaceOrder;
+
+  connectedCallback() {
+    this.dispatchEvent(new ContextRequestEvent(placeOrderContext, (p) =&gt; (this.#placeOrder = p)));
+    if (!this.#placeOrder) throw new Error('&lt;acme-order-form&gt;: no provider for place-order');
+
+    this.#root.append(template.content.cloneNode(true));
+    this.#root.querySelector('form')!.addEventListener('submit', async (e) =&gt; {
+      e.preventDefault();
+      await this.#placeOrder!.execute(toCommand(new FormData(e.target as HTMLFormElement)));
+    });
+  }
+}
+</code></pre>
+<h2>Related</h2>
+<ul>
+<li><a href="../../applicative-architecture/hexagonal-architecture/">Hexagonal architecture</a> — the
+shared house principles this note realizes; the hub for all the reference
+implementations.</li>
+<li><a href="../../frontend/component-architecture-and-state/">Component architecture &amp; state management</a> —
+the state-classification discipline this reference pins behind ports.</li>
+<li><a href="../../frontend/atomic-design/">Atomic design</a> — the methodology organizing the driving adapter's
+interior; the port boundary splits its hierarchy at the organism line.</li>
+<li><a href="../../frontend/typescript-deep-dive/">TypeScript deep dive</a> — erased types, project references
+and the <code>lib</code> dial: the machinery the walls are built from.</li>
+<li><a href="../../frontend/browser-internals/">Browser internals</a> — the platform this reference treats as the
+framework: parser-driven element construction, the event loop, the rendering pipeline.</li>
+<li><a href="../../frontend/frontend-testing/">Frontend testing</a> — the behavior-first component tests and
+boundary mocking the test strategy leans on.</li>
+<li><a href="../../frontend/design-systems/">Design systems</a> — the domain-blind component layer the deployment
+units compose from, and the natural consumer of a Custom Elements Manifest.</li>
+</ul>
+<h2>Citations</h2>
+<p>[1] <a href="https://github.com/webcomponents-cc/community-protocols/blob/main/proposals/context.md" rel="noopener">Context — Web Components Community Group protocol proposal</a>
+[2] <a href="https://lit.dev/docs/data/context/" rel="noopener">Lit Context — the graduated reference implementation of the protocol</a></p>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../assets/planks.js"></script>
+  <script src="../../assets/search.js" defer></script>
+  <script src="../../assets/mermaid.js" defer></script>
+</body>
+</html>
