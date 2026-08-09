@@ -3,27 +3,28 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Romain Goussu — under construction</title>
-  <meta name="description" content="Romain Goussu · Fullstack Web Developer &amp; Tech Lead. A tech blog is under construction; the CV is live." />
+  <title>Romain Goussu — Fullstack Web Developer · Tech Lead</title>
+  <meta name="description" content="Romain Goussu · Fullstack Web Developer &amp; Tech Lead. The CV and the library are live; a tech blog is under construction." />
   <meta name="color-scheme" content="dark light" />
 
   <!-- Social preview -->
-  <meta property="og:title" content="Romain Goussu — under construction" />
-  <meta property="og:description" content="A tech blog is on its way. The CV is already live." />
+  <meta property="og:title" content="Romain Goussu — rgoussu.dev" />
+  <meta property="og:description" content="Fullstack Web Developer · Tech Lead. The CV and the library are live; a tech blog is on its way." />
   <meta property="og:type" content="website" />
 
-  <!-- Ubuntu Mono to match the CV; degrades to the system mono stack if it can't load -->
+  <!-- Ubuntu + Ubuntu Mono to match the CV & library; degrades to the system stacks if it can't load -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" />
 
   <style>
-    /* ---- tokens: Ubuntu terminal (aubergine + orange), shared with the CV --------------------- */
-    /* Dark is the default (the terminal); light is a warm Yaru "paper" variant, mirroring the CV. */
+    /* ---- tokens: Ubuntu terminal (aubergine + orange), shared with the CV & library ----------- */
+    /* Dark is the default (the terminal); light is a warm Yaru "paper" variant, mirroring both. */
     :root {
       --bg: #1b0416;        /* page, deep aubergine */
       --window: #300a24;    /* the iconic Ubuntu terminal aubergine */
       --bar: #2c001e;       /* Yaru dark headerbar */
+      --panel: #3a1030;     /* raised panel inside the window */
       --ink: #eeeeec;       /* Tango white */
       --bright: #ffffff;
       --muted: #c9b3c1;
@@ -34,6 +35,9 @@
       --blue: #729fcf;      /* bash prompt blue (path) */
       --green: #8ae234;     /* bash prompt green (user@host) */
       --amber: #fce94f;     /* Tango yellow */
+      --red: #ef2929;       /* Tango red (palette strip) */
+      --magenta: #ad7fa8;   /* Tango magenta (palette strip) */
+      --cyan: #34e2e2;      /* Tango cyan (palette strip) */
 
       --glow: rgba(233, 84, 32, 0.16);
       --grid: rgba(233, 84, 32, 0.03);
@@ -41,6 +45,7 @@
       --shadow: rgba(0, 0, 0, 0.7);
 
       --mono: "Ubuntu Mono", ui-monospace, "DejaVu Sans Mono", Menlo, Consolas, monospace;
+      --display: "Ubuntu", var(--mono);
     }
 
     @media (prefers-color-scheme: light) {
@@ -48,6 +53,7 @@
         --bg: #f7f3f4;      /* warm paper */
         --window: #ffffff;
         --bar: #f3ebef;     /* Yaru light headerbar */
+        --panel: #faf5f7;
         --ink: #2b2226;
         --bright: #1a1013;
         --muted: #6a5b63;
@@ -58,6 +64,9 @@
         --blue: #2f6bb0;    /* prompt blue */
         --green: #3a8c1e;   /* prompt green */
         --amber: #b5601a;   /* darkened for legibility on paper (used as text) */
+        --red: #c01c28;
+        --magenta: #8b5e86;
+        --cyan: #1f7a7a;
 
         --glow: rgba(210, 74, 23, 0.12);
         --grid: rgba(120, 60, 40, 0.03);
@@ -68,14 +77,13 @@
 
     * { box-sizing: border-box; }
 
-    html, body { height: 100%; }
+    html { height: 100%; }
 
     body {
       margin: 0;
       min-height: 100%;
-      display: grid;
-      place-items: center;
-      padding: clamp(1rem, 4vw, 3rem);
+      display: flex;
+      flex-direction: column;
       color: var(--ink);
       font-family: var(--mono);
       font-size: clamp(14px, 1.1vw + 11px, 16.5px);
@@ -90,9 +98,52 @@
       text-rendering: optimizeLegibility;
     }
 
+    /* ---- site chrome (matches the CV & library header/footer) --------------------------------- */
+    .site-header {
+      background: var(--bar);
+      border-bottom: 1px solid var(--line);
+    }
+    .site-header-inner {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0.6rem clamp(1rem, 4vw, 2rem);
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .site-brand {
+      color: var(--bright);
+      text-decoration: none;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      white-space: nowrap;
+    }
+    .site-brand .chevron { color: var(--green); }
+    .site-nav { display: flex; gap: 1.25rem; flex-wrap: wrap; }
+    .site-nav a {
+      color: var(--muted);
+      text-decoration: none;
+      border-bottom: 1px dashed transparent;
+      padding-bottom: 1px;
+    }
+    .site-nav a:hover { color: var(--orange); border-color: var(--orange); }
+    .site-nav .soon {
+      color: var(--faint);
+      cursor: default;
+    }
+    .site-nav .soon .tag { color: var(--amber); font-size: 0.72em; vertical-align: super; }
+
+    main {
+      flex: 1;
+      display: grid;
+      place-items: center;
+      padding: clamp(1rem, 4vw, 3rem);
+    }
+
     /* ---- terminal window ---------------------------------------------------------------------- */
     .terminal {
-      width: min(680px, 100%);
+      width: min(880px, 100%);
       background: var(--window);
       border: 1px solid var(--line);
       border-radius: 10px;
@@ -111,10 +162,7 @@
       border-bottom: 1px solid var(--line);
     }
     .dots { display: inline-flex; gap: 0.5rem; }
-    .dots span {
-      width: 12px; height: 12px; border-radius: 50%;
-      background: #5a2b4a;
-    }
+    .dots span { width: 12px; height: 12px; border-radius: 50%; }
     .dots span:nth-child(1) { background: #e95420; }
     .dots span:nth-child(2) { background: #fce94f; }
     .dots span:nth-child(3) { background: #8ae234; }
@@ -131,9 +179,7 @@
       text-overflow: ellipsis;
     }
 
-    .screen {
-      padding: clamp(1.1rem, 3.5vw, 1.8rem);
-    }
+    .screen { padding: clamp(1.1rem, 3.5vw, 1.9rem); }
 
     .line { white-space: pre-wrap; word-break: break-word; }
     .line + .line { margin-top: 0.15rem; }
@@ -146,13 +192,95 @@
     .amber { color: var(--amber); }
     .dim { color: var(--faint); }
 
-    .block { margin: 0.35rem 0 1.15rem; }
+    .block { margin: 0.35rem 0 1.35rem; }
     .block:last-of-type { margin-bottom: 0.4rem; }
 
-    .listing { margin: 0.1rem 0; }
-    .listing .name { color: var(--blue); }
-    .listing .live { color: var(--green); }
-    .listing .soon { color: var(--amber); }
+    /* ---- neofetch hero ------------------------------------------------------------------------ */
+    .fetch {
+      display: flex;
+      align-items: flex-start;
+      gap: clamp(1rem, 3.5vw, 2.2rem);
+      margin-top: 0.55rem;
+    }
+    .portrait {
+      margin: 0;
+      font-family: var(--mono);
+      font-size: 8.5px;
+      line-height: 1.06;
+      letter-spacing: 0;
+      color: var(--orange);
+      text-shadow: 0 0 14px var(--glow);
+      flex: none;
+      user-select: none;
+    }
+    /* one ramp per scheme — the glyph densities are tuned to the background they sit on */
+    .portrait.light { display: none; }
+    @media (prefers-color-scheme: light) {
+      .portrait.dark { display: none; }
+      .portrait.light { display: block; }
+    }
+
+    .fetch-info { min-width: 0; }
+    .fetch-host { color: var(--green); font-weight: 700; }
+    .fetch-host .at { color: var(--ink); font-weight: 400; }
+    .fetch-rule { color: var(--line); user-select: none; }
+    .fetch-row { display: flex; gap: 0.75ch; }
+    .fetch-row + .fetch-row { margin-top: 0.12rem; }
+    .fetch-key {
+      color: var(--orange);
+      font-weight: 700;
+      flex: none;
+      width: 9ch;
+    }
+    .fetch-val { color: var(--muted); }
+    .fetch-val a { color: var(--blue); text-decoration: none; border-bottom: 1px dashed var(--line); }
+    .fetch-val a:hover { color: var(--orange); border-color: var(--orange); }
+
+    .swatches { display: flex; margin-top: 0.9rem; }
+    .swatches span { width: 2.2ch; height: 1.05em; }
+    @media (prefers-color-scheme: light) {
+      .swatches span { box-shadow: 0 0 0 1px var(--line) inset; }
+    }
+
+    @media (max-width: 620px) {
+      .fetch { flex-direction: column; align-items: center; text-align: left; }
+      .portrait { font-size: 7px; }
+      .fetch-info { width: 100%; }
+    }
+
+    /* ---- ls listing: the site's sections ------------------------------------------------------ */
+    .listing { margin-top: 0.55rem; display: grid; gap: 0.45rem; }
+    .row {
+      display: grid;
+      grid-template-columns: 10ch 12ch 1fr;
+      gap: 0.5rem 1rem;
+      align-items: baseline;
+      padding: 0.55rem 0.8rem;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      text-decoration: none;
+      color: var(--muted);
+      transition: transform 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
+    }
+    a.row:hover {
+      transform: translateY(-1px);
+      border-color: var(--orange);
+      box-shadow: 0 10px 26px -14px var(--glow), 0 10px 26px -14px var(--shadow);
+    }
+    a.row:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+    .row .name { color: var(--blue); font-weight: 700; }
+    a.row:hover .name { color: var(--orange); }
+    .row .status { font-size: 0.82em; letter-spacing: 0.03em; white-space: nowrap; }
+    .row .live { color: var(--green); }
+    .row .new { color: var(--amber); }
+    .row .soon-tag { color: var(--amber); }
+    .row.disabled { opacity: 0.75; }
+    .row .desc { color: var(--muted); }
+    @media (max-width: 620px) {
+      .row { grid-template-columns: auto 1fr; }
+      .row .desc { grid-column: 1 / -1; }
+    }
 
     /* ---- call to action ----------------------------------------------------------------------- */
     .cta-line { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; margin-top: 0.6rem; }
@@ -171,6 +299,11 @@
     }
     .cta:hover { transform: translateY(-1px); box-shadow: 0 8px 22px -10px rgba(233, 84, 32, 0.8); }
     .cta:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+    .cta-outline {
+      background: transparent;
+      color: var(--orange);
+    }
+    .cta-outline:hover { background: var(--orange); color: var(--bright); }
     .cta-ghost {
       color: var(--muted);
       text-decoration: none;
@@ -190,16 +323,28 @@
       animation: blink 1.05s steps(1) infinite;
     }
     @keyframes blink { 50% { opacity: 0; } }
-    @media (prefers-reduced-motion: reduce) { .cursor { animation: none; } }
+    @media (prefers-reduced-motion: reduce) {
+      .cursor { animation: none; }
+      .cta, a.row { transition: none; }
+    }
 
-    footer {
-      margin-top: 1.4rem;
-      text-align: center;
+    .site-footer {
+      border-top: 1px solid var(--line);
+      background: var(--bar);
+    }
+    .site-footer-inner {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0.7rem clamp(1rem, 4vw, 2rem);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 0.5rem 1.5rem;
       color: var(--faint);
       font-size: 0.8em;
     }
-    footer a { color: var(--muted); text-decoration: none; }
-    footer a:hover { color: var(--orange); }
+    .site-footer a { color: var(--muted); text-decoration: none; }
+    .site-footer a:hover { color: var(--orange); }
 
     /* available to assistive tech, removed from the visual terminal metaphor */
     .visually-hidden {
@@ -214,46 +359,153 @@
   </style>
 </head>
 <body>
-  <main class="terminal" aria-label="Romain Goussu — placeholder landing page">
-    <h1 class="visually-hidden">Romain Goussu — website under construction</h1>
-    <div class="titlebar">
-      <span class="dots" aria-hidden="true"><span></span><span></span><span></span></span>
-      <span class="title">romain@goussu: ~/blog</span>
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="./" aria-label="rgoussu.dev — home"><span class="chevron" aria-hidden="true">❯</span> rgoussu.dev</a>
+      <nav class="site-nav" aria-label="Primary">
+        <a href="./cv/">CV</a>
+        <a href="./library/">Library</a>
+        <span class="soon" title="Under construction">Blog <span class="tag">soon</span></span>
+      </nav>
     </div>
+  </header>
 
-    <div class="screen">
-      <div class="block">
-        <div class="line"><span class="prompt" aria-hidden="true">romain@goussu<span class="sigil">:</span><span class="path">~/blog</span><span class="sigil">$</span></span> <span class="cmd">whoami</span></div>
-        <div class="line out"><span class="accent">Romain Goussu</span> — Fullstack Web Developer · Tech Lead</div>
+  <main>
+    <div class="terminal" aria-label="Romain Goussu — home">
+      <h1 class="visually-hidden">Romain Goussu — Fullstack Web Developer &amp; Tech Lead</h1>
+      <div class="titlebar">
+        <span class="dots" aria-hidden="true"><span></span><span></span><span></span></span>
+        <span class="title">romain@goussu: ~</span>
       </div>
 
-      <div class="block">
-        <div class="line"><span class="prompt" aria-hidden="true">romain@goussu<span class="sigil">:</span><span class="path">~/blog</span><span class="sigil">$</span></span> <span class="cmd">cat STATUS</span></div>
-        <div class="line out"><span class="amber">🚧 Under construction.</span></div>
-        <div class="line out">A tech blog is on its way — hand-written articles on engineering,</div>
-        <div class="line out">architecture and the odd war story, shipping weekly-ish.</div>
-      </div>
+      <div class="screen">
+        <div class="block">
+          <div class="line"><span class="prompt" aria-hidden="true">romain@goussu<span class="sigil">:</span><span class="path">~</span><span class="sigil">$</span></span> <span class="cmd">neofetch</span></div>
+          <div class="fetch">
+            <pre class="portrait dark" aria-hidden="true">
+:      :-==+=- .-==----===-::--::--::::..
+.      .-====++++=+-:...:::.:--:::.
+.      .::-++-:..   .       .:::...       .:
+.         ::::-=++****=-.                .--
+.      :+*#%%@@@@@@@@@@@%+:     .  .:-:   .-
+     :*@@@@@@@@@@@@@@%%%%%#-     -=++==-. :=
+    :*@@@@@@@@@@@@@@@%%#***=:    =*****+=+*#
+    .#@@@@@@@@@@@@@@@@%*++-::    =##*++++*#*
+    .%@@@@@@@@@%#*++++**+=-:.    -********++
+     ##+-:-+#@*=:.  ....:-==.  ..-++=--=====
+     ==:..  *@%-. .:.. .:--=- :---:==::..-==
+     +#**++#@@@%%###*#%%#+===--::-::..:==+**
+     =@@@@@@@@@%#%@@@@@%#*+=-:-::-==-:.:=***
+     -@@@%*%%%#==-+**#*===---.---=++++=+*##*
+     .%%*-+@+:.   =#+-==---=-:---=++==++****
+      -+=-++=:.......:-=----:.:==++==++**+++
+       +%+:.:=*+-:..:-*=--::..-==++=-:-++++=
+        =#%@@@%#*=-=+%+:.    :--=---:..=++++
+:----:::--#@@@#*#%##*=.     .:-=##. .:.::-=*
+:=+******+-+**=-==::.     ..:=*%%@#.   ..  .
+ .:-==--:--...        ....:=*%%%%%+    ..
+          .:..-:.:::::::-+*##%%%%-
+       .---:::@#+=--:-=+#####%%#.
+-:.  .:=====+#@%==--=*#######%*.      .:::..
+=++==+*#*+=+*@%#-::+########%*     ..:------
+-=***###**+++*:==.  .=*#%%%%+  .::::.-------
+.::--==+*+=-++-##-   .-+###=  .--:::--------
+.     :----.*%-+=.  -+###*-  .----:---------
+    .-----.:@@==.::*@%%%#- .:---:.:---------
+.-=:-----:-@@#:=:-#@@@@@+:-----..----------:
+..-:----.-@%+-.*+*@@@@@+:----: :--------::::
+-:::---: #%=+#+++#@@@@#=+=--. :------::::...
++=:---- =@==+*-+*%@%@@@@@*-. :---:::::::...:</pre>
+            <pre class="portrait light" aria-hidden="true">
+              ....::.
+         .-=*+***#*%%%#*=:
+       -#%%**%%@@@@@@@@@@@%*:
+      *@@@%%%%#*++===+*%@@@@@#-
+     *@#+-::.       ..::-*%@@@@*.
+    .%=           .::-----=%@@@@*
+    **            .::--=+++#@@@@@.
+    %=..         ..:::-+*#%@@@@@@:
+    %=.........-=+**+*++*#%@@@@@@-
+    =+=*#%#*=:+#%@@@@@@@@%##@@@@@*:
+     *#@@@@@+ -%@@@@@@@@@%%#%@@%%@@:
+     -==+**=. :--====---=*###%%@@%@-
+     ..       .-=-.   :-=+*#%@#%@%+
+     ....-+-::=**%*++=+###%%%@%%%*
+      --*%*:*%@@@@#=*%##%%%#%@%%+
+      -##%**#@@@@@@@%@%#%%%%@@@%-
+       -=*@@%#++%@@@@%+#%%%@@@%%+
+        +=-..:-=+#%#*-*@@@@@@@%%*
+        :#=..:=*=--=+*@@@@@@@@%#=:
+         .#*++#%##%%@@@@@@@@@#+---::
+          .#@@@@@@@@@@@@@@@#+-----*@*
+            .-+%@%%%@@@@%*+==----#@@@%=
+               -*#%%@%#*======-=%@@@@@@%-
+               :##%%#+=======-+@@@@@@@#:
+              :-#%%*========-+@@@%#+-=
+             =@#*%@@%*+=----*@@*:.::-
+            .+%=-#@@@@%*===*@@+  :..
+           +=.#*#@@@%*===+%@@+    -
+          =%. *#%%@+.:--=##*=   -+:
+         =*. -%*%%-    :..     +=
+        -# .*#@+*+           :#-
+       -@-.#*=**#=          =#.
+       +* =+=:-==:         :*</pre>
+            <div class="fetch-info">
+              <div class="line fetch-host">romain<span class="at">@</span>goussu</div>
+              <div class="line fetch-rule" aria-hidden="true">─────────────────</div>
+              <div class="fetch-row"><span class="fetch-key">Role</span><span class="fetch-val">Fullstack Web Developer · Tech Lead</span></div>
+              <div class="fetch-row"><span class="fetch-key">Uptime</span><span class="fetch-val">~10 years in production</span></div>
+              <div class="fetch-row"><span class="fetch-key">Locale</span><span class="fetch-val">fr_FR.UTF-8 · en_US.UTF-8</span></div>
+              <div class="fetch-row"><span class="fetch-key">Kernel</span><span class="fetch-val">Java/Quarkus · Node.js</span></div>
+              <div class="fetch-row"><span class="fetch-key">DE</span><span class="fetch-val">React · Angular</span></div>
+              <div class="fetch-row"><span class="fetch-key">Cloud</span><span class="fetch-val">AWS · Terraform</span></div>
+              <div class="fetch-row"><span class="fetch-key">Pkgs</span><span class="fetch-val"><a href="https://www.npmjs.com/package/@rgoussu.dev/planks">@rgoussu.dev/planks</a> (npm)</span></div>
+              <div class="fetch-row"><span class="fetch-key">Host</span><span class="fetch-val"><a href="https://github.com/rgoussu-dev">github.com/rgoussu-dev</a></span></div>
+              <div class="swatches" aria-hidden="true">
+                <span style="background:#2c001e"></span><span style="background:#ef2929"></span><span style="background:#8ae234"></span><span style="background:#fce94f"></span><span style="background:#729fcf"></span><span style="background:#ad7fa8"></span><span style="background:#34e2e2"></span><span style="background:#eeeeec"></span>
+              </div>
+            </div>
+          </div>
+        </div>
 
-      <div class="block">
-        <div class="line"><span class="prompt" aria-hidden="true">romain@goussu<span class="sigil">:</span><span class="path">~/blog</span><span class="sigil">$</span></span> <span class="cmd">ls -la ..</span></div>
-        <div class="line listing out"><span class="name">cv/</span>    &nbsp;&nbsp;<span class="live">live now</span>     — the CV, in English &amp; French</div>
-        <div class="line listing out"><span class="name">blog/</span>  &nbsp;<span class="soon">coming soon</span>  — you are here</div>
-      </div>
+        <div class="block">
+          <div class="line"><span class="prompt" aria-hidden="true">romain@goussu<span class="sigil">:</span><span class="path">~</span><span class="sigil">$</span></span> <span class="cmd">ls ~</span></div>
+          <nav class="listing" aria-label="Site sections">
+            <a class="row" href="./cv/">
+              <span class="name">cv/</span>
+              <span class="status live">● live</span>
+              <span class="desc">the CV — English &amp; French, with print-quality PDFs</span>
+            </a>
+            <a class="row" href="./library/">
+              <span class="name">library/</span>
+              <span class="status"><span class="new">★ new</span> <span class="live">● live</span></span>
+              <span class="desc">the virtual library — 300+ pages of curated engineering notes, from algorithms to system design</span>
+            </a>
+            <span class="row disabled" aria-label="Blog — under construction">
+              <span class="name">blog/</span>
+              <span class="status soon-tag">◌ coming soon</span>
+              <span class="desc">hand-written articles on engineering, architecture and the odd war story</span>
+            </span>
+          </nav>
+        </div>
 
-      <div class="block">
-        <div class="line"><span class="prompt" aria-hidden="true">romain@goussu<span class="sigil">:</span><span class="path">~/blog</span><span class="sigil">$</span></span> <span class="cmd">open ../cv/</span><span class="cursor" aria-hidden="true"></span></div>
-        <div class="cta-line">
-          <a class="cta" href="./cv/">Read my CV →</a>
-          <a class="cta-ghost" href="https://github.com/rgoussu-dev">github.com/rgoussu-dev</a>
+        <div class="block">
+          <div class="line"><span class="prompt" aria-hidden="true">romain@goussu<span class="sigil">:</span><span class="path">~</span><span class="sigil">$</span></span> <span class="cmd">open cv/ library/</span><span class="cursor" aria-hidden="true"></span></div>
+          <div class="cta-line">
+            <a class="cta" href="./cv/">Read my CV →</a>
+            <a class="cta cta-outline" href="./library/">Browse the library →</a>
+            <a class="cta-ghost" href="https://github.com/rgoussu-dev">github.com/rgoussu-dev</a>
+          </div>
         </div>
       </div>
     </div>
   </main>
 
-  <footer>
-    <span class="dim">Built with care, love, and Claude.</span>
-    &nbsp;·&nbsp;
-    <a href="./cv/">CV</a>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span>© 2026 Romain Goussu · All rights reserved.</span>
+      <span><span class="dim"># Built with care, love, and Claude.</span></span>
+    </div>
   </footer>
 </body>
 </html>
