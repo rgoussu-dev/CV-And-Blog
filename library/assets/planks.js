@@ -1,8 +1,9 @@
 var h = Object.defineProperty;
-var c = (s, t, e) => t in s ? h(s, t, { enumerable: !0, configurable: !0, writable: !0, value: e }) : s[t] = e;
-var n = (s, t, e) => c(s, typeof t != "symbol" ? t + "" : t, e);
-const o = /* @__PURE__ */ new Set(), l = /* @__PURE__ */ new Set();
-class i extends HTMLElement {
+var c = (i, t, e) => t in i ? h(i, t, { enumerable: !0, configurable: !0, writable: !0, value: e }) : i[t] = e;
+var n = (i, t, e) => c(i, typeof t != "symbol" ? t + "" : t, e);
+const o = /* @__PURE__ */ new Set(), l = /* @__PURE__ */ new Set(), d = typeof HTMLElement < "u" ? HTMLElement : class {
+};
+class s extends d {
   applyInstanceStyles() {
   }
   connectedCallback() {
@@ -27,7 +28,7 @@ class i extends HTMLElement {
     r.dataset.pkDyn = t, r.textContent = e(), document.head.appendChild(r);
   }
 }
-class u extends i {
+class u extends s {
   structuralCss() {
     return `
             box-pk {
@@ -90,11 +91,11 @@ class u extends i {
     this.setAttribute("shadow", t);
   }
   static get observedAttributes() {
-    return ["padding", "borderWidth", "borderColor", "borderRadius", "color", "backgroundColor", "shadow"];
+    return ["padding", "borderwidth", "bordercolor", "borderradius", "color", "backgroundcolor", "shadow"];
   }
 }
-"customElements" in window && !customElements.get("box-pk") && customElements.define("box-pk", u);
-class p extends i {
+typeof window < "u" && "customElements" in window && !customElements.get("box-pk") && customElements.define("box-pk", u);
+class p extends s {
   structuralCss() {
     return `
             center-pk {
@@ -142,11 +143,11 @@ class p extends i {
     t ? this.setAttribute("intrinsic", "") : this.removeAttribute("intrinsic");
   }
   static get observedAttributes() {
-    return ["maxWidth", "alignText", "gutters", "intrinsic"];
+    return ["maxwidth", "aligntext", "gutters", "intrinsic"];
   }
 }
-"customElements" in window && !customElements.get("center-pk") && customElements.define("center-pk", p);
-class d extends i {
+typeof window < "u" && "customElements" in window && !customElements.get("center-pk") && customElements.define("center-pk", p);
+class g extends s {
   structuralCss() {
     return `
             cluster-pk {
@@ -183,8 +184,8 @@ class d extends i {
     return ["space", "justify", "align"];
   }
 }
-"customElements" in window && !customElements.get("cluster-pk") && customElements.define("cluster-pk", d);
-class g extends i {
+typeof window < "u" && "customElements" in window && !customElements.get("cluster-pk") && customElements.define("cluster-pk", g);
+class b extends s {
   structuralCss() {
     return `
             container-pk {
@@ -206,8 +207,8 @@ class g extends i {
     return ["name"];
   }
 }
-"customElements" in window && !customElements.get("container-pk") && customElements.define("container-pk", g);
-class b extends i {
+typeof window < "u" && "customElements" in window && !customElements.get("container-pk") && customElements.define("container-pk", b);
+class m extends s {
   structuralCss() {
     return `
             cover-pk {
@@ -246,11 +247,11 @@ class b extends i {
     t ? this.setAttribute("noPad", "") : this.removeAttribute("noPad");
   }
   static get observedAttributes() {
-    return ["space", "minHeight", "noPad"];
+    return ["space", "minheight", "nopad"];
   }
 }
-"customElements" in window && !customElements.get("cover-pk") && customElements.define("cover-pk", b);
-class m extends i {
+typeof window < "u" && "customElements" in window && !customElements.get("cover-pk") && customElements.define("cover-pk", m);
+class y extends s {
   structuralCss() {
     return `
             frame-pk {
@@ -290,8 +291,8 @@ class m extends i {
     return ["ratio"];
   }
 }
-"customElements" in window && !customElements.get("frame-pk") && customElements.define("frame-pk", m);
-class y extends i {
+typeof window < "u" && "customElements" in window && !customElements.get("frame-pk") && customElements.define("frame-pk", y);
+class f extends s {
   structuralCss() {
     return `
             grid-pk {
@@ -338,8 +339,8 @@ class y extends i {
     return ["min", "space", "align", "justify"];
   }
 }
-"customElements" in window && !customElements.get("grid-pk") && customElements.define("grid-pk", y);
-class f extends i {
+typeof window < "u" && "customElements" in window && !customElements.get("grid-pk") && customElements.define("grid-pk", f);
+class v extends s {
   structuralCss() {
     return `
             icon-pk { display: inline-flex; align-items: baseline; }
@@ -371,8 +372,8 @@ class f extends i {
     return ["space", "label"];
   }
 }
-"customElements" in window && !customElements.get("icon-pk") && customElements.define("icon-pk", f);
-class v extends i {
+typeof window < "u" && "customElements" in window && !customElements.get("icon-pk") && customElements.define("icon-pk", v);
+class A extends s {
   structuralCss() {
     return `
             imposter-pk {
@@ -413,14 +414,16 @@ class v extends i {
     return ["breakout", "margin", "fixed"];
   }
 }
-"customElements" in window && !customElements.get("imposter-pk") && customElements.define("imposter-pk", v);
-class A extends i {
+typeof window < "u" && "customElements" in window && !customElements.get("imposter-pk") && customElements.define("imposter-pk", A);
+class k extends s {
   constructor() {
     super(...arguments);
     n(this, "resizeObserver");
     n(this, "mutationObserver");
+    n(this, "managedTabIndex", !1);
     n(this, "toggleOverflowClass", () => {
-      this.classList.toggle("overflowing", this.scrollWidth > this.clientWidth);
+      const e = this.scrollWidth > this.clientWidth;
+      this.classList.toggle("overflowing", e), e && !this.hasAttribute("tabindex") ? (this.setAttribute("tabindex", "0"), this.managedTabIndex = !0) : !e && this.managedTabIndex && (this.removeAttribute("tabindex"), this.managedTabIndex = !1);
     });
   }
   structuralCss() {
@@ -450,7 +453,7 @@ class A extends i {
         `;
   }
   applyInstanceStyles() {
-    this.style.setProperty("--reel-item-width", this.itemWidth), this.style.setProperty("--reel-space", this.space), this.style.setProperty("--reel-height", this.height);
+    this.style.setProperty("--reel-item-width", this.itemWidth), this.style.setProperty("--reel-space", this.space), this.style.setProperty("--reel-height", this.height), this.toggleOverflowClass();
   }
   connectedCallback() {
     super.connectedCallback(), "ResizeObserver" in window && (this.resizeObserver = new ResizeObserver(this.toggleOverflowClass), this.resizeObserver.observe(this)), "MutationObserver" in window && (this.mutationObserver = new MutationObserver(this.toggleOverflowClass), this.mutationObserver.observe(this, { childList: !0 })), this.toggleOverflowClass();
@@ -484,11 +487,11 @@ class A extends i {
     e ? this.setAttribute("noBar", "") : this.removeAttribute("noBar");
   }
   static get observedAttributes() {
-    return ["itemWidth", "space", "height", "noBar"];
+    return ["itemwidth", "space", "height", "nobar"];
   }
 }
-"customElements" in window && !customElements.get("reel-pk") && customElements.define("reel-pk", A);
-class k extends i {
+typeof window < "u" && "customElements" in window && !customElements.get("reel-pk") && customElements.define("reel-pk", k);
+class x extends s {
   structuralCss() {
     return `
             sidebar-pk {
@@ -556,11 +559,11 @@ class k extends i {
     t ? this.setAttribute("noStretch", "") : this.removeAttribute("noStretch");
   }
   static get observedAttributes() {
-    return ["side", "sideWidth", "contentWidth", "space", "noStretch"];
+    return ["side", "sidewidth", "contentwidth", "space", "nostretch"];
   }
 }
-"customElements" in window && !customElements.get("sidebar-pk") && customElements.define("sidebar-pk", k);
-class x extends i {
+typeof window < "u" && "customElements" in window && !customElements.get("sidebar-pk") && customElements.define("sidebar-pk", x);
+class w extends s {
   structuralCss() {
     return `
             stack-pk { display: block; }
@@ -573,7 +576,7 @@ class x extends i {
     if (this.style.setProperty("--stack-space", this.space), this.splitAfter) {
       this.dataset.pkSplit = this.splitAfter;
       const t = this.splitAfter;
-      i.ensureDynamicStyle(
+      s.ensureDynamicStyle(
         `stack-split-${t}`,
         () => `stack-pk[data-pk-split="${t}"] > :nth-child(${t}) { margin-block-end: auto; }`
       );
@@ -599,11 +602,11 @@ class x extends i {
     this.setAttribute("splitAfter", t);
   }
   static get observedAttributes() {
-    return ["space", "recursive", "splitAfter"];
+    return ["space", "recursive", "splitafter"];
   }
 }
-"customElements" in window && !customElements.get("stack-pk") && customElements.define("stack-pk", x);
-class w extends i {
+typeof window < "u" && "customElements" in window && !customElements.get("stack-pk") && customElements.define("stack-pk", w);
+class S extends s {
   structuralCss() {
     return `
             switcher-pk {
@@ -620,7 +623,7 @@ class w extends i {
   applyInstanceStyles() {
     if (this.style.setProperty("--switcher-threshold", this.threshold), this.style.setProperty("--switcher-space", this.space), this.limit !== void 0) {
       const t = this.limit;
-      this.dataset.pkLimit = t.toString(), i.ensureDynamicStyle(
+      this.dataset.pkLimit = t.toString(), s.ensureDynamicStyle(
         `switcher-limit-${t}`,
         () => `switcher-pk[data-pk-limit="${t}"] > :nth-last-child(n + ${t + 1}),
                  switcher-pk[data-pk-limit="${t}"] > :nth-last-child(n + ${t + 1}) ~ * {
@@ -652,8 +655,8 @@ class w extends i {
     return ["threshold", "space", "limit"];
   }
 }
-"customElements" in window && !customElements.get("switcher-pk") && customElements.define("switcher-pk", w);
-class S extends i {
+typeof window < "u" && "customElements" in window && !customElements.get("switcher-pk") && customElements.define("switcher-pk", S);
+class C extends s {
   structuralCss() {
     return `
             typography-pk {
@@ -786,10 +789,24 @@ class S extends i {
     this.setAttribute("variant", t);
   }
   static get observedAttributes() {
-    return ["fontFamily", "fontSize", "fontWeight", "fontStyle", "lineHeight", "letterSpacing", "textAlign", "textTransform", "textDecoration", "color", "variant"];
+    return ["fontfamily", "fontsize", "fontweight", "fontstyle", "lineheight", "letterspacing", "textalign", "texttransform", "textdecoration", "color", "variant"];
   }
 }
-"customElements" in window && !customElements.get("typography-pk") && customElements.define("typography-pk", S);
+typeof window < "u" && "customElements" in window && !customElements.get("typography-pk") && customElements.define("typography-pk", C);
 export {
-  i as LayoutElementPk
+  u as Box,
+  p as Center,
+  g as Cluster,
+  b as Container,
+  m as Cover,
+  y as Frame,
+  f as Grid,
+  v as Icon,
+  A as Imposter,
+  s as LayoutElementPk,
+  k as Reel,
+  x as Sidebar,
+  w as Stack,
+  S as Switcher,
+  C as Typography
 };

@@ -1,0 +1,231 @@
+/* @rgoussu.dev/planks — structural CSS for all components (generated; do not edit) */
+/* box-pk */
+            box-pk {
+                display: inline-block;
+                box-sizing: border-box;
+                padding: var(--box-padding, var(--s1));
+                border-style: solid;
+                border-width: var(--box-border-width, 0);
+                border-color: var(--box-border-color, transparent);
+                border-radius: var(--box-border-radius, 0);
+                color: var(--box-color, inherit);
+                background-color: var(--box-bg-color, transparent);
+                box-shadow: var(--box-shadow, none);
+            }
+        
+/* center-pk */
+            center-pk {
+                display: block;
+                box-sizing: content-box;
+                margin-inline-start: auto;
+                margin-inline-end: auto;
+                max-inline-size: var(--center-max-width, var(--measure));
+                padding-inline-start: var(--center-gutter, 0);
+                padding-inline-end: var(--center-gutter, 0);
+            }
+            center-pk[alignText] { text-align: center; }
+            center-pk[intrinsic] {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+        
+/* cluster-pk */
+            cluster-pk {
+                display: flex;
+                flex-wrap: wrap;
+                gap: var(--cluster-gap, var(--s1));
+                justify-content: var(--cluster-justify, flex-start);
+                align-items: var(--cluster-align, flex-start);
+            }
+        
+/* container-pk */
+            container-pk {
+                display: block;
+                container-type: inline-size;
+            }
+        
+/* cover-pk */
+            cover-pk {
+                display: flex;
+                flex-direction: column;
+                min-block-size: var(--cover-min-height, 100vh);
+                padding: var(--cover-padding, var(--s1));
+            }
+            cover-pk[noPad] { padding: 0; }
+            cover-pk > * { margin-block: var(--cover-space, var(--s0)); }
+            cover-pk > [data-pk-centered],
+            cover-pk > [slot="centered"] { margin-block: auto; }
+            cover-pk > :first-child:not([data-pk-centered]):not([slot="centered"]) { margin-block-start: 0; }
+            cover-pk > :last-child:not([data-pk-centered]):not([slot="centered"]) { margin-block-end: 0; }
+        
+/* frame-pk */
+            frame-pk {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                overflow: hidden;
+                aspect-ratio: var(--frame-n) / var(--frame-d);
+            }
+            frame-pk > img,
+            frame-pk > video {
+                inline-size: 100%;
+                block-size: 100%;
+                object-fit: cover;
+            }
+        
+/* grid-pk */
+            grid-pk {
+                display: grid;
+                grid-gap: var(--grid-space, var(--s1));
+                align-items: var(--grid-align, stretch);
+                justify-content: var(--grid-justify, stretch);
+            }
+            @supports (width: min(var(--grid-min, 250px), 100%)) {
+                grid-pk {
+                    grid-template-columns: repeat(auto-fit, minmax(min(var(--grid-min, 250px), 100%), 1fr));
+                }
+            }
+        
+/* icon-pk */
+            icon-pk { display: inline-flex; align-items: baseline; }
+            icon-pk > svg {
+                width: 0.75em;
+                width: 1cap;
+                height: 0.75em;
+                height: 1cap;
+                margin-inline-end: var(--icon-space, 0);
+            }
+        
+/* imposter-pk */
+            imposter-pk {
+                position: var(--imposter-position, absolute);
+                inset-block-start: 50%;
+                inset-inline-start: 50%;
+                transform: translate(-50%, -50%);
+            }
+            imposter-pk:not([breakout]) {
+                overflow: auto;
+                max-inline-size: calc(100% - (var(--imposter-margin, 0) * 2));
+                max-block-size: calc(100% - (var(--imposter-margin, 0) * 2));
+            }
+        
+/* reel-pk */
+            reel-pk {
+                display: flex;
+                block-size: var(--reel-height, auto);
+                overflow-x: auto;
+                overflow-y: hidden;
+            }
+            reel-pk:not([noBar]) { scrollbar-color: #fff #000; }
+            reel-pk:not([noBar])::-webkit-scrollbar { block-size: 1rem; }
+            reel-pk:not([noBar])::-webkit-scrollbar-track { background-color: #000; }
+            reel-pk:not([noBar])::-webkit-scrollbar-thumb {
+                background-color: #000;
+                background-image: linear-gradient(#000 0, #000 0.25rem, #fff 0.25rem, #fff 0.75rem, #000 0.75rem);
+            }
+            reel-pk[noBar]::-webkit-scrollbar { display: none; }
+            reel-pk[noBar] { -ms-overflow-style: none; scrollbar-width: none; }
+            reel-pk > * {
+                flex: 0 0 var(--reel-item-width, auto);
+                margin-inline-start: var(--reel-space, var(--s0));
+            }
+            reel-pk > :first-child { margin-inline-start: 0; }
+            reel-pk > img { block-size: 100%; flex-basis: auto; width: auto; }
+            reel-pk.overflowing:not([noBar]) { padding-block-end: 1rem; }
+        
+/* sidebar-pk */
+            sidebar-pk {
+                display: flex;
+                flex-wrap: wrap;
+                gap: var(--sidebar-space, var(--s2));
+                align-items: stretch;
+            }
+            sidebar-pk[noStretch] { align-items: flex-start; }
+
+            sidebar-pk:not([side="right"]) > :first-child {
+                flex-grow: 1;
+                flex-basis: var(--sidebar-side-basis, 0);
+                min-inline-size: auto;
+            }
+            sidebar-pk:not([side="right"]) > :last-child {
+                flex-grow: 999;
+                flex-basis: 0;
+                min-inline-size: var(--sidebar-content-min, 50%);
+            }
+
+            sidebar-pk[side="right"] > :first-child {
+                flex-grow: 999;
+                flex-basis: 0;
+                min-inline-size: var(--sidebar-content-min, 50%);
+            }
+            sidebar-pk[side="right"] > :last-child {
+                flex-grow: 1;
+                flex-basis: var(--sidebar-side-basis, 0);
+                min-inline-size: auto;
+            }
+        
+/* stack-pk */
+            stack-pk { display: block; }
+            stack-pk > * + * { margin-block-start: var(--stack-space, var(--s1)); }
+            stack-pk[recursive] * + * { margin-block-start: var(--stack-space, var(--s1)); }
+            stack-pk[splitAfter]:only-child { block-size: 100%; }
+        
+/* switcher-pk */
+            switcher-pk {
+                display: flex;
+                flex-wrap: wrap;
+                gap: var(--switcher-space, var(--s1));
+            }
+            switcher-pk > * {
+                flex-grow: 1;
+                flex-basis: calc((var(--switcher-threshold, var(--measure)) - 100%) * 999);
+            }
+        
+/* typography-pk */
+            typography-pk {
+                display: block;
+                font-family: var(--typo-font-family, inherit);
+                font-size: var(--typo-font-size, inherit);
+                font-weight: var(--typo-font-weight, normal);
+                font-style: var(--typo-font-style, normal);
+                line-height: var(--typo-line-height, inherit);
+                letter-spacing: var(--typo-letter-spacing, normal);
+                text-align: var(--typo-text-align, inherit);
+                text-transform: var(--typo-text-transform, none);
+                text-decoration: var(--typo-text-decoration, none);
+                color: var(--typo-color, inherit);
+            }
+            typography-pk[variant="heading-1"] {
+                --typo-font-size: var(--s4);
+                --typo-font-weight: bold;
+                --typo-line-height: 1.1;
+                --typo-letter-spacing: -0.025em;
+            }
+            typography-pk[variant="heading-2"] {
+                --typo-font-size: var(--s3);
+                --typo-font-weight: bold;
+                --typo-line-height: 1.2;
+                --typo-letter-spacing: -0.02em;
+            }
+            typography-pk[variant="heading-3"] {
+                --typo-font-size: var(--s2);
+                --typo-font-weight: 600;
+                --typo-line-height: 1.3;
+                --typo-letter-spacing: -0.01em;
+            }
+            typography-pk[variant="body"] {
+                --typo-font-size: var(--s0);
+                --typo-line-height: 1.6;
+            }
+            typography-pk[variant="caption"] {
+                --typo-font-size: var(--s-1);
+                --typo-line-height: 1.4;
+                --typo-letter-spacing: 0.01em;
+            }
+            typography-pk[variant="small"] {
+                --typo-font-size: var(--s-2);
+                --typo-line-height: 1.3;
+                --typo-letter-spacing: 0.02em;
+            }
+        
