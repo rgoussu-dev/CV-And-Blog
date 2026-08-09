@@ -266,6 +266,9 @@ a.tok-path:hover { text-decoration: underline; }
   padding: 0.8rem 1rem; overflow-x: auto; font-size: 0.85rem; line-height: 1.5;
 }
 .lib-doc pre code { background: none; border: 0; padding: 0; font-size: inherit; }
+/* Mermaid blocks: source shows as a normal code block until src/mermaid.js swaps in the SVG. */
+.lib-doc pre.mermaid[data-processed] { background: transparent; border: 0; text-align: center; }
+.lib-doc pre.mermaid svg { max-width: 100%; height: auto; }
 .lib-doc table { border-collapse: collapse; margin: 0.8rem 0; font-size: 0.86rem; display: block; overflow-x: auto; }
 .lib-doc th, .lib-doc td { border: 1px solid var(--cv-line); padding: 0.4rem 0.7rem; text-align: left; }
 .lib-doc th { color: var(--cv-neon-2); background: color-mix(in srgb, var(--cv-panel) 60%, transparent); }
