@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Property-based testing &amp; fuzzing — proptest &amp; cargo-fuzz — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/rust/testing</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../rust/">rust</a><span class="tok-path">/</span><span class="tok-path">testing</span> <span class="tok-cmd">cat</span> <span class="tok-file">property-based-and-fuzzing</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Property-based testing &amp; fuzzing — proptest &amp; cargo-fuzz</h1>
+        <p class="lib-lede"><span class="tok-comment"># Invariants over generated inputs with proptest (strategies, shrinking, regression files) and coverage-guided fuzzing with cargo-fuzz/libFuzzer and the arbitrary crate — and how the two share targets.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#rust">#rust</a><a class="lib-tag" href="../../../tags/#testing">#testing</a><a class="lib-tag" href="../../../tags/#proptest">#proptest</a><a class="lib-tag" href="../../../tags/#fuzzing">#fuzzing</a><a class="lib-tag" href="../../../tags/#cargo-fuzz">#cargo-fuzz</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>Example-based tests check the inputs you thought of; these two techniques generate the
+ones you didn't. <strong>Property-based testing</strong> (proptest) asserts invariants over
+structured random inputs and <em>shrinks</em> failures to minimal counterexamples.
+<strong>Fuzzing</strong> (cargo-fuzz driving libFuzzer) throws coverage-guided hostile bytes at a
+target and hunts crashes. Rust's culture treats them as two dials on one machine — the
+<code>arbitrary</code> crate lets a fuzz target generate the same structured inputs proptest
+uses — and the ecosystem's parsing-heavy, unsafe-adjacent codebases lean on both
+harder than Java's or Go's do.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>proptest strategies compose</strong>: <code>any::&lt;u32&gt;()</code>, <code>&quot;[a-z]{1,8}&quot;</code> (regex-shaped
+strings), <code>prop::collection::vec(elem, 0..100)</code>, <code>prop_oneof!</code>, mapped/filtered
+into domain types; <code>#[derive(Arbitrary)]</code> (via proptest-derive or the arbitrary
+crate) for structs.</li>
+<li><strong>Shrinking is the killer feature</strong>: a failing 90-element vector comes back as the
+3-element core that still fails; failures persist to <code>proptest-regressions/</code> files —
+<strong>commit them</strong>, they're permanent regression tests.</li>
+<li><strong>The classic properties</strong>: roundtrips (<code>decode(encode(x)) == x</code> — serde types,
+parsers), equivalence to a reference implementation, invariant preservation (sorted
+stays sorted, balances sum to zero), and <em>no-panic</em> on any input.</li>
+<li><strong>quickcheck</strong> is the smaller ancestor — still around, but proptest's strategies and
+shrinking won; new code uses proptest.</li>
+<li><strong>cargo-fuzz</strong>: <code>cargo fuzz init</code> scaffolds <code>fuzz/fuzz_targets/*.rs</code>; each target is
+a <code>fuzz_target!(|data: &amp;[u8]| { … })</code> closure built with libFuzzer +
+AddressSanitizer (nightly), corpus-managed under <code>fuzz/corpus</code>. AFL via <a href="http://afl.rs" rel="noopener">afl.rs</a> is
+the alternative engine; <strong>structure-aware fuzzing</strong> comes from taking
+<code>|input: MyType|</code> with <code>arbitrary</code>.</li>
+<li><strong>What fuzzing finds in <em>safe</em> Rust</strong>: panics (slice OOB, unwraps, integer overflow
+in debug), OOM/DoS via pathological inputs, logic divergence — memory corruption
+needs <code>unsafe</code>, where fuzz + <a href="../../../rust/toolchain/miri/">miri</a> + sanitizers is the
+standard battery.</li>
+<li><strong>Division of labour</strong>: proptest in the regular suite (bounded cases, runs in CI on
+every push); fuzzing as long-running background/nightly jobs on the byte-boundary
+surfaces (deserializers, network framing, file formats). OSS-Fuzz hosts many Rust
+crates' targets continuously.</li>
+</ul>
+<h2>Examples</h2>
+<pre><code class="language-rust">proptest! {
+    #[test]
+    fn roundtrips(d in any::&lt;Duration&gt;()) {
+        prop_assert_eq!(parse_duration(&amp;format_duration(d)).unwrap(), d);
+    }
+}
+</code></pre>
+<pre><code class="language-rust">// fuzz/fuzz_targets/parse.rs
+#![no_main]
+libfuzzer_sys::fuzz_target!(|data: &amp;[u8]| {
+    if let Ok(s) = std::str::from_utf8(data) {
+        let _ = mycrate::parse_duration(s);   // must never panic
+    }
+});
+</code></pre>
+<pre><code class="language-sh">cargo +nightly fuzz run parse -- -max_total_time=300
+</code></pre>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../rust/testing/testing/">Testing in Rust — strategies &amp; tooling map</a> — parent map.</li>
+<li><a href="../../../rust/testing/unit-testing/">Unit testing</a> — the example-based layer these
+techniques extend.</li>
+<li><a href="../../../rust/testing/security-testing/">Security testing</a> — fuzzing's role in the
+security portfolio.</li>
+<li><a href="../../../rust/toolchain/miri/">miri</a> — the UB detector fuzz inputs get replayed under.</li>
+<li><a href="../../../java/testing/property-based-testing/">Property-based testing in Java</a> — jqwik;
+same ideas, JUnit-integrated.</li>
+<li><a href="../../../go/testing/property-based-and-fuzzing/">Property-based testing &amp; fuzzing in Go</a> —
+Go's native fuzzer vs Rust's cargo-fuzz layer.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Editions — Rust's compatibility mechanism — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/rust/compilers-and-runtimes</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../rust/">rust</a><span class="tok-path">/</span><span class="tok-path">compilers-and-runtimes</span> <span class="tok-cmd">cat</span> <span class="tok-file">editions</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Editions — Rust's compatibility mechanism</h1>
+        <p class="lib-lede"><span class="tok-comment"># How editions let Rust make breaking changes without breaking the ecosystem — per-crate opt-in, guaranteed interop, cargo fix migrations, and what each edition changed.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#rust">#rust</a><a class="lib-tag" href="../../../tags/#editions">#editions</a><a class="lib-tag" href="../../../tags/#compatibility">#compatibility</a><a class="lib-tag" href="../../../tags/#governance">#governance</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>Editions are Rust's answer to the question every language eventually faces: how do you
+fix early mistakes without a Python-3 schism? An edition is a per-crate opt-in dialect
+(<code>edition = &quot;2021&quot;</code> in <code>Cargo.toml</code>) that may change syntax, keywords and defaults —
+and crates on <em>different</em> editions link together freely, forever, because every edition
+compiles to the same internal representation in the same compiler. Java answers this
+with near-total stasis plus preview gates, Go with the Go 1 promise plus GODEBUG;
+editions are the third design: breaking changes made routine, scoped, and automated.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>Per-crate, not per-program</strong>: your 2024-edition binary can depend on 2015-edition
+crates without anyone noticing; there is no ecosystem flag-day. This interop
+guarantee is the load-bearing promise — an edition may never change what a crate's
+<em>interface</em> means to other crates.</li>
+<li><strong>What editions may change</strong>: keyword additions (<code>async</code>/<code>await</code> reserved in 2018,
+<code>gen</code> in 2024), default lints becoming errors, prelude contents, closure capture
+rules, syntax meaning. What they may not: anything requiring coordinated upgrades —
+no ABI, no stdlib removals.</li>
+<li><strong>Migration is tooled</strong>: <code>cargo fix --edition</code> applies mechanical rewrites, then you
+flip the <code>edition</code> key; the compiler's <code>rust_2024_compatibility</code> lint group warns
+ahead of time. Real projects migrate in an afternoon; that this is <em>boring</em> is the
+design's success metric.</li>
+<li><strong>The train</strong>: editions ship roughly every three years — 2015, 2018, 2021, 2024
+(stabilized in Rust 1.85) — deliberately small; features land continuously in
+ordinary releases, and an edition only bundles the changes that need an opt-in.</li>
+<li><strong>2018</strong>: <code>async</code>/<code>await</code> keywords, uniform paths, NLL rollout era, <code>dyn Trait</code>
+syntax; the module-system cleanup that removed <code>extern crate</code>.</li>
+<li><strong>2021</strong>: disjoint closure captures (closures capture fields, not whole structs),
+<code>IntoIterator</code> for arrays, the new prelude (<code>TryInto</code> et al.).</li>
+<li><strong>2024</strong>: RPIT lifetime-capture rules, <code>unsafe_op_in_unsafe_fn</code> by default,
+references to <code>static mut</code> disallowed, <code>gen</code> reserved — the largest edition yet,
+still an afternoon's migration.</li>
+<li><strong>The limit case</strong>: editions can't fix everything — anything touching the stdlib's
+actual types (an <code>Error</code> redesign, say) or coordinated semantics stays impossible;
+that pressure is what keeps &quot;Rust 2.0&quot; discussions alive and always rejected.</li>
+</ul>
+<h2>Details</h2>
+<h3>The mechanics</h3>
+<p>The compiler front-end parses each crate according to its declared edition, then
+everything meets in the same HIR/MIR. A keyword in one edition is a plain identifier in
+another; a lint that is deny-by-default in 2024 is warn in 2021. Because the <em>semantics
+of the compiled output</em> are shared, the interop guarantee holds by construction rather
+than by discipline — the design insight the
+<a href="https://vittorioromeo.info/index/blog/fixing_cpp_with_epochs.html" rel="noopener">C++ epochs proposal</a>
+tried and failed to import, largely because C++ lacks the single-implementation,
+single-build-system substrate Rust's editions lean on
+(<a href="../../../rust/build-ecosystem/cargo-in-depth/">cargo</a> knows every crate's edition; C++
+builds don't even agree on a manifest).</p>
+<h3>Contrast with the neighbours</h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Java</th>
+<th>Go</th>
+<th>Rust</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Promise</td>
+<td>Binary + source compat, decades</td>
+<td>Go 1 promise since 2012</td>
+<td>Interop across editions, forever</td>
+</tr>
+<tr>
+<td>Breaking mechanism</td>
+<td>Almost never; deprecate + wait</td>
+<td>GODEBUG-gated behaviour keyed to <code>go.mod</code> version</td>
+<td>Edition opt-in per crate</td>
+</tr>
+<tr>
+<td>Migration tooling</td>
+<td>—</td>
+<td><code>go fix</code> (rarely needed)</td>
+<td><code>cargo fix --edition</code></td>
+</tr>
+<tr>
+<td>Cadence</td>
+<td>Preview → final per feature</td>
+<td>Per release</td>
+<td>Edition every ~3 years</td>
+</tr>
+</tbody>
+</table>
+<p>Go's <code>go</code> directive in <code>go.mod</code> has converged on something edition-shaped (behaviour
+keyed to a declared language version); editions remain the more general instrument —
+they can change syntax, not just behaviour defaults.</p>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../rust/compilers-and-runtimes/compilers-and-runtimes/">Rust compilers &amp; the language definition</a> —
+parent note; the single implementation that makes editions tractable.</li>
+<li><a href="../../../rust/how-rust-evolves/">How Rust evolves</a> — the RFC-and-train process editions
+ride on.</li>
+<li><a href="../../../rust/build-ecosystem/cargo-in-depth/">Cargo in depth</a> — where the <code>edition</code> key
+lives and how the resolver honors it.</li>
+<li><a href="../../../java/openjdk-and-the-jep-process/">OpenJDK &amp; the JEP process</a> — Java's
+no-breaking-changes counterpoint.</li>
+<li><a href="../../../go/go-proposals-and-community/">How Go evolves</a> — the Go 1 promise and GODEBUG,
+the nearest mechanism to editions.</li>
+</ul>
+<h2>Citations</h2>
+<p>[1] <a href="https://doc.rust-lang.org/edition-guide/" rel="noopener">The Edition Guide</a>
+[2] <a href="https://blog.rust-lang.org/2025/02/20/Rust-1.85.0.html" rel="noopener">Rust 2024 edition announcement (Rust 1.85)</a></p>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

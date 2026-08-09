@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Profiling &amp; debugging Rust — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/rust/toolchain</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../rust/">rust</a><span class="tok-path">/</span><span class="tok-path">toolchain</span> <span class="tok-cmd">cat</span> <span class="tok-file">profiling-and-debugging</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Profiling &amp; debugging Rust</h1>
+        <p class="lib-lede"><span class="tok-comment"># The profiling and debugging story — perf and cargo-flamegraph, samply, debug info in release builds, rust-gdb/rust-lldb, heap tools, and tokio-console for async.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#rust">#rust</a><a class="lib-tag" href="../../../tags/#tooling">#tooling</a><a class="lib-tag" href="../../../tags/#profiling">#profiling</a><a class="lib-tag" href="../../../tags/#debugging">#debugging</a><a class="lib-tag" href="../../../tags/#performance">#performance</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>Rust has no runtime, so it has no runtime-owned profiler — no JFR, no pprof endpoint.
+Compiled Rust is native code with DWARF debug info, and the observability story is the
+native one: <code>perf</code> and flamegraphs on Linux, Instruments on macOS, gdb/lldb for
+interactive debugging, valgrind-family and allocator hooks for the heap. The
+Rust-specific layer is thin but important: cargo wrappers that make the native tools
+one-command, name demangling, pretty-printers for stdlib types, and — because async
+erases the call stack — tokio-console as the async-native complement.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>Profile release builds with debug info</strong>: the essential incantation is a profile
+with <code>debug = true</code> (or <code>[profile.release] debug = &quot;line-tables-only&quot;</code>) — release
+optimization with symbols, otherwise flamegraphs are hex addresses. Consider
+<code>strip = &quot;none&quot;</code> overrides per-profile; see
+<a href="../../../rust/build-ecosystem/cargo-in-depth/">Cargo in depth</a>.</li>
+<li><strong>cargo-flamegraph</strong>: <code>cargo flamegraph --bin server</code> wraps <code>perf record</code> (dtrace on
+macOS) and folds stacks into an SVG — the one-command CPU profile.</li>
+<li><strong>samply</strong> is the friendlier sampler: <code>samply record ./target/release/server</code> opens
+an interactive Firefox Profiler UI — flame graph, stack chart, thread timelines; the
+best default today.</li>
+<li><strong>Interactive debugging</strong>: <code>rust-gdb</code>/<code>rust-lldb</code> (shipped with the toolchain) load
+pretty-printers so <code>Vec</code>, <code>String</code>, <code>Option</code> render sanely; IDE debugging is these
+engines behind CodeLLDB/VS Code. Debugging optimized code has the usual
+inlined/optimized-out caveats.</li>
+<li><strong>Heap profiling</strong>: dhat-rs (in-process, precise allocation sites), heaptrack or
+bytehound (system-level), valgrind massif; leaks are rare by construction (RAII) but
+growth/fragmentation analysis still matters for long-running services.</li>
+<li><strong>Async needs its own lens</strong>: stack profilers see executor plumbing, not your
+<code>async fn</code>s. <strong>tokio-console</strong> (via the <code>console-subscriber</code> crate) shows live tasks,
+poll times, and waker leaks; <code>tracing</code> spans are the async-aware substitute for stack
+context — see <a href="../../../rust/compilers-and-runtimes/async-runtimes/">Async runtimes</a>.</li>
+<li><strong>Microbenchmarks are a testing concern</strong>: criterion and divan, covered in
+<a href="../../../rust/testing/performance-and-load-testing/">Performance &amp; load testing</a>; use
+them to measure, the profilers here to explain.</li>
+<li><strong><code>cargo build --timings</code></strong> and <code>-Zself-profile</code> profile <em>the build itself</em> — often
+the performance problem that actually hurts daily.</li>
+</ul>
+<h2>Examples</h2>
+<pre><code class="language-toml">[profile.profiling]           # a dedicated profile: release speed + symbols
+inherits = &quot;release&quot;
+debug = true
+</code></pre>
+<pre><code class="language-sh">cargo flamegraph --profile profiling --bin api -- --port 8080
+samply record ./target/profiling/api
+rust-lldb ./target/debug/api           # pretty-printed interactive debugging
+</code></pre>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../rust/toolchain/toolchain/">The Rust toolchain</a> — parent catalog.</li>
+<li><a href="../../../rust/testing/performance-and-load-testing/">Performance &amp; load testing</a> —
+criterion/divan: measuring what these tools explain.</li>
+<li><a href="../../../rust/compilers-and-runtimes/async-runtimes/">Async runtimes</a> — why async
+observability needs tokio-console and tracing.</li>
+<li><a href="../../../go/toolchain/pprof/">pprof</a> and <a href="../../../java/jdk-and-tools/jfr-and-jmc/">JFR &amp; JMC</a> —
+the runtime-integrated contrasts: Go and the JVM profile from inside the runtime,
+Rust from outside with native tools.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

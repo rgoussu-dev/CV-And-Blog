@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Graph databases from Rust — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/rust/storage</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../rust/">rust</a><span class="tok-path">/</span><span class="tok-path">storage</span> <span class="tok-cmd">cat</span> <span class="tok-file">graph-databases</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Graph databases from Rust</h1>
+        <p class="lib-lede"><span class="tok-comment"># neo4rs as the community Bolt driver for Neo4j, Gremlin via gremlin-client, embedded RDF/SPARQL with oxigraph, and the thin-but-workable state of the corner.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#rust">#rust</a><a class="lib-tag" href="../../../tags/#storage">#storage</a><a class="lib-tag" href="../../../tags/#graph">#graph</a><a class="lib-tag" href="../../../tags/#neo4j">#neo4j</a><a class="lib-tag" href="../../../tags/#sparql">#sparql</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>The graph corner is Rust's thinnest storage shelf — no vendor-official Neo4j driver
+exists, and the JVM's TinkerPop gravity (<a href="../../../java/storage/graph-databases/">Java's note</a>)
+has no Rust pole. What works: <strong>neo4rs</strong>, the community Bolt-protocol driver Neo4j's
+own docs point at; <strong>gremlin-client</strong> for TinkerPop stores; and — the corner's
+genuine bright spot — <strong>oxigraph</strong>, an embeddable RDF triple store with SPARQL,
+<em>written in</em> Rust, usable as a library the way sled or SQLite are. When the graph
+lives in Postgres (Apache AGE) the
+<a href="../../../rust/storage/relational-databases/">relational stack</a> applies instead.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>neo4rs</strong>: async Bolt driver — <code>Graph::new(uri, user, pass)</code>, parameterized Cypher
+via <code>query(&quot;…&quot;).param(&quot;k&quot;, v)</code>, streamed <code>RowStream</code> results, explicit
+transactions (<code>graph.start_txn()</code>); community-maintained with Neo4j-team
+involvement, covering the driver essentials without the official drivers' full
+session/routing sophistication.</li>
+<li><strong>Cypher discipline transfers verbatim</strong>: parameterize always (injection and plan
+cache both), <code>MATCH</code> shape = index design, transaction functions for retry — the
+concepts are store-side, see
+<a href="../../../data-storage/databases-and-storage-systems/">databases &amp; storage systems</a>.</li>
+<li><strong>gremlin-client</strong> speaks the TinkerPop protocol (JanusGraph, Neptune's Gremlin
+endpoint): traversal strings or a typed builder subset; maintained but niche —
+polyglot shops usually keep Gremlin tooling on the JVM where TinkerPop lives.</li>
+<li><strong>oxigraph</strong> flips the model: the store <em>is</em> a crate (also a server binary) —
+in-process SPARQL 1.1 over RocksDB, standards-faithful, ideal for
+knowledge-graph-shaped features embedded in a service without operating a separate
+database.</li>
+<li><strong>Neptune from Rust</strong> = openCypher/Gremlin over HTTPS with SigV4 signing
+(aws-sigv4 + reqwest) — workable, hand-assembled.</li>
+<li><strong>Honest guidance</strong>: for a graph-centric product on Neo4j, Rust is a viable client
+but the JVM ecosystem is a generation richer (OGMs, Spring Data Neo4j); for
+graph-shaped <em>features</em> inside a Rust service, neo4rs or embedded oxigraph carry
+their weight — and recursive CTEs in Postgres remain the right first question, as
+everywhere.</li>
+</ul>
+<h2>Examples</h2>
+<pre><code class="language-rust">let graph = Graph::new(&quot;bolt://localhost:7687&quot;, &quot;neo4j&quot;, pass).await?;
+let mut rows = graph.execute(
+    query(&quot;MATCH (p:Person)-[:REPORTS_TO*1..3]-&gt;(m:Person {id: $id})
+           RETURN p.id AS id, p.name AS name&quot;)
+        .param(&quot;id&quot;, mgr_id.to_string())
+).await?;
+while let Some(row) = rows.next().await? {
+    let name: String = row.get(&quot;name&quot;)?;
+    // …
+}
+</code></pre>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../rust/storage/storage/">Storage access from Rust — the map</a> — parent map.</li>
+<li><a href="../../../rust/storage/relational-databases/">Relational databases from Rust</a> — recursive
+CTEs: the question to ask before adopting a graph store.</li>
+<li><a href="../../../data-storage/databases-and-storage-systems/">Databases and other storage systems</a> —
+when graph models beat relational ones.</li>
+<li><a href="../../../java/storage/graph-databases/">Graph databases from Java</a> and
+<a href="../../../go/storage/graph-databases/">from Go</a> — the counterparts; Java holds the
+official-driver high ground, Rust holds the embedded-store one.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

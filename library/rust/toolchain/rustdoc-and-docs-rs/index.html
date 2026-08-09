@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>rustdoc &amp; docs.rs — documentation — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/rust/toolchain</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../rust/">rust</a><span class="tok-path">/</span><span class="tok-path">toolchain</span> <span class="tok-cmd">cat</span> <span class="tok-file">rustdoc-and-docs-rs</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">rustdoc &amp; docs.rs — documentation</h1>
+        <p class="lib-lede"><span class="tok-comment"># Doc comments to rendered API docs — doctests that actually run, intra-doc links, feature-flagged docs, and docs.rs building every crates.io release automatically.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#rust">#rust</a><a class="lib-tag" href="../../../tags/#tooling">#tooling</a><a class="lib-tag" href="../../../tags/#documentation">#documentation</a><a class="lib-tag" href="../../../tags/#docs-rs">#docs-rs</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p><code>rustdoc</code> renders <code>///</code> doc comments (Markdown) into the API documentation every Rust
+developer lives in, and — its defining trick — compiles and runs every code block in
+them as a test. <a href="http://docs.rs" rel="noopener">docs.rs</a> then builds and hosts documentation for <em>every release of every
+<a href="http://crates.io" rel="noopener">crates.io</a> crate</em> automatically, no publishing step, which is why Rust documentation has
+a uniform look and a reliable home the way <a href="../../../go/toolchain/go-doc-and-pkgsite/">pkg.go.dev</a>
+gives Go, with the doctest guarantee on top: examples in Rust docs are never stale.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>Doctests are tests</strong>: every <code>```rust</code> block in a doc comment runs under
+<code>cargo test</code>; hidden setup lines (<code># let pool = …;</code>) keep examples readable while
+still compiling. This is the single highest-leverage documentation feature in the
+ecosystem.</li>
+<li><strong>Intra-doc links</strong>: <code>[`HashMap`]</code> and <code>[Self::insert]</code> resolve by path at build
+time and break loudly when the item moves — no rotting URLs between items.</li>
+<li><strong><code>//!</code> documents the enclosing item</strong> (crate/module front page); <code>///</code> documents the
+next item. Crate-level docs with a quick-start example are the ecosystem norm.</li>
+<li><strong><code>cargo doc --open</code></strong> builds docs for your crate <em>and all dependencies</em> locally —
+offline-complete API reference for the whole dependency graph.</li>
+<li><strong><a href="http://docs.rs" rel="noopener">docs.rs</a> builds every release</strong>: nightly toolchain, all features definable via
+<code>[package.metadata.docs.rs]</code> (<code>all-features = true</code> is common), and
+<code>#[doc(cfg(feature = &quot;tls&quot;))]</code> renders which feature gates each item — check the
+little version/feature banner when reading.</li>
+<li><strong><code>#[doc(hidden)]</code></strong> hides public-for-macro items; <code>--document-private-items</code> flips
+the view for internal-docs use.</li>
+<li><strong><code>cargo doc</code> warnings are CI-gateable</strong>: <code>RUSTDOCFLAGS=&quot;-D warnings&quot;</code> catches broken
+intra-doc links before they ship.</li>
+<li><strong>Examples directory as extended docs</strong>: <code>examples/*.rs</code> are compiled by CI
+(<code>cargo build --examples</code>) and linked from docs — the convention for anything too big
+for a doctest.</li>
+</ul>
+<h2>Examples</h2>
+<pre><code class="language-rust">/// Parses a duration like `&quot;1h30m&quot;`.
+///
+/// ```
+/// # use mycrate::parse_duration;
+/// assert_eq!(parse_duration(&quot;90m&quot;)?.as_secs(), 5400);
+/// # Ok::&lt;(), mycrate::ParseError&gt;(())
+/// ```
+///
+/// See also [`Duration`](std::time::Duration).
+pub fn parse_duration(s: &amp;str) -&gt; Result&lt;Duration, ParseError&gt; { /* … */ }
+</code></pre>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../rust/toolchain/toolchain/">The Rust toolchain</a> — parent catalog.</li>
+<li><a href="../../../rust/testing/unit-testing/">Unit testing</a> — where doctests sit in the test
+portfolio.</li>
+<li><a href="../../../rust/build-ecosystem/cargo-in-depth/">Cargo in depth</a> — the metadata section
+<a href="http://docs.rs" rel="noopener">docs.rs</a> reads.</li>
+<li><a href="../../../go/toolchain/go-doc-and-pkgsite/">go doc &amp; pkg.go.dev</a> — the Go counterpart;
+same shared-reference role, without executable examples in docs (Go's live in
+<code>_test.go</code> files instead).</li>
+<li><a href="../../../java/jdk-and-tools/javadoc-tool/">javadoc</a> — the JVM ancestor of the genre.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

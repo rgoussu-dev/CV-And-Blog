@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Security testing — audit, unsafe hygiene &amp; fuzzing — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/rust/testing</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../rust/">rust</a><span class="tok-path">/</span><span class="tok-path">testing</span> <span class="tok-cmd">cat</span> <span class="tok-file">security-testing</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Security testing — audit, unsafe hygiene &amp; fuzzing</h1>
+        <p class="lib-lede"><span class="tok-comment"># The Rust security-testing portfolio — cargo-audit/deny/vet on the supply chain, cargo-geiger and miri on unsafe code, fuzzing the input surface, and SAST's smaller role.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#rust">#rust</a><a class="lib-tag" href="../../../tags/#testing">#testing</a><a class="lib-tag" href="../../../tags/#security">#security</a><a class="lib-tag" href="../../../tags/#supply-chain">#supply-chain</a><a class="lib-tag" href="../../../tags/#unsafe">#unsafe</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>Security testing in Rust concentrates where Rust's risks actually are. Memory safety
+removes the classic C/C++ bug classes from <em>safe</em> code, so the portfolio tilts toward
+three fronts: the <strong>supply chain</strong> (a deep, fine-grained dependency graph whose build
+scripts run arbitrary code), the <strong><code>unsafe</code> surface</strong> (small but load-bearing), and
+the <strong>input boundary</strong> (parsers and protocols, where panics become DoS). The
+scanner-heavy SAST culture of the
+<a href="../../../java/testing/security-testing/">Java portfolio</a> has a correspondingly smaller
+role here.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>Supply chain first</strong>: <code>cargo audit</code> (RustSec advisories against <code>Cargo.lock</code>),
+<code>cargo deny</code> (advisories + licenses + source policy as a CI gate), <code>cargo vet</code>
+(human-audit records) — mechanics in
+<a href="../../../rust/build-ecosystem/building-and-releasing/">Building &amp; releasing</a>; this is
+the row every Rust CI needs.</li>
+<li><strong>Unsafe hygiene is auditable</strong>: <code>cargo geiger</code> counts and locates <code>unsafe</code> across
+the dependency tree (an exposure metric, not a verdict);
+<code>#![forbid(unsafe_code)]</code> on crates that should have none turns the metric into a
+guarantee; <a href="../../../rust/toolchain/miri/">miri</a> checks the unsafe that remains for
+actual UB.</li>
+<li><strong>Fuzz the boundary</strong>: every deserializer, framing layer and file-format parser
+gets a <a href="../../../rust/testing/property-based-and-fuzzing/">cargo-fuzz target</a>; in Rust
+the typical finding is a panic or resource-exhaustion path — a <em>denial-of-service</em>
+bug class, reachable from safe code, and the most common real-world Rust CVE shape
+alongside logic flaws.</li>
+<li><strong>Panics are the forgotten attack surface</strong>: <code>unwrap</code> on attacker-controlled input
+is a remote crash; clippy's <code>unwrap_used</code>/<code>expect_used</code> restriction lints, panic =
+abort consequences, and load-shedding limits
+(<a href="../../../rust/rust-security/web-security/">web security</a>) are the mitigations.</li>
+<li><strong>SAST exists, scaled to need</strong>: clippy's correctness/suspicious classes catch
+API-misuse patterns; semgrep has Rust rules; there is no FindSecBugs-scale
+ecosystem because injection-style sinks are rarer — the type system and
+<a href="../../../rust/storage/relational-databases/">parameterized queries by construction</a>
+close most of them.</li>
+<li><strong>DAST is language-agnostic</strong>: ZAP/Burp against a staging deployment work the same
+as ever; nothing Rust-specific to add beyond
+<a href="../../../rust/testing/end-to-end-testing/">the E2E harness</a> to drive it.</li>
+<li><strong>Sanitizers still matter at the FFI edge</strong>: <code>-Zsanitizer=address</code> (nightly) for
+mixed Rust/C binaries — memory safety promises stop at <code>extern &quot;C&quot;</code>.</li>
+</ul>
+<h2>Details</h2>
+<h3>The portfolio, one row each</h3>
+<table>
+<thead>
+<tr>
+<th>Front</th>
+<th>Tool</th>
+<th>Cadence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Known-vuln dependencies</td>
+<td>cargo-audit / cargo-deny</td>
+<td>Every CI run</td>
+</tr>
+<tr>
+<td>Dependency trust</td>
+<td>cargo-vet (+ lockfile discipline, <code>--locked</code>)</td>
+<td>On dependency change</td>
+</tr>
+<tr>
+<td>Unsafe exposure</td>
+<td>cargo-geiger, <code>#![forbid(unsafe_code)]</code></td>
+<td>Audit checkpoints</td>
+</tr>
+<tr>
+<td>UB in unsafe code</td>
+<td>miri, sanitizers at FFI</td>
+<td>CI on unsafe-bearing crates</td>
+</tr>
+<tr>
+<td>Input surface</td>
+<td>cargo-fuzz targets, proptest no-panic properties</td>
+<td>Nightly / continuous (OSS-Fuzz)</td>
+</tr>
+<tr>
+<td>Runtime posture</td>
+<td>ZAP/Burp on staging, security headers checks</td>
+<td>Pre-release</td>
+</tr>
+</tbody>
+</table>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../rust/testing/testing/">Testing in Rust — strategies &amp; tooling map</a> — parent map.</li>
+<li><a href="../../../rust/build-ecosystem/building-and-releasing/">Building &amp; releasing</a> —
+audit/deny/vet mechanics and SBOMs.</li>
+<li><a href="../../../rust/testing/property-based-and-fuzzing/">Property-based testing &amp; fuzzing</a> —
+the fuzzing machinery this portfolio leans on.</li>
+<li><a href="../../../rust/rust-security/rust-security/">Security in Rust applications</a> — building
+securely, the concern this note verifies.</li>
+<li><a href="../../../java/testing/security-testing/">Security testing in Java</a> and
+<a href="../../../go/testing/security-testing/">in Go</a> — the neighbouring portfolios; Go's
+govulncheck reachability analysis is the feature cargo-audit lacks.</li>
+<li><a href="../../../security/appsec-fundamentals/">AppSec fundamentals</a> — the SCA/SAST/DAST
+vocabulary these tools instantiate.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

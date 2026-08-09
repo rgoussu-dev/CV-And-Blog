@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Actix Web deep dive — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/rust/web-frameworks</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../rust/">rust</a><span class="tok-path">/</span><span class="tok-path">web-frameworks</span> <span class="tok-cmd">cat</span> <span class="tok-file">actix-web</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Actix Web deep dive</h1>
+        <p class="lib-lede"><span class="tok-comment"># The own-stack incumbent — actix-http engine, App/scope composition, extractors, its Transform middleware model, the actor heritage, and where it beats axum.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#rust">#rust</a><a class="lib-tag" href="../../../tags/#web">#web</a><a class="lib-tag" href="../../../tags/#actix">#actix</a><a class="lib-tag" href="../../../tags/#http">#http</a><a class="lib-tag" href="../../../tags/#performance">#performance</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>Actix Web is Rust's pre-substrate incumbent: started 2017 on the actix actor
+framework, rebuilt over the years into a self-contained web stack with its own HTTP
+engine (<code>actix-http</code>), its own middleware model, and years at the top of the
+TechEmpower benchmarks. The actor heritage survives only in the name and in
+<code>actix</code>-the-crate being an optional companion — modern Actix Web is ordinary async
+Rust on Tokio. It is the &quot;Gin of Rust&quot;: mature, fast, batteries included, and running
+its own stack where <a href="../../../rust/web-frameworks/axum/">axum</a> rides the shared one.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>Own engine, own contracts</strong>: <code>actix-http</code> instead of hyper, <code>App</code>/<code>HttpServer</code>
+instead of a tower stack — tower-http middleware doesn't apply; the actix-web
+ecosystem (actix-cors, actix-session, actix-identity, actix-web-httpauth) fills the
+same needs in-house.</li>
+<li><strong>Familiar handler shape</strong>: async fns with extractors (<code>web::Path</code>, <code>web::Query</code>,
+<code>web::Json</code>, <code>web::Data&lt;T&gt;</code> for state) and <code>Responder</code> returns — API-compatible in
+spirit with axum, different types throughout.</li>
+<li><strong>Routing via macros or builders</strong>: <code>#[get(&quot;/users/{id}&quot;)]</code> attributes or
+<code>web::resource(&quot;/users/{id}&quot;).route(web::get().to(show))</code>; <code>web::scope</code> for
+prefix grouping.</li>
+<li><strong>Middleware is the <code>Transform</code> trait</strong>: wrap-service factories — more boilerplate
+than tower layers; <code>middleware::from_fn</code> (like axum's) covers the easy cases now.</li>
+<li><strong>The runtime nuance</strong>: runs on Tokio but historically via <code>actix-rt</code> with a
+<strong>multi-threaded, non-work-stealing</strong> model — one single-threaded server instance
+per core, connections pinned to a worker. That architecture (no <code>Send</code> bounds on
+handlers' futures, per-worker <code>App</code> state factories) is <em>why</em> the benchmarks are
+good, and the main mental-model difference from axum.</li>
+<li><strong>Performance</strong>: consistently at or near the top for Rust frameworks; the honest
+summary is that axum closed most of the gap and both saturate real-world workloads —
+choose on ecosystem shape, not benchmark deltas.</li>
+<li><strong>Ecosystem posture</strong>: the 2020 maintainer crisis (unsafe-code controversy,
+original author's departure) is history — a community team has shipped steadily
+since; the actor framework <code>actix</code> remains for stateful in-process components
+(WebSocket session registries are the classic use — see
+<a href="../../../rust/protocols/websockets/">WebSockets in Rust</a>).</li>
+</ul>
+<h2>Examples</h2>
+<pre><code class="language-rust">#[get(&quot;/users/{id}&quot;)]
+async fn show_user(
+    data: web::Data&lt;AppState&gt;,
+    path: web::Path&lt;Uuid&gt;,
+) -&gt; Result&lt;web::Json&lt;User&gt;, ApiError&gt; {
+    let user = users::find(&amp;data.pool, *path).await?;
+    Ok(web::Json(user))
+}
+
+HttpServer::new(move || {
+    App::new()
+        .app_data(web::Data::new(state.clone()))
+        .wrap(middleware::Logger::default())
+        .service(show_user)
+})
+.bind((&quot;0.0.0.0&quot;, 8080))?
+.run()
+.await?;
+</code></pre>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../rust/web-frameworks/web-frameworks/">Rust web frameworks — the landscape</a> —
+parent overview.</li>
+<li><a href="../../../rust/web-frameworks/tower-hyper-correspondence/">Frameworks × tower/hyper</a> —
+actix as the &quot;brings its own stack&quot; column.</li>
+<li><a href="../../../rust/web-frameworks/axum/">Axum deep dive</a> — the shared-substrate alternative.</li>
+<li><a href="../../../rust/protocols/rest/">REST in Rust</a> — actix in API practice.</li>
+<li><a href="../../../go/web-frameworks/fiber/">Fiber deep dive</a> — Go's own-stack analog (with a
+bigger compatibility price than actix pays).</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

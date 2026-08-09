@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Integration testing — tests/, in-process routers &amp; testcontainers — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/rust/testing</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../rust/">rust</a><span class="tok-path">/</span><span class="tok-path">testing</span> <span class="tok-cmd">cat</span> <span class="tok-file">integration-testing</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Integration testing — tests/, in-process routers &amp; testcontainers</h1>
+        <p class="lib-lede"><span class="tok-comment"># The tests/ directory model, driving axum routers in-process with tower::ServiceExt, #[sqlx::test] databases, testcontainers-rs, wiremock for HTTP stubs, and async test mechanics.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#rust">#rust</a><a class="lib-tag" href="../../../tags/#testing">#testing</a><a class="lib-tag" href="../../../tags/#integration">#integration</a><a class="lib-tag" href="../../../tags/#testcontainers">#testcontainers</a><a class="lib-tag" href="../../../tags/#sqlx">#sqlx</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>Integration tests in Rust have a dedicated compilation model: every file in <code>tests/</code>
+is built as its <em>own crate</em> linking your library like an external consumer — public
+API only, by construction. Above that sit three workhorse techniques: driving the HTTP
+stack in-process (a tower <code>Router</code> is callable without a socket), running real
+dependencies in containers (testcontainers-rs, or sqlx's test-database macro), and
+stubbing third-party HTTP with wiremock. Async is the main mechanical difference from
+the neighbours: tests are <code>#[tokio::test]</code> functions and the usual async hazards
+(leaked tasks, timeouts) apply.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong><code>tests/</code> files are separate crates</strong>: public-API-only testing by construction, and
+each file links the library independently — group scenarios in fewer files (or a
+<code>tests/it/</code> module tree) to keep link times sane; shared helpers live in
+<code>tests/common/mod.rs</code> or a dev-dependency crate.</li>
+<li><strong><code>#[tokio::test]</code></strong> wraps a test in a runtime; multi-thread flavor
+(<code>#[tokio::test(flavor = &quot;multi_thread&quot;)]</code>) when the code under test spawns;
+<code>tokio::time::pause()</code> fast-forwards timers — retry/timeout logic tests run in
+microseconds.</li>
+<li><strong>In-process HTTP</strong>: <code>router.oneshot(Request::builder()...)</code> (tower::ServiceExt)
+drives the full axum stack — routing, extractors, middleware — with no port, no
+flakiness; actix's <code>test::init_service</code> is the same idea. Reserve a real
+<code>TcpListener</code> + reqwest for the smoke layer.</li>
+<li><strong><code>#[sqlx::test]</code></strong> is the relational sweet spot: creates a fresh database per test,
+runs migrations, hands the pool in as an argument, cleans up after — parallel-safe
+database tests with zero boilerplate (needs a running server; pair with a
+compose/CI service).</li>
+<li><strong>testcontainers-rs</strong> (<code>testcontainers</code> + <code>testcontainers-modules</code>) starts
+Postgres/Redis/Kafka/anything per test or shared per binary — same substrate as the
+<a href="../../../java/testing/integration-testing/">Java</a> and
+<a href="../../../go/testing/integration-testing/">Go</a> stacks; the module catalog is smaller than
+Java's but covers the staples.</li>
+<li><strong>wiremock</strong> (wiremock-rs) stubs outbound HTTP: mount matchers on a local
+<code>MockServer</code>, point the client's base URL at it, assert on received requests —
+the reqwest-era answer to Java's WireMock.</li>
+<li><strong>Segregation</strong>: <code>#[ignore]</code> on the container-heavy shelf plus
+<code>cargo nextest run -E 'not test(/slow/)'</code> filtersets, or a <code>tests/e2e_*</code> naming
+convention — keep the default <code>cargo test</code> fast.</li>
+</ul>
+<h2>Examples</h2>
+<pre><code class="language-rust">#[tokio::test]
+async fn creates_a_user() {
+    let app = build_router(test_state());
+    let res = app
+        .oneshot(Request::post(&quot;/users&quot;)
+            .header(&quot;content-type&quot;, &quot;application/json&quot;)
+            .body(Body::from(r#&quot;{&quot;name&quot;:&quot;ada&quot;}&quot;#)).unwrap())
+        .await.unwrap();
+    assert_eq!(res.status(), StatusCode::CREATED);
+}
+
+#[sqlx::test(migrations = &quot;./migrations&quot;)]
+async fn persists_and_reads(pool: PgPool) -&gt; sqlx::Result&lt;()&gt; {
+    users::insert(&amp;pool, &quot;ada&quot;).await?;
+    assert_eq!(users::count(&amp;pool).await?, 1);
+    Ok(())
+}
+</code></pre>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../rust/testing/testing/">Testing in Rust — strategies &amp; tooling map</a> — parent map.</li>
+<li><a href="../../../rust/web-frameworks/axum/">Axum deep dive</a> — the router-as-Service property
+these tests exploit.</li>
+<li><a href="../../../rust/storage/relational-databases/">Relational databases from Rust</a> — sqlx and
+the compile-time checking that shrinks this test layer.</li>
+<li><a href="../../../rust/testing/end-to-end-testing/">End-to-end testing</a> — the next boundary out.</li>
+<li><a href="../../../java/testing/integration-testing/">Integration testing in Java</a> and
+<a href="../../../go/testing/integration-testing/">in Go</a> — the same Testcontainers-shaped
+substrate on the neighbouring stacks.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

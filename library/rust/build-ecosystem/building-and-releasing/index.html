@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Building &amp; releasing Rust — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/rust/build-ecosystem</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../rust/">rust</a><span class="tok-path">/</span><span class="tok-path">build-ecosystem</span> <span class="tok-cmd">cat</span> <span class="tok-file">building-and-releasing</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Building &amp; releasing Rust</h1>
+        <p class="lib-lede"><span class="tok-comment"># Cross-compilation and the linker problem, cross and cargo-zigbuild, static musl builds, cargo-dist for release automation, and the supply chain: cargo-audit, cargo-deny, cargo-vet.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#rust">#rust</a><a class="lib-tag" href="../../../tags/#build">#build</a><a class="lib-tag" href="../../../tags/#release">#release</a><a class="lib-tag" href="../../../tags/#cross-compilation">#cross-compilation</a><a class="lib-tag" href="../../../tags/#supply-chain">#supply-chain</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>Getting from <code>cargo build</code> to shipped software is a story in three parts:
+cross-compiling for targets you don't develop on (where Rust is good but not
+Go-effortless), packaging releases for humans and CI to consume (where cargo-dist has
+become the standard answer), and defending the dependency graph (where Rust's
+everything-from-source, thousands-of-small-crates culture makes supply-chain tooling
+non-optional). The comparison point is
+<a href="../../../go/modules-and-build/building-and-releasing/">Go's building &amp; releasing</a>: same
+static-binary endgame, more moving parts on the way.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>Cross-compilation = target + linker</strong>: <code>rustup target add</code> installs the stdlib for
+a triple, but unlike Go you also need a cross-<em>linker</em> for the target — the reason
+plain <code>cargo build --target</code> fails where <code>GOOS=linux go build</code> just works.</li>
+<li><strong>The workarounds are mature</strong>: <strong>cross</strong> (runs the build in Docker images with the
+right toolchains, QEMU for foreign-arch tests) and <strong>cargo-zigbuild</strong> (uses Zig's
+bundled clang as a universal cross-linker — the lightest path, glibc version
+targeting included).</li>
+<li><strong>Fully-static Linux binaries</strong>: <code>--target x86_64-unknown-linux-musl</code> — the
+<code>FROM scratch</code> container play; watch for C dependencies (openssl → use rustls;
+or <code>openssl/vendored</code>).</li>
+<li><strong>cargo-dist</strong> automates the release: from a git tag it builds a target matrix in CI,
+produces archives, shell/PowerShell installers, Homebrew formulae and npm shims, and
+publishes a GitHub release with checksums — the community-standard answer to &quot;how do
+users install my Rust tool&quot;, GoReleaser's counterpart.</li>
+<li><strong>cargo-release</strong> handles the other half — version bumps, changelog, tagging,
+<code>cargo publish</code> ordering across a workspace.</li>
+<li><strong>cargo-audit</strong> checks <code>Cargo.lock</code> against the <strong>RustSec advisory database</strong> —
+the minimum bar, in every CI.</li>
+<li><strong>cargo-deny</strong> is the policy engine: advisories + license allow-lists + duplicate
+version bans + registry/source restrictions, one <code>deny.toml</code>, fail-the-build
+semantics.</li>
+<li><strong>cargo-vet</strong> (Mozilla) tackles what scanning can't: <em>has a human reviewed this
+code?</em> — records audits per crate version, lets organizations share and import each
+other's audit sets (Mozilla's, Google's), and fails on unvetted additions.
+cargo-crev is the older web-of-trust cousin.</li>
+<li><strong>Why the vigilance</strong>: <code>build.rs</code> and proc macros execute arbitrary code <em>at build
+time</em> on developer and CI machines — a typosquatted crate owns your laptop before
+the binary even runs. Lockfiles, <code>--locked</code> in CI, minimal-dependency culture and
+vet/deny are the layered answer.</li>
+</ul>
+<h2>Details</h2>
+<h3>Release pipeline, the house shape</h3>
+<pre><code class="language-sh">rustup target add x86_64-unknown-linux-musl aarch64-apple-darwin
+cargo zigbuild --release --target x86_64-unknown-linux-musl   # or: cross build
+cargo dist init                     # generates the CI release workflow
+git tag v1.2.0 &amp;&amp; git push --tags   # cargo-dist takes it from here
+</code></pre>
+<p>CI gates alongside: <code>cargo audit</code>, <code>cargo deny check</code>, <code>cargo vet</code> (where adopted),
+plus <code>cargo build --locked</code> so the lockfile is the build.</p>
+<h3>SBOM &amp; provenance</h3>
+<p><code>cargo auditable</code> embeds the dependency list into the binary itself (readable by
+<code>cargo audit bin</code>); cargo-sbom/cyclonedx-rust produce standard SBOM documents;
+<a href="http://crates.io" rel="noopener">crates.io</a> has shipped provenance attestations for publishes from CI. Between the
+immutable registry, lockfiles and these attestations, Rust's story now roughly matches
+<a href="../../../go/toolchain/govulncheck/">Go's sumdb-and-govulncheck posture</a> — with cargo-vet as
+the piece Go lacks.</p>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../rust/build-ecosystem/build-ecosystem/">The Rust build ecosystem</a> — parent
+overview; the artifact formats being shipped here.</li>
+<li><a href="../../../rust/build-ecosystem/cargo-in-depth/">Cargo in depth</a> — profiles, lockfiles and
+publishing mechanics this pipeline drives.</li>
+<li><a href="../../../rust/testing/security-testing/">Security testing</a> — where audit/deny/vet sit in
+the wider testing portfolio.</li>
+<li><a href="../../../go/modules-and-build/building-and-releasing/">Building &amp; releasing Go</a> — the
+effortless-cross-compilation contrast and GoReleaser.</li>
+<li><a href="../../../security/appsec-fundamentals/">AppSec fundamentals</a> — the SCA vocabulary and
+supply-chain concern these tools instantiate for Rust.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

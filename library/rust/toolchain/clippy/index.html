@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>clippy — the lint collection — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/rust/toolchain</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../rust/">rust</a><span class="tok-path">/</span><span class="tok-path">toolchain</span> <span class="tok-cmd">cat</span> <span class="tok-file">clippy</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">clippy — the lint collection</h1>
+        <p class="lib-lede"><span class="tok-comment"># Rust's official linter — 750+ lints in leveled categories from correctness to pedantic, cargo clippy --fix, clippy.toml, and sane CI policy.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#rust">#rust</a><a class="lib-tag" href="../../../tags/#tooling">#tooling</a><a class="lib-tag" href="../../../tags/#lint">#lint</a><a class="lib-tag" href="../../../tags/#quality">#quality</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>Clippy is the official lint suite, a rustup component run as <code>cargo clippy</code>, with over
+750 lints that go far beyond the compiler's built-in warnings: idiom upgrades, API
+misuse, performance smells, outright bugs. Because it plugs into rustc's own lint-level
+machinery (<code>allow</code>/<code>warn</code>/<code>deny</code> attributes), policy is expressed in source, per item or
+per crate, rather than in an external config — closer to a compiler feature than to the
+JVM's checkstyle/SpotBugs layer, and roughly covering what
+<a href="../../../go/toolchain/staticcheck-and-golangci-lint/">staticcheck does for Go</a>.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>Categories with default levels</strong>: <code>correctness</code> (deny — these are bugs),
+<code>suspicious</code> and <code>style</code> and <code>complexity</code> and <code>perf</code> (warn), <code>pedantic</code> and <code>nursery</code>
+and <code>restriction</code> and <code>cargo</code> (allow — opt-in only).</li>
+<li><strong>Turning on pedantic wholesale is a trap</strong>: <code>#![warn(clippy::pedantic)]</code> plus
+targeted <code>#[allow]</code>s works for greenfield libraries; on applications, cherry-picking
+individual pedantic lints ages better.</li>
+<li><strong><code>cargo clippy --fix</code></strong> applies machine-applicable suggestions — safe, and an
+excellent idiom tutor when upgrading old code or learning the language.</li>
+<li><strong>CI gate</strong>: <code>cargo clippy --all-targets --all-features -- -D warnings</code> — lint tests
+and examples too, deny drift. Prefer failing on warnings in CI over <code>deny</code> attributes
+in source (deny breaks builds for downstream users on newer clippy versions with new
+lints).</li>
+<li><strong><code>clippy.toml</code></strong> configures individual lints' thresholds (<code>too-many-arguments</code>,
+<code>cognitive-complexity</code>, MSRV for idiom suggestions) — not lint selection, which stays
+in source or on the command line.</li>
+<li><strong><code>#[allow(clippy::lint_name, reason = &quot;…&quot;)]</code></strong>: scoped, documented exemptions at the
+narrowest item that needs them — the review-friendly form.</li>
+<li><strong>New lints arrive every six weeks</strong> with the toolchain; a version bump can introduce
+warnings. That's the deal — treat the diff as a free code review.</li>
+</ul>
+<h2>Examples</h2>
+<pre><code class="language-sh">cargo clippy --all-targets -- -D warnings     # the CI invocation
+cargo clippy --fix                            # apply machine-applicable suggestions
+</code></pre>
+<pre><code class="language-rust">#![warn(clippy::pedantic)]                    // library crate root
+#[allow(clippy::module_name_repetitions, reason = &quot;re-exported at crate root&quot;)]
+pub struct ConfigError { /* … */ }
+</code></pre>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../rust/toolchain/toolchain/">The Rust toolchain</a> — parent catalog.</li>
+<li><a href="../../../rust/toolchain/rustc/">rustc</a> — the lint-level machinery clippy plugs into.</li>
+<li><a href="../../../rust/toolchain/rustfmt/">rustfmt</a> — the mechanical-style layer below lint.</li>
+<li><a href="../../../go/toolchain/staticcheck-and-golangci-lint/">staticcheck &amp; golangci-lint</a> — the Go
+counterpart, third-party where clippy is first-party.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

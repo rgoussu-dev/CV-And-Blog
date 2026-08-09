@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Rust compilers &amp; the language definition — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/rust/compilers-and-runtimes</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../rust/">rust</a><span class="tok-path">/</span><span class="tok-path">compilers-and-runtimes</span> <span class="tok-cmd">cat</span> <span class="tok-file">compilers-and-runtimes</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Rust compilers &amp; the language definition</h1>
+        <p class="lib-lede"><span class="tok-comment"># rustc as the single implementation — with gccrs and mrustc as the outliers and the WASM targets — and the spec situation: the Rust Reference versus the Ferrocene FLS.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#rust">#rust</a><a class="lib-tag" href="../../../tags/#compilers">#compilers</a><a class="lib-tag" href="../../../tags/#rustc">#rustc</a><a class="lib-tag" href="../../../tags/#specification">#specification</a><a class="lib-tag" href="../../../tags/#wasm">#wasm</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>Java has a specification with several competing runtimes
+(<a href="../../../java/jvm-implementations/jvm-implementations/">JVM implementations compared</a>); Go
+has a short spec and one utterly dominant implementation
+(<a href="../../../go/compilers-and-runtimes/compilers-and-runtimes/">Go compilers &amp; runtimes compared</a>);
+Rust goes one further: for most of its life <strong>the implementation was the definition</strong>.
+rustc is the only complete compiler, and until recently there was no specification at
+all — just the Rust Reference, explicitly non-normative. The outliers (gccrs, mrustc)
+exist to <em>reimplement rustc's behaviour</em>, not to compete with it, and the push toward a
+real specification came less from portability than from safety-critical certification —
+the Ferrocene FLS, now adopted by the project as the seed of an official spec.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>rustc is the single implementation</strong>: LLVM-backed, self-hosted, shipped every six
+weeks by the project. &quot;What does Rust do here?&quot; is answered by what rustc does —
+there is no TCK, and conformance means matching rustc.</li>
+<li><strong>No language runtime to implement</strong>: no GC, no scheduler, no VM — a &quot;Rust runtime&quot;
+is just libstd over the OS. The runtime question Java and Go answer in the platform,
+Rust pushes to libraries — which is why
+<a href="../../../rust/compilers-and-runtimes/async-runtimes/">async runtimes</a> is where that
+question reappears.</li>
+<li><strong>gccrs</strong>: a from-scratch Rust front-end inside GCC — motivated by GCC-only
+platforms, distro bootstrapping, and GCC's plugin/analysis ecosystem. Years in,
+still incomplete (no stable borrow checker story; targets older editions first);
+explicitly aims to match rustc, not fork the language.</li>
+<li><strong>mrustc</strong>: a C++ Rust compiler that skips borrow checking entirely (it assumes the
+input is valid Rust) — built to break the trusting-trust bootstrap chain: mrustc
+compiles an old rustc from source, which then compiles forward.</li>
+<li><strong>Ferrocene</strong>: not an alternative compiler but a <em>qualified</em> rustc — the same source,
+packaged and certified (ISO 26262/IEC 61508) for automotive/industrial use by Ferrous
+Systems. Proof that the single-implementation strategy can reach regulated industries.</li>
+<li><strong>Codegen backends</strong> diversify below the front-end: LLVM is production; Cranelift is
+an in-tree alternative for faster debug builds; rustc_codegen_gcc reuses rustc's
+front-end with GCC codegen (a lighter path to GCC platforms than gccrs).</li>
+<li><strong>WASM is a first-class target family</strong>: <code>wasm32-unknown-unknown</code> (browser, with
+wasm-bindgen/wasm-pack generating the JS glue) and <code>wasm32-wasip1</code>/<code>wasip2</code> (server-side
+WASI runtimes). No bundled runtime means small modules by default — the niche
+<a href="../../../go/compilers-and-runtimes/tinygo/">TinyGo</a> fights for, Rust gets for free.</li>
+</ul>
+<h2>Details</h2>
+<h3>The spec situation — the Reference vs the Ferrocene FLS</h3>
+<p>Two documents describe the language, with different ambitions:</p>
+<ul>
+<li><strong>The Rust Reference</strong> (<code>doc.rust-lang.org/reference</code>) — the project's own
+description of syntax and semantics. Informal, maintained alongside the compiler,
+explicitly <em>not</em> normative: it documents rustc, trailing it where undocumented
+behaviour exists. For daily &quot;what are the rules?&quot; questions it is the right document.</li>
+<li><strong>The Ferrocene Language Specification (FLS)</strong> — written by Ferrous Systems because
+certification authorities require a specification to qualify a compiler against.
+Structured like a real language standard (numbered paragraphs, defined terms), it
+describes the language as implemented by a specific rustc version. In 2025 Ferrous
+Systems donated the FLS to the Rust Project, and the project's specification team
+(t-spec, chartered by RFC 3355) adopted it as the basis for the <strong>official Rust
+specification</strong> — merging the Reference's coverage with the FLS's rigor is the
+ongoing work.</li>
+</ul>
+<p>The contrast with the neighbours: Java's spec is contractual (TCK-enforced, multiple
+independent implementations), Go's is a deliberately short readable document, and
+Rust's is being <em>reverse-engineered from the implementation</em> under pressure from
+safety-critical adoption. Until it lands, the practical rule stands: rustc defines
+Rust; the <a href="../../../rust/compilers-and-runtimes/editions/">editions system</a> defines which
+Rust your crate speaks. Saved reference:
+<a href="../../../rust/compilers-and-runtimes/references/rust-reference-and-ferrocene-fls/">The Rust Reference &amp; the Ferrocene FLS</a>.</p>
+<h3>Comparison</h3>
+<table>
+<thead>
+<tr>
+<th>Implementation</th>
+<th>What it is</th>
+<th>Completeness</th>
+<th>Sweet spot</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>rustc (LLVM)</td>
+<td>The reference and only complete compiler</td>
+<td>Defines the language</td>
+<td>Everything</td>
+</tr>
+<tr>
+<td>rustc + Cranelift</td>
+<td>Alternative in-tree codegen backend</td>
+<td>Complete front-end; codegen for dev</td>
+<td>Faster debug builds</td>
+</tr>
+<tr>
+<td>rustc_codegen_gcc</td>
+<td>rustc front-end, GCC codegen</td>
+<td>Front-end complete; backend maturing</td>
+<td>GCC-only platforms</td>
+</tr>
+<tr>
+<td>Ferrocene</td>
+<td>Qualified rustc distribution</td>
+<td>Identical to its rustc base</td>
+<td>Safety-critical (ISO 26262)</td>
+</tr>
+<tr>
+<td>gccrs</td>
+<td>Independent GCC front-end</td>
+<td>Incomplete; trails by years</td>
+<td>Bootstrapping, GCC purism — future</td>
+</tr>
+<tr>
+<td>mrustc</td>
+<td>C++ bootstrap compiler, no borrow check</td>
+<td>Enough to build old rustcs</td>
+<td>Breaking the bootstrap chain</td>
+</tr>
+</tbody>
+</table>
+<h3>WASM targets</h3>
+<p><code>wasm32-unknown-unknown</code> produces bare WASM for the browser; <strong>wasm-bindgen</strong> generates
+the JS/DOM interop layer and <strong>wasm-pack</strong> packages it for npm. <code>wasm32-wasip1</code> (and
+the component-model <code>wasip2</code>) target server-side runtimes — Wasmtime, Wasmer, wazero.
+Because Rust ships no runtime, modules start in the tens of KB — against the megabytes
+of <a href="../../../go/compilers-and-runtimes/compilers-and-runtimes/">Go's stock WASM output</a> —
+which is why Rust dominates WASM plugin systems, proxy filters (Envoy), and
+smart-contract platforms.</p>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../rust/rust-deep-dive/">Deep dive Rust</a> — parent theme note; the language whose
+definition is at stake here.</li>
+<li><a href="../../../rust/compilers-and-runtimes/editions/">Editions</a> — the compatibility mechanism
+layered on the single implementation.</li>
+<li><a href="../../../rust/compilers-and-runtimes/async-runtimes/">Async runtimes</a> — where Rust's
+runtime question actually lives.</li>
+<li><a href="../../../rust/compilers-and-runtimes/references/rust-reference-and-ferrocene-fls/">The Rust Reference &amp; the Ferrocene FLS</a> —
+the saved spec documents.</li>
+<li><a href="../../../rust/how-rust-evolves/">How Rust evolves</a> — the process that changes what rustc
+accepts.</li>
+<li><a href="../../../java/jvm-implementations/jvm-implementations/">JVM implementations compared</a> —
+the many-runtimes contrast.</li>
+<li><a href="../../../go/compilers-and-runtimes/compilers-and-runtimes/">Go compilers &amp; runtimes compared</a> —
+the nearest neighbour: one dominant implementation, but with a spec worth reading.</li>
+</ul>
+<h2>Citations</h2>
+<p>[1] <a href="https://doc.rust-lang.org/reference/" rel="noopener">The Rust Reference</a>
+[2] <a href="https://spec.ferrocene.dev/" rel="noopener">Ferrocene Language Specification</a>
+[3] <a href="https://rust-lang.github.io/rfcs/3355-rust-spec.html" rel="noopener">RFC 3355 — Rust specification</a></p>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

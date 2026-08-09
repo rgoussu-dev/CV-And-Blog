@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>The Rust build ecosystem — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/rust/build-ecosystem</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../rust/">rust</a><span class="tok-path">/</span><span class="tok-path">build-ecosystem</span> <span class="tok-cmd">cat</span> <span class="tok-file">build-ecosystem</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">The Rust build ecosystem</h1>
+        <p class="lib-lede"><span class="tok-comment"># Cargo as the one build path — crates.io as the single registry, the artifact formats from bin to cdylib to WASM, and where Bazel-scale exceptions appear.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#rust">#rust</a><a class="lib-tag" href="../../../tags/#build">#build</a><a class="lib-tag" href="../../../tags/#cargo">#cargo</a><a class="lib-tag" href="../../../tags/#packaging">#packaging</a><a class="lib-tag" href="../../../tags/#crates-io">#crates-io</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>Where Java offers three build tiers
+(<a href="../../../java/build-ecosystem/build-ecosystem/">bare JDK tools, Maven, Gradle</a>) and Go
+ships <a href="../../../go/modules-and-build/modules-and-build/">one first-party path</a>, Rust is at
+the Go end and further: <strong>cargo is the build system, the package manager, the test
+runner and the publishing tool</strong>, and <a href="http://crates.io" rel="noopener">crates.io</a> is the single registry the whole
+ecosystem publishes to. There is no build-tool debate and no competing registry;
+&quot;how do I build this?&quot; has had one answer since 2015. The interesting structure is
+below cargo: what artifacts a crate can produce (and why the lack of a stable ABI
+shapes that list), and the release-engineering layer that grew alongside.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>One tool, one registry</strong>: <code>cargo build/test/publish</code> against <a href="http://crates.io" rel="noopener">crates.io</a> — no
+Maven-vs-Gradle choice, no proxy/VCS indirection like Go's module system; <a href="http://crates.io" rel="noopener">crates.io</a>
+hosts the actual source archives, immutably (yank hides, never deletes).</li>
+<li><strong>The project model</strong> — workspaces, features, profiles, <code>build.rs</code>, lockfile
+semantics, publishing — is deep enough for its own note:
+<a href="../../../rust/build-ecosystem/cargo-in-depth/">Cargo in depth</a>.</li>
+<li><strong>Default artifact is a static native binary</strong>: like Go, deployment is &quot;copy the
+file&quot;; unlike Go, there's no runtime inside it — see the format table below.</li>
+<li><strong>No stable ABI</strong> is the shaping constraint: Rust-to-Rust dynamic linking (<code>dylib</code>,
+<code>rlib</code> reuse) only works within one exact compiler version, so the ecosystem
+compiles from source, every time, per toolchain — the deep reason builds are slow
+and <code>sccache</code> exists. Stable interop across a shared-library boundary means the C
+ABI (<code>cdylib</code>/<code>staticlib</code>) — or <code>extern &quot;C&quot;</code> shims, with <code>abi_stable</code>/<code>stabby</code> as
+community workarounds.</li>
+<li><strong>Release engineering</strong> — cross-compilation, <code>cross</code>, cargo-dist, and the
+supply-chain toolbox (cargo-audit/deny/vet) — has its own note:
+<a href="../../../rust/build-ecosystem/building-and-releasing/">Building &amp; releasing</a>.</li>
+<li><strong>Monorepo-scale exceptions</strong>: Bazel (<code>rules_rust</code>) and Buck2 (itself written in
+Rust) appear where hermetic multi-language builds pay their complexity — they wrap
+rustc and often still consume cargo metadata; nobody replaces cargo for
+dependency semantics.</li>
+<li><strong>Task runners orchestrate, never build</strong>: <code>just</code> (the community favourite),
+<code>cargo-make</code>, plain Make — thin glue over cargo invocations, same posture as Go.</li>
+</ul>
+<h2>Details</h2>
+<h3>Artifact formats — the crate-type table</h3>
+<table>
+<thead>
+<tr>
+<th><code>crate-type</code></th>
+<th>Produces</th>
+<th>Consumed by</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>bin</strong></td>
+<td>Native executable</td>
+<td>OS directly</td>
+<td>Static by default (musl for fully-static Linux); the deployment norm</td>
+</tr>
+<tr>
+<td><strong>lib / rlib</strong></td>
+<td>Rust static library + metadata</td>
+<td>Other Rust crates, same compiler only</td>
+<td>The default library form; what <code>cargo build</code> makes of every dependency</td>
+</tr>
+<tr>
+<td><strong>dylib</strong></td>
+<td>Rust dynamic library</td>
+<td>Other Rust code, same compiler only</td>
+<td>Unstable ABI — rarely what you want; mainly compiler-internal use cases</td>
+</tr>
+<tr>
+<td><strong>cdylib</strong></td>
+<td>C-ABI shared library (<code>.so</code>/<code>.dylib</code>/<code>.dll</code>)</td>
+<td>Any language via FFI; WASM</td>
+<td>The FFI export format — Python extensions (PyO3), Node addons, plugins</td>
+</tr>
+<tr>
+<td><strong>staticlib</strong></td>
+<td>C-ABI static archive (<code>.a</code>/<code>.lib</code>)</td>
+<td>C/C++ link steps</td>
+<td>Embedding Rust into existing native builds</td>
+</tr>
+<tr>
+<td><strong>proc-macro</strong></td>
+<td>Compiler plugin</td>
+<td>rustc at compile time</td>
+<td>Runs <em>in</em> the compiler; the serde/tokio-macros mechanism</td>
+</tr>
+<tr>
+<td><strong>WASM module</strong></td>
+<td><code>--target wasm32-*</code> (bin or cdylib)</td>
+<td>Browsers (wasm-bindgen), WASI runtimes</td>
+<td>Tens of KB — no runtime to carry; see <a href="../../../rust/compilers-and-runtimes/compilers-and-runtimes/">compilers &amp; the language definition</a></td>
+</tr>
+<tr>
+<td><strong>Container image</strong></td>
+<td>Multi-stage Dockerfile, <code>FROM scratch</code>/distroless</td>
+<td>Registries</td>
+<td>Same near-empty-base story as Go; <code>cargo-chef</code> layers dependency builds for cache reuse</td>
+</tr>
+</tbody>
+</table>
+<h3>The registry, one paragraph</h3>
+<p><a href="http://crates.io" rel="noopener">crates.io</a> enforces semver-shaped versions, immutable uploads and a flat global
+namespace (no user prefixes — name squatting is a real drawback the JVM's
+reverse-domain groupIds avoid). The index is served over a sparse HTTP protocol;
+private registries (Artifactory, Kellnr, Shipyard) and git/path dependencies cover the
+non-public cases. Publishing mechanics and lockfile semantics:
+<a href="../../../rust/build-ecosystem/cargo-in-depth/">Cargo in depth</a>.</p>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../rust/build-ecosystem/cargo-in-depth/">Cargo in depth</a> — the project model:
+workspaces, features, profiles, <a href="http://build.rs" rel="noopener">build.rs</a>, publishing, lockfiles.</li>
+<li><a href="../../../rust/build-ecosystem/building-and-releasing/">Building &amp; releasing</a> —
+cross-compilation, cargo-dist, and the supply-chain toolbox.</li>
+<li><a href="../../../rust/toolchain/toolchain/">The Rust toolchain</a> — the cargo command surface this
+ecosystem revolves around.</li>
+<li><a href="../../../rust/rust-deep-dive/">Deep dive Rust</a> — the parent theme note.</li>
+<li><a href="../../../java/build-ecosystem/build-ecosystem/">The Java build ecosystem</a> — the three-way
+contrast: where Java chooses a build tool, Rust ships one.</li>
+<li><a href="../../../go/modules-and-build/modules-and-build/">Modules &amp; the Go build ecosystem</a> — the
+nearest neighbour, with a registry-less module system where Rust has <a href="http://crates.io" rel="noopener">crates.io</a>.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Cryptography in Rust — rustls, ring &amp; RustCrypto — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/rust/rust-security</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../rust/">rust</a><span class="tok-path">/</span><span class="tok-path">rust-security</span> <span class="tok-cmd">cat</span> <span class="tok-file">cryptography</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Cryptography in Rust — rustls, ring &amp; RustCrypto</h1>
+        <p class="lib-lede"><span class="tok-comment"># The crate-first crypto landscape — rustls for TLS with its pluggable providers, ring versus the RustCrypto families, the dalek curves, age for file encryption, and zeroize/secrecy hygiene.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#rust">#rust</a><a class="lib-tag" href="../../../tags/#security">#security</a><a class="lib-tag" href="../../../tags/#cryptography">#cryptography</a><a class="lib-tag" href="../../../tags/#tls">#tls</a><a class="lib-tag" href="../../../tags/#rustls">#rustls</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>Rust has no JCA and no curated crypto stdlib — the language ships nothing, and the
+ecosystem answered with some of the most credible cryptography libraries anywhere:
+<strong>rustls</strong>, a from-scratch memory-safe TLS stack now displacing OpenSSL well beyond
+Rust; <strong>ring</strong>, the BoringSSL-derived primitives workhorse; and <strong>RustCrypto</strong>, the
+pure-Rust trait-based crate families covering everything else. The practical craft is
+choosing between those poles per need, plus the hygiene layer (zeroize, secrecy) that
+Rust's ownership model makes unusually effective.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>rustls is the TLS answer</strong>: modern protocols only (TLS 1.2/1.3), no legacy
+baggage, audited, and faster than OpenSSL in many paths. Pluggable <strong>crypto
+providers</strong> — aws-lc-rs (the default; FIPS-validatable) or ring — and the ecosystem
+wires it everywhere: reqwest (<code>rustls-tls</code>), tonic, sqlx, redis all take it as a
+feature flag; <code>rustls-pemfile</code> loads certs, <code>rcgen</code> generates them (tests, mTLS
+setups).</li>
+<li><strong>ring</strong>: fast, opinionated primitives (AEAD, HKDF, signatures, RNG) with a
+deliberately narrow API — hard to misuse, hard to extend; historically the
+foundation under rustls and jsonwebtoken. Its maintenance-mode status since 2025
+accelerated the drift toward aws-lc-rs and RustCrypto — check which backend your
+dependencies actually pull.</li>
+<li><strong>RustCrypto</strong> is the trait-based bazaar: <code>aes-gcm</code>, <code>chacha20poly1305</code>, <code>sha2</code>,
+<code>hmac</code>, <code>argon2</code>/<code>scrypt</code>/<code>bcrypt</code> (under the <code>password-hash</code> API), <code>rsa</code>, the
+elliptic-curve crates — pure Rust, <code>no_std</code>-capable, uniform traits (<code>Aead</code>,
+<code>Digest</code>, <code>Mac</code>). Mix-and-match where ring is take-it-or-leave-it.</li>
+<li><strong>The dalek curves</strong>: <code>ed25519-dalek</code>/<code>x25519-dalek</code>/<code>curve25519-dalek</code> — the
+standard modern-signature stack (also RustCrypto-adjacent); most token and
+end-to-end schemes land here.</li>
+<li><strong>Password hashing</strong>: <code>argon2</code> with the <code>password-hash</code> PHC-string API is the
+default; <code>bcrypt</code> for compatibility — same guidance as every stack, with the OWASP
+parameters in <a href="../../../security/appsec-fundamentals/">AppSec fundamentals</a>.</li>
+<li><strong>age</strong> (and its Rust-native implementation <strong>rage</strong>) is the file/backup encryption
+answer — modern, misuse-resistant, scriptable; the &quot;stop inventing GPG workflows&quot;
+tool.</li>
+<li><strong>Secret hygiene is where ownership shines</strong>: <strong>zeroize</strong> wipes memory on drop
+(<code>#[derive(ZeroizeOnDrop)]</code>), <strong>secrecy</strong>'s <code>SecretString</code>/<code>SecretBox</code> blocks
+accidental <code>Debug</code>/<code>Display</code> leaks and forces explicit <code>expose_secret()</code> calls —
+compiler-visible secret handling with no JVM/Go equivalent.</li>
+<li><strong>Randomness</strong>: <code>rand</code> for general use, <code>getrandom</code>/<code>OsRng</code> for key material —
+ring and RustCrypto types take RNGs explicitly, keeping the OS entropy path
+visible.</li>
+<li><strong>openssl bindings remain</strong> for FIPS mandates the aws-lc-rs provider can't cover,
+legacy algorithm needs, and C-parity requirements — a dependency-hygiene cost
+(native build, vendoring) you pay knowingly.</li>
+</ul>
+<h2>Details</h2>
+<h3>Choosing, quickly</h3>
+<table>
+<thead>
+<tr>
+<th>Need</th>
+<th>Reach for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>TLS server/client</td>
+<td>rustls (via the framework/client's feature flag)</td>
+</tr>
+<tr>
+<td>AEAD encrypt-at-rest</td>
+<td>chacha20poly1305 or aes-gcm (RustCrypto)</td>
+</tr>
+<tr>
+<td>Signatures / tokens</td>
+<td>ed25519-dalek; jsonwebtoken for JWT (<a href="../../../rust/rust-security/oauth2-and-oidc/">OAuth2 &amp; OIDC</a>)</td>
+</tr>
+<tr>
+<td>Password storage</td>
+<td>argon2 (password-hash API)</td>
+</tr>
+<tr>
+<td>File/backup encryption</td>
+<td>age / rage</td>
+</tr>
+<tr>
+<td>Secrets in memory</td>
+<td>secrecy + zeroize</td>
+</tr>
+<tr>
+<td>FIPS requirement</td>
+<td>rustls with aws-lc-rs FIPS provider; else openssl</td>
+</tr>
+</tbody>
+</table>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../rust/rust-security/rust-security/">Security in Rust applications — the map</a> —
+parent map.</li>
+<li><a href="../../../rust/rust-security/oauth2-and-oidc/">OAuth2 &amp; OIDC in Rust</a> — JWT validation on
+these primitives.</li>
+<li><a href="../../../rust/build-ecosystem/building-and-releasing/">Building &amp; releasing</a> — musl
+builds and the openssl-vs-rustls packaging consequences.</li>
+<li><a href="../../../security/appsec-fundamentals/">AppSec fundamentals</a> — algorithm choice and key
+management theory.</li>
+<li><a href="../../../java/java-security/cryptography-and-jca/">Cryptography in Java — JCA/JSSE</a> —
+the provider-architecture contrast.</li>
+<li><a href="../../../go/go-security/cryptography/">Cryptography in Go</a> — the curated-stdlib
+contrast; Rust reaches the same misuse-resistance through crate culture instead.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

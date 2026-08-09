@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Messaging in Rust — Kafka, AMQP &amp; NATS — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/rust/protocols</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../rust/">rust</a><span class="tok-path">/</span><span class="tok-path">protocols</span> <span class="tok-cmd">cat</span> <span class="tok-file">messaging</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Messaging in Rust — Kafka, AMQP &amp; NATS</h1>
+        <p class="lib-lede"><span class="tok-comment"># rdkafka over librdkafka for Kafka, lapin for RabbitMQ/AMQP, the official async-nats — consumer patterns on Tokio, offset and ack discipline, and serde at the payload boundary.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#rust">#rust</a><a class="lib-tag" href="../../../tags/#protocols">#protocols</a><a class="lib-tag" href="../../../tags/#messaging">#messaging</a><a class="lib-tag" href="../../../tags/#kafka">#kafka</a><a class="lib-tag" href="../../../tags/#nats">#nats</a><a class="lib-tag" href="../../../tags/#rabbitmq">#rabbitmq</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>Rust's messaging map has one de-facto crate per broker, like
+<a href="../../../go/protocols/messaging/">Go's</a>, with a wrinkle worth knowing: the Kafka default
+(<strong>rdkafka</strong>) is bindings over the C library librdkafka rather than a native
+implementation — battle-tested behaviour shared with every other librdkafka binding,
+at the price of a C build dependency in an otherwise pure-Rust graph. <strong>lapin</strong>
+(AMQP 0.9.1) and <strong>async-nats</strong> (NATS's official client) are native async Rust. All
+three expose the broker's real semantics directly; there is no Spring-Kafka-style
+framework layer, and payloads are serde at the boundary.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>rdkafka</strong>: <code>StreamConsumer</code> (a <code>Stream</code> of messages) and <code>FutureProducer</code>
+(<code>send(...).await</code> resolves on ack) — full librdkafka semantics: consumer groups,
+rebalance callbacks, transactions, exactly-once via idempotent producers. Configure
+with the same key/value options every librdkafka client uses.</li>
+<li><strong>Offset discipline is yours</strong>: auto-commit intervals vs <code>commit_message</code> after
+processing — the same at-least-once bookkeeping as
+<a href="../../../java/protocols/messaging/">Java</a> and Go; <code>spawn</code> per partition +
+<code>select!</code> on shutdown is the worker shape.</li>
+<li><strong>rskafka</strong> is the pure-Rust alternative (InfluxData) — simpler feature set, no C
+dependency; chosen when build hygiene beats feature completeness.</li>
+<li><strong>lapin</strong> models AMQP faithfully: channels, exchanges, queues, publisher confirms,
+consumer acks (<code>basic_ack</code>/<code>basic_nack</code> with requeue) — the delivery-vs-ack
+patterns from
+<a href="../../../system-design/message-brokers-and-event-streaming/">message brokers &amp; event streaming</a>
+apply verbatim; deadpool-lapin pools connections.</li>
+<li><strong>async-nats</strong> is the official, first-class client: core NATS pub/sub,
+<strong>JetStream</strong> (persistence, consumers, acks), KV and object store — and NATS's
+lightweight, all-in-one posture makes it the same natural fit in a Rust shop as in
+a Go one (the server is Go; several NATS ecosystem pieces are appearing in Rust).</li>
+<li><strong>Payloads are <code>&amp;[u8]</code> + serde</strong>: serde_json for readable topics, prost/Avro
+(apache-avro, schema_registry_converter for Confluent SR) where schemas govern —
+the schema-registry story is thinner than the JVM's; protobuf-on-Kafka with prost
+types is the common strongly-typed choice.</li>
+<li><strong>No framework indirection</strong>: retries, DLQs, poison-message handling and tracing
+context propagation are explicit code (tower-like middleware doesn't reach here);
+the compensating benefit is that nothing hides the broker's actual behaviour.</li>
+</ul>
+<h2>Examples</h2>
+<pre><code class="language-rust">let consumer: StreamConsumer = ClientConfig::new()
+    .set(&quot;bootstrap.servers&quot;, brokers)
+    .set(&quot;group.id&quot;, &quot;billing&quot;)
+    .set(&quot;enable.auto.commit&quot;, &quot;false&quot;)
+    .create()?;
+consumer.subscribe(&amp;[&quot;orders&quot;])?;
+
+let mut stream = consumer.stream();
+while let Some(msg) = stream.next().await {
+    let msg = msg?;
+    let order: Order = serde_json::from_slice(msg.payload().unwrap_or_default())?;
+    process(order).await?;
+    consumer.commit_message(&amp;msg, CommitMode::Async)?;   // after processing
+}
+</code></pre>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../rust/protocols/protocols/">Backend protocols in Rust — the map</a> — parent map.</li>
+<li><a href="../../../rust/protocols/grpc/">gRPC in Rust</a> — the synchronous alternative for
+service-to-service calls.</li>
+<li><a href="../../../system-design/message-brokers-and-event-streaming/">Message brokers and event streaming</a> —
+broker-side architecture and delivery guarantees, the protocol-agnostic theory.</li>
+<li><a href="../../../java/protocols/messaging/">Messaging in Java</a> and
+<a href="../../../go/protocols/messaging/">in Go</a> — the counterparts; Java adds framework
+layers, Go adds native-client breadth, Rust keeps the brokers raw.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

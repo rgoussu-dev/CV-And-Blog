@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Storage access from Rust — the map — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/rust/storage</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../rust/">rust</a><span class="tok-path">/</span><span class="tok-path">storage</span> <span class="tok-cmd">cat</span> <span class="tok-file">storage</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Storage access from Rust — the map</h1>
+        <p class="lib-lede"><span class="tok-comment"># How Rust reaches every storage kind — no stdlib layer, per-store drivers, the sqlx/diesel/sea-orm spectrum for relational — mapped store by store.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#rust">#rust</a><a class="lib-tag" href="../../../tags/#storage">#storage</a><a class="lib-tag" href="../../../tags/#databases">#databases</a><a class="lib-tag" href="../../../tags/#drivers">#drivers</a><a class="lib-tag" href="../../../tags/#sqlx">#sqlx</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>Rust's storage story is even flatter than
+<a href="../../../go/storage/storage/">Go's</a>: there is no <code>database/sql</code>, no JDBC — no stdlib
+abstraction of any kind. Every store is reached by a community or vendor crate
+speaking the wire protocol, and the layering decisions (pooling, mapping, query
+building) are made per store. The relational corner is where the ecosystem's
+signature idea lives: <strong>sqlx checks your SQL against the real database at compile
+time</strong> — a third position neither the JVM (runtime ORMs) nor Go (runtime <code>database/sql</code></p>
+<ul>
+<li>sqlc's offline codegen) occupies in quite the same way.</li>
+</ul>
+<h2>Key points</h2>
+<ul>
+<li><strong>No common abstraction — and no ORM culture</strong>: the relational spectrum runs
+tokio-postgres (raw) → sqlx (checked SQL) → sea-orm (async ORM) → diesel (DSL,
+compile-checked, sync-first); most teams stop at sqlx. SQL-in-the-open is the
+house aesthetic, same as Go's.</li>
+<li><strong>Pooling is explicit and per-crate</strong>: sqlx ships its own pool; raw drivers pair
+with <strong>deadpool</strong> or <strong>bb8</strong>; every non-relational client manages its own — the
+slot HikariCP fills once for the whole JVM is filled per store here.</li>
+<li><strong>Async by default, with cancellation semantics</strong>: every call is <code>.await</code> on Tokio,
+and dropping a future cancels the operation — the moral equivalent of Go's
+contexts, but implicit in the model; timeouts are <code>tokio::time::timeout</code> wrappers
+or pool/driver options.</li>
+<li><strong>Transactions are values with lifetimes</strong>: <code>pool.begin().await? → Transaction&lt;'_&gt;</code>
+passed explicitly; commit is a method, <strong>drop means rollback</strong> — the RAII twist on
+Go's explicit <code>*sql.Tx</code>, and the compiler prevents using a connection across a
+transaction's lifetime wrongly.</li>
+<li><strong>Mapping is derive-based everywhere</strong>: <code>#[derive(sqlx::FromRow)]</code>, serde for
+document stores, scylla's row derives — struct tags in Go, annotations in Java,
+derives here.</li>
+<li><strong>Testing is the same Testcontainers-shaped story</strong>: testcontainers-rs and
+<a href="../../../rust/testing/integration-testing/"><code>#[sqlx::test]</code></a> against real engines.</li>
+<li><strong>Rust is increasingly the <em>implementation</em> language of storage</strong>: ScyllaDB's
+shard-aware driver, SurrealDB, GreptimeDB, Qdrant, sled/redb embedded stores —
+which is why some of the client crates below are vendor-first-class.</li>
+</ul>
+<h2>Details</h2>
+<h3>The map, by storage kind</h3>
+<table>
+<thead>
+<tr>
+<th>Kind</th>
+<th>Canonical stores</th>
+<th>Driver / client</th>
+<th>Query &amp; mapping layer</th>
+<th>Deep dive</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Relational</td>
+<td>PostgreSQL, MySQL, SQLite</td>
+<td>sqlx (any), tokio-postgres, rusqlite</td>
+<td>sqlx macros, sea-orm, diesel; sea-query/refinery/sqlx-migrate</td>
+<td><a href="../../../rust/storage/relational-databases/">Relational databases</a></td>
+</tr>
+<tr>
+<td>Key-value</td>
+<td>Redis, Valkey</td>
+<td>redis-rs (<code>redis</code>), fred</td>
+<td>none — commands are the API</td>
+<td><a href="../../../rust/storage/redis/">Redis from Rust</a></td>
+</tr>
+<tr>
+<td>Document / NoSQL</td>
+<td>MongoDB, Cassandra/ScyllaDB, DynamoDB</td>
+<td>mongodb (official), scylla (official), aws-sdk-dynamodb + serde_dynamo</td>
+<td>serde/bson derives</td>
+<td><a href="../../../rust/storage/document-and-nosql/">Document and NoSQL stores</a></td>
+</tr>
+<tr>
+<td>Time series</td>
+<td>Prometheus, InfluxDB, TimescaleDB/QuestDB</td>
+<td>prometheus-client (exposition), influxdb2, sqlx/tokio-postgres (PG wire)</td>
+<td>metrics facade + exporters</td>
+<td><a href="../../../rust/storage/time-series/">Time-series stores</a></td>
+</tr>
+<tr>
+<td>Graph</td>
+<td>Neo4j, Gremlin stores, RDF</td>
+<td>neo4rs, gremlin-client, oxigraph (embedded)</td>
+<td>Cypher/Gremlin/SPARQL strings</td>
+<td><a href="../../../rust/storage/graph-databases/">Graph databases</a></td>
+</tr>
+<tr>
+<td>Search</td>
+<td>Elasticsearch, OpenSearch, Meilisearch</td>
+<td>elasticsearch-rs, opensearch-rs, meilisearch-sdk; tantivy (embedded engine)</td>
+<td>JSON DSL / typed builders</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Object storage</td>
+<td>S3, MinIO, GCS</td>
+<td>aws-sdk-s3, object_store (uniform multi-cloud API)</td>
+<td>none — streams and keys</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Embedded</td>
+<td>—</td>
+<td>sled, redb, rocksdb bindings, rusqlite</td>
+<td>native APIs</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h3>Choosing an entry point</h3>
+<ul>
+<li>Connectivity, pool exhaustion, timeouts → the driver/pool layer; nothing above it
+hides the problem.</li>
+<li>Query-heavy relational work → settle the <strong>sqlx vs sea-orm vs diesel</strong> question
+early; it shapes the whole repository layer — the criteria live in the
+<a href="../../../rust/storage/relational-databases/">relational deep dive</a>.</li>
+<li>The handler layer calling all of this is
+<a href="../../../rust/web-frameworks/web-frameworks/">the web-framework question</a>, and barely
+interacts with the storage choice — same separation as in Go.</li>
+</ul>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../rust/storage/relational-databases/">Relational databases from Rust</a> — sqlx,
+diesel, sea-orm and the checked-SQL idea.</li>
+<li><a href="../../../rust/storage/redis/">Redis from Rust</a> — redis-rs, fred, and the cache patterns.</li>
+<li><a href="../../../rust/storage/document-and-nosql/">Document and NoSQL stores from Rust</a> —
+mongodb, scylla, DynamoDB.</li>
+<li><a href="../../../rust/storage/time-series/">Time-series stores from Rust</a> — Prometheus
+exposition and the client paths.</li>
+<li><a href="../../../rust/storage/graph-databases/">Graph databases from Rust</a> — neo4rs and kin.</li>
+<li><a href="../../../data-storage/databases-and-storage-systems/">Databases and other storage systems</a> —
+the store-side internals behind every row.</li>
+<li><a href="../../../java/storage/storage/">Storage access from Java — the map</a> — the three managed
+layers this ecosystem declines.</li>
+<li><a href="../../../go/storage/storage/">Storage access from Go — the map</a> — the nearest
+neighbour, with a stdlib floor Rust doesn't have.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>
