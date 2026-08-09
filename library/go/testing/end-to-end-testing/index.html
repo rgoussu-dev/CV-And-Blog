@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>End-to-end testing — API clients, browsers, contracts — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/go/testing</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../go/">go</a><span class="tok-path">/</span><span class="tok-path">testing</span> <span class="tok-cmd">cat</span> <span class="tok-file">end-to-end-testing</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">End-to-end testing — API clients, browsers, contracts</h1>
+        <p class="lib-lede"><span class="tok-comment"># Go end-to-end testing — API-level E2E with plain net/http, browser automation via playwright-go/rod/chromedp, pact-go contracts, and flakiness discipline.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#go">#go</a><a class="lib-tag" href="../../../tags/#testing">#testing</a><a class="lib-tag" href="../../../tags/#e2e">#e2e</a><a class="lib-tag" href="../../../tags/#contracts">#contracts</a><a class="lib-tag" href="../../../tags/#automation">#automation</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>End-to-end tests exercise the deployed system through its public surface — HTTP API,
+browser UI, or both — with real infrastructure underneath. Go needs less specialist
+tooling here than the JVM: a plain <code>net/http</code> client plus <code>encoding/json</code> is a perfectly
+good API-testing DSL, so there is no REST-Assured to learn. The genuinely third-party
+parts are browser automation (playwright-go, rod, chromedp) and consumer-driven contracts
+(pact-go), which trade breadth of E2E for precision and speed.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>API E2E is plain <code>net/http</code></strong>: build a tiny typed client helper per suite (do-request,
+decode, assert status) and the tests read as well as any DSL — see the example.</li>
+<li><strong>E2E tests are still <code>go test</code></strong>: same runner, same <code>-run</code> filtering, same CI wiring;
+point the suite at a base URL from the environment.</li>
+<li><strong>Browser automation options</strong>: <code>playwright-go</code> (bindings to the Playwright driver —
+auto-waiting, tracing, multi-browser), <code>go-rod/rod</code> (pure-Go DevTools protocol, no
+Node dependency), <code>chromedp</code> (the veteran DevTools library, Chrome-only). Playwright for
+feature breadth, rod for a Go-native dependency graph.</li>
+<li><strong>Contract testing with pact-go</strong>: consumer tests generate a pact file; the provider
+verifies it in its own CI. Catches integration breakage without a shared environment —
+prefer it to broad cross-service E2E.</li>
+<li><strong>Environment management</strong>: <code>docker compose up</code> for service+dependencies suites
+(testcontainers-go can drive compose files too); <code>kind</code> for applications whose contract
+includes Kubernetes manifests — spin a real cluster in CI, <code>kubectl apply</code>, test.</li>
+<li><strong>Keep the true-E2E layer thin</strong>: a smoke suite over deployed environments; everything
+that <em>can</em> move down to integration or contract level should.</li>
+<li><strong>Flakiness is the tax</strong>: E2E suites die by nondeterminism, not by missing coverage —
+budget discipline for it from day one.</li>
+</ul>
+<h2>Details</h2>
+<h3>Flakiness discipline</h3>
+<ul>
+<li><strong>Poll, never sleep</strong>: replace <code>time.Sleep</code> with eventually-style polling —
+<code>require.Eventually(t, cond, 10*time.Second, 100*time.Millisecond)</code> from testify, or a
+hand-rolled ticker loop. Asynchronous effects (queue consumption, cache warmup) become
+bounded waits instead of races.</li>
+<li><strong><code>t.Parallel</code> hazards</strong>: parallel E2E tests sharing one deployed environment collide on
+data (same user, same order IDs) and on rate limits. Either namespace all data per test
+(unique IDs, per-test tenants) or keep the E2E suite serial — a slow green suite beats a
+fast flaky one.</li>
+<li><strong>Own your test data</strong>: create what you assert on inside the test; never depend on
+seeded state that another test (or run) can mutate.</li>
+<li><strong>Deadlines everywhere</strong>: <code>context.WithTimeout</code> on every request so a wedged environment
+fails the test in seconds, not after the CI job timeout.</li>
+<li><strong>Quarantine, don't retry blindly</strong>: automatic retries hide real races; tag known-flaky
+tests, track them, fix or delete.</li>
+</ul>
+<h3>Choosing the E2E surface</h3>
+<table>
+<thead>
+<tr>
+<th>Surface</th>
+<th>Tool</th>
+<th>Use when</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HTTP API</td>
+<td><code>net/http</code> + JSON helpers</td>
+<td>Always the first choice — fastest, most debuggable</td>
+</tr>
+<tr>
+<td>Browser UI</td>
+<td>playwright-go / rod / chromedp</td>
+<td>The UI logic itself is the deliverable</td>
+</tr>
+<tr>
+<td>Cross-service contract</td>
+<td>pact-go</td>
+<td>Two teams, two deploy cadences, one interface</td>
+</tr>
+<tr>
+<td>Full stack in CI</td>
+<td>docker compose / kind</td>
+<td>Deployment topology is part of what you verify</td>
+</tr>
+</tbody>
+</table>
+<h2>Examples</h2>
+<pre><code class="language-go">// A ten-line client helper replaces an API-testing DSL.
+func postJSON[T any](t *testing.T, url string, body any) (int, T) {
+    t.Helper()
+    var out T
+    buf, _ := json.Marshal(body)
+    ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+    defer cancel()
+    req, _ := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(buf))
+    req.Header.Set(&quot;Content-Type&quot;, &quot;application/json&quot;)
+    resp, err := http.DefaultClient.Do(req)
+    if err != nil {
+        t.Fatalf(&quot;POST %s: %v&quot;, url, err)
+    }
+    defer resp.Body.Close()
+    _ = json.NewDecoder(resp.Body).Decode(&amp;out)
+    return resp.StatusCode, out
+}
+
+func TestOrderLifecycle(t *testing.T) {
+    base := os.Getenv(&quot;E2E_BASE_URL&quot;)
+    status, order := postJSON[Order](t, base+&quot;/orders&quot;, map[string]any{&quot;sku&quot;: &quot;A-1&quot;})
+    if status != http.StatusCreated {
+        t.Fatalf(&quot;create: status %d&quot;, status)
+    }
+    require.Eventually(t, func() bool {
+        st, o := getJSON[Order](t, base+&quot;/orders/&quot;+order.ID)
+        return st == 200 &amp;&amp; o.State == &quot;confirmed&quot;
+    }, 15*time.Second, 200*time.Millisecond, &quot;order never confirmed&quot;)
+}
+</code></pre>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../go/testing/testing/">Testing in Go — strategies &amp; tooling map</a> — parent map of the strategy portfolio.</li>
+<li><a href="../../../go/testing/integration-testing/">Integration testing</a> — the boundary below: real dependencies without full deployment.</li>
+<li><a href="../../../go/protocols/rest/">REST in Go</a> — the API style these suites drive from the outside.</li>
+<li><a href="../../../java/testing/end-to-end-testing/">End-to-end testing in Java</a> — REST Assured/Selenium land, for contrast.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

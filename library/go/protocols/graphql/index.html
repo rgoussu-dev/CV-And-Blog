@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>GraphQL in Go — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/go/protocols</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../go/">go</a><span class="tok-path">/</span><span class="tok-path">protocols</span> <span class="tok-cmd">cat</span> <span class="tok-file">graphql</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">GraphQL in Go</h1>
+        <p class="lib-lede"><span class="tok-comment"># gqlgen's schema-first codegen as the de-facto GraphQL stack, the runtime-first alternatives, dataloaders, subscriptions and federation.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#go">#go</a><a class="lib-tag" href="../../../tags/#protocols">#protocols</a><a class="lib-tag" href="../../../tags/#graphql">#graphql</a><a class="lib-tag" href="../../../tags/#api-design">#api-design</a><a class="lib-tag" href="../../../tags/#codegen">#codegen</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>GraphQL never had a stdlib story in Go, and the community converged on gqlgen
+(99designs/gqlgen): write the SDL schema, run the generator, implement typed resolver
+methods. That schema-first, codegen-heavy approach is very Go — no reflection magic, the
+generated code is plain readable Go, and the compiler catches schema/resolver drift. The
+older runtime-first libraries survive as alternatives, but new services overwhelmingly
+start with gqlgen.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>gqlgen</strong> is the de-facto choice: schema-first, <code>go run github.com/99designs/gqlgen generate</code> emits models + resolver interfaces, you fill in resolver bodies; type-safe end
+to end, plugin system for customisation, binds schema types to your own Go models via
+<code>gqlgen.yml</code>.</li>
+<li><strong>graphql-go/graphql</strong>: runtime-first — build the schema as Go values
+(<code>graphql.NewObject{...}</code>), resolvers are untyped <code>func(p ResolveParams) (interface{}, error)</code>. Flexible, no codegen step, but you lose compile-time safety and the
+schema-as-artifact.</li>
+<li><strong>graph-gophers/graphql-go</strong>: middle ground — SDL string parsed at startup, resolvers
+matched to Go methods by reflection; typed-ish without a generate step.</li>
+<li><strong>N+1</strong>: solved with dataloaders — batch and cache per-request. vikstrous/dataloadgen
+(successor to gqlgen's dataloaden) generates typed loaders; graph-gophers/dataloader is
+the generic runtime version. Wire one loader set into the request context per request,
+never globally.</li>
+<li><strong>Subscriptions</strong>: gqlgen supports them over WebSockets (graphql-ws / graphql-transport-ws
+protocols) — a resolver returns a channel, gqlgen pumps it to the socket; scaling
+concerns are the WebSocket ones (see the WebSockets note).</li>
+<li><strong>Federation</strong>: gqlgen ships an Apollo Federation v1/v2 plugin (<code>@key</code>, entity
+resolvers), so Go services slot into a federated supergraph alongside JVM/Node subgraphs.</li>
+<li><strong>Worth it when</strong>: many client shapes over shared data, a BFF aggregating several
+backends, or mobile clients needing to trim payloads. Not worth it for
+service-to-service calls (use gRPC) or a single-consumer CRUD API (REST is less
+machinery).</li>
+</ul>
+<h2>Details</h2>
+<h3>Library comparison</h3>
+<table>
+<thead>
+<tr>
+<th>Library</th>
+<th>Style</th>
+<th>Type safety</th>
+<th>Codegen</th>
+<th>Federation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>gqlgen</td>
+<td>Schema-first</td>
+<td>Full (generated interfaces)</td>
+<td>Yes</td>
+<td>Yes (plugin)</td>
+</tr>
+<tr>
+<td>graphql-go/graphql</td>
+<td>Code-as-schema, runtime</td>
+<td>None (interface{})</td>
+<td>No</td>
+<td>No</td>
+</tr>
+<tr>
+<td>graph-gophers/graphql-go</td>
+<td>SDL + reflection binding</td>
+<td>Partial (startup check)</td>
+<td>No</td>
+<td>Community forks</td>
+</tr>
+</tbody>
+</table>
+<h3>The gqlgen loop</h3>
+<p><code>gqlgen init</code> scaffolds <code>gqlgen.yml</code>, <code>schema.graphqls</code> and a server; each schema change
+is: edit SDL → <code>generate</code> → implement the new resolver stubs. Field resolvers are only
+generated where a model field is missing or marked <code>@goField(forceResolver: true)</code> —
+everything else binds directly to struct fields, so trivial fields cost nothing. The
+generated <code>ExecutableSchema</code> mounts as an ordinary <code>http.Handler</code>, so chi/otelhttp
+middleware apply unchanged.</p>
+<h3>Performance notes</h3>
+<p>GraphQL's flexibility invites expensive queries: bound them with gqlgen's built-in
+complexity limits (<code>extension.FixedComplexityLimit</code>), APQ (automatic persisted queries)
+for mobile bandwidth, and per-resolver tracing (gqlgen's OpenTelemetry extension) to find
+the resolver actually causing the N+1 before reaching for a loader.</p>
+<h2>Examples</h2>
+<pre><code class="language-go">// Resolver implementing the generated interface; loader from request context.
+func (r *queryResolver) Order(ctx context.Context, id string) (*model.Order, error) {
+    return loaders.From(ctx).OrderByID.Load(ctx, id)
+}
+
+// Subscription resolver: return a channel, gqlgen handles the transport.
+func (r *subscriptionResolver) OrderUpdated(ctx context.Context, id string) (&lt;-chan *model.Order, error) {
+    ch := r.bus.Subscribe(ctx, id) // closed when ctx is cancelled
+    return ch, nil
+}
+</code></pre>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../go/protocols/protocols/">Backend protocols in Go — the map</a> — parent map; where GraphQL sits among the options.</li>
+<li><a href="../../../go/protocols/rest/">REST &amp; HTTP APIs in Go</a> — the default it must beat; both mount as <code>http.Handler</code>.</li>
+<li><a href="../../../system-design/api-design/">API design</a> — the query-language vs resource-model trade-off in the abstract.</li>
+<li><a href="../../../java/protocols/graphql/">GraphQL on the JVM</a> — the contrast: graphql-java under Spring/SmallRye annotations vs gqlgen's explicit codegen.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

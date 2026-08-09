@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Go web frameworks — the landscape — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/go/web-frameworks</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../go/">go</a><span class="tok-path">/</span><span class="tok-path">web-frameworks</span> <span class="tok-cmd">cat</span> <span class="tok-file">web-frameworks</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Go web frameworks — the landscape</h1>
+        <p class="lib-lede"><span class="tok-comment"># How Go's stdlib-first web culture shapes the field — net/http, thin routers like chi, full frameworks Gin and Echo, and the fasthttp outlier Fiber.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#go">#go</a><a class="lib-tag" href="../../../tags/#frameworks">#frameworks</a><a class="lib-tag" href="../../../tags/#web">#web</a><a class="lib-tag" href="../../../tags/#http">#http</a><a class="lib-tag" href="../../../tags/#gin">#gin</a><a class="lib-tag" href="../../../tags/#echo">#echo</a><a class="lib-tag" href="../../../tags/#fiber">#fiber</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>Go's web ecosystem is the inverse of the JVM's: the standard library is the framework.
+<code>net/http</code> ships a production-grade server, client, and router, and since Go 1.22 the
+enhanced <code>ServeMux</code> (method matching plus <code>{wildcard}</code> path patterns) erased much of the
+reason third-party routers existed. What remains stratifies into three tiers: <strong>thin
+routers</strong> (chi, gorilla/mux, httprouter) that add ergonomics on top of the stdlib
+<code>http.Handler</code> contract; <strong>full frameworks</strong> (Gin, Echo) that trade that contract for a
+richer context object, binding, and rendering; and <strong>Fiber</strong>, the deliberate outlier that
+abandons <code>net/http</code> entirely for fasthttp in pursuit of raw throughput.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>net/http is the baseline</strong>, not a toy: sane concurrency (goroutine per connection),
+HTTP/2, graceful shutdown. Many production services need nothing else.</li>
+<li><strong>Go 1.22 ServeMux</strong>: <code>mux.Handle(&quot;GET /items/{id}&quot;, h)</code> — method routing, wildcards,
+<code>{path...}</code> remainders, and most-specific-wins precedence, all in the stdlib.</li>
+<li><strong>chi</strong> is the idiomatic thin router: 100% <code>http.Handler</code>/<code>http.HandlerFunc</code>, middleware
+as plain <code>func(http.Handler) http.Handler</code>, sub-routers, zero lock-in.</li>
+<li><strong>gorilla/mux</strong>: the historical default; archived in December 2022, revived under new
+maintainers in 2023 — a cautionary tale about depending on single-maintainer routers.</li>
+<li><strong>httprouter</strong>: the radix-tree speed pioneer (its router lives on inside Gin); its own
+handler signature makes it less stdlib-composable.</li>
+<li><strong>Gin</strong> and <strong>Echo</strong> occupy the same niche: batteries included — binding, validation
+(go-playground/validator), render helpers, big middleware catalogues — behind their own
+<code>Context</code> type, while remaining <code>ServeHTTP</code>-compatible at the outer edge.</li>
+<li><strong>Fiber</strong> swaps <code>net/http</code> for fasthttp: Express-like API and top benchmark numbers, at
+the cost of <code>http.Handler</code> interop and a recycled context that forbids retaining
+references.</li>
+<li><strong>Default advice</strong>: start stdlib (+ chi if route trees get deep); reach for Gin/Echo when
+the team wants conventions; reach for Fiber only with a measured throughput case.</li>
+</ul>
+<h2>Details</h2>
+<h3>Comparison</h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>net/http (1.22+)</th>
+<th>chi</th>
+<th>Gin</th>
+<th>Echo</th>
+<th>Fiber</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Stdlib compatibility</strong></td>
+<td>Is the stdlib</td>
+<td>Pure <code>http.Handler</code> throughout</td>
+<td>Own <code>gin.Context</code>; engine is <code>ServeHTTP</code>-compatible</td>
+<td>Own <code>echo.Context</code>; ships <code>WrapHandler</code>/<code>WrapMiddleware</code> adapters</td>
+<td>None — fasthttp; <code>adaptor</code> shim only</td>
+</tr>
+<tr>
+<td><strong>Router features</strong></td>
+<td>Method + <code>{wildcard}</code>/<code>{path...}</code> patterns, precedence rules</td>
+<td>Same contract + sub-routers, mounting, route groups</td>
+<td>Radix tree (httprouter lineage), groups, param routes</td>
+<td>Radix tree, groups, param routes</td>
+<td>Radix tree, Express-style <code>:param</code></td>
+</tr>
+<tr>
+<td><strong>Middleware model</strong></td>
+<td>Decorator: <code>func(http.Handler) http.Handler</code></td>
+<td>Stdlib decorators + curated <code>chi/middleware</code> set</td>
+<td><code>gin.HandlerFunc</code> chain with <code>c.Next()</code>/<code>c.Abort()</code></td>
+<td><code>echo.MiddlewareFunc</code> chain + stdlib adapters</td>
+<td><code>fiber.Handler</code> chain with <code>c.Next()</code></td>
+</tr>
+<tr>
+<td><strong>Binding / validation</strong></td>
+<td>Manual (<code>encoding/json</code> + your own checks)</td>
+<td>Manual (bring your own)</td>
+<td><code>ShouldBind*</code> + go-playground/validator built in</td>
+<td><code>Bind</code> + pluggable <code>Validator</code> hook</td>
+<td><code>BodyParser</code> + bring your own validator</td>
+</tr>
+<tr>
+<td><strong>Performance posture</strong></td>
+<td>Fast enough for almost everything</td>
+<td>Negligible overhead over stdlib</td>
+<td>Low-alloc routing; marketing leans on benchmarks</td>
+<td>Comparable to Gin</td>
+<td>Fastest in micro-benchmarks (fasthttp, zero-alloc claims)</td>
+</tr>
+<tr>
+<td><strong>Sweet spot</strong></td>
+<td>Default choice; small services, full control</td>
+<td>REST APIs with deep route trees, stdlib purists</td>
+<td>Teams wanting Rails-ish conventions fast</td>
+<td>Same as Gin, tidier error handling</td>
+<td>Extreme-throughput micro-services that accept the trade</td>
+</tr>
+</tbody>
+</table>
+<h3>Contrast with the JVM</h3>
+<p>The <a href="../../../java/frameworks/frameworks/">Java framework landscape</a> is framework-centric because
+the JDK offers no batteries: no production HTTP server story equivalent to <code>net/http</code>, so
+Spring, Quarkus and Micronaut each supply DI, configuration, and the server itself, and the
+interesting question becomes which <em>specification</em> (Jakarta EE, MicroProfile) each one
+implements. In Go the stdlib interfaces play the role of those specs — <code>http.Handler</code> is
+the contract, and frameworks are judged by whether they honor or replace it. That question
+gets its own note: <a href="../../../go/web-frameworks/stdlib-correspondence/">who honors what</a>.</p>
+<p>Deep dives: <a href="../../../go/web-frameworks/net-http/">net/http</a>, <a href="../../../go/web-frameworks/gin/">Gin</a>,
+<a href="../../../go/web-frameworks/echo/">Echo</a>, <a href="../../../go/web-frameworks/fiber/">Fiber</a>.</p>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../go/web-frameworks/net-http/">net/http deep dive</a> — the stdlib server everything else is measured against.</li>
+<li><a href="../../../go/web-frameworks/gin/">Gin deep dive</a> — the most popular full framework.</li>
+<li><a href="../../../go/web-frameworks/echo/">Echo deep dive</a> — Gin's closest rival, centralized error handling.</li>
+<li><a href="../../../go/web-frameworks/fiber/">Fiber deep dive</a> — the fasthttp outlier and its trade-offs.</li>
+<li><a href="../../../go/web-frameworks/stdlib-correspondence/">Frameworks × the stdlib contracts</a> — who honors which stdlib interface.</li>
+<li><a href="../../../go/go-deep-dive/">Deep dive Go</a> — parent theme note; the language these frameworks build on.</li>
+<li><a href="../../../java/frameworks/frameworks/">Java application frameworks — the landscape</a> — the framework-centric mirror image on the JVM.</li>
+<li><a href="../../../system-design/microservice-architecture/">Microservice architecture</a> — the architectural style most of these services implement.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

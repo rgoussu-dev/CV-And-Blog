@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Integration testing — httptest, testcontainers-go, real databases — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/go/testing</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../go/">go</a><span class="tok-path">/</span><span class="tok-path">testing</span> <span class="tok-cmd">cat</span> <span class="tok-file">integration-testing</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Integration testing — httptest, testcontainers-go, real databases</h1>
+        <p class="lib-lede"><span class="tok-comment"># Go integration testing — httptest.Server for real HTTP in-process, testcontainers-go and dockertest for real dependencies, suite segregation and DB patterns.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#go">#go</a><a class="lib-tag" href="../../../tags/#testing">#testing</a><a class="lib-tag" href="../../../tags/#httptest">#httptest</a><a class="lib-tag" href="../../../tags/#testcontainers">#testcontainers</a><a class="lib-tag" href="../../../tags/#storage">#storage</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>Integration tests exercise your code against real collaborators — a real HTTP stack, a
+real Postgres, a real Kafka. Go lowers the cost of the first dramatically:
+<code>net/http/httptest</code> starts your actual handlers on a real socket in-process, so
+HTTP-boundary tests run in milliseconds with no container at all. For everything that
+genuinely needs an external engine, testcontainers-go (or the lighter dockertest) starts
+throwaway Docker containers from the test binary itself, keeping the suite one
+<code>go test ./...</code> away.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong><code>httptest.Server</code> is the killer feature</strong>: <code>httptest.NewServer(handler)</code> binds your
+real mux/middleware/handlers to <code>127.0.0.1:0</code> and gives you a base URL; the client side
+is a plain <code>http.Client</code>. Real serialization, real status codes, no mocked transport.</li>
+<li><strong><code>httptest.NewRecorder</code></strong> is the even cheaper variant: invoke a handler directly with a
+<code>ResponseRecorder</code> when you don't need a socket — good for handler-only units.</li>
+<li><strong>testcontainers-go</strong> starts containers programmatically; its modules
+(<code>modules/postgres</code>, <code>modules/kafka</code>, <code>modules/redis</code>, …) encapsulate images, wait
+strategies and connection-string plumbing.</li>
+<li><strong>Ryuk, the reaper</strong>: testcontainers runs a sidecar that garbage-collects containers,
+networks and volumes even when the test process dies — the reason orphaned containers
+are rare. Disable (<code>TESTCONTAINERS_RYUK_DISABLED</code>) only in locked-down CI with its own
+cleanup.</li>
+<li><strong>dockertest</strong> (<code>ory/dockertest</code>) is the lighter alternative: talk to the Docker daemon,
+run an image, poll with <code>pool.Retry</code> until ready. Fewer batteries, fewer abstractions.</li>
+<li><strong>Segregate the slow suite</strong>: <code>testing.Short()</code> + <code>go test -short</code> to skip, or a build
+tag (<code>//go:build integration</code>) so integration files don't even compile into the default
+run. Pick one convention per repo.</li>
+<li><strong>One container per package, not per test</strong>: start shared infrastructure in <code>TestMain</code>,
+keep per-test isolation at the data layer.</li>
+<li><strong>Coverage across binaries</strong>: since Go 1.20, build with <code>go build -cover</code> and set
+<code>GOCOVERDIR</code> to collect coverage from an integration-tested <em>binary</em>, then merge with
+<code>go tool covdata</code> — see <a href="../../../go/toolchain/go-tool-cover/">go tool cover</a>.</li>
+</ul>
+<h2>Details</h2>
+<h3>Database test patterns</h3>
+<ul>
+<li><strong>Migrations in <code>TestMain</code></strong>: run <code>golang-migrate</code> or <code>pressly/goose</code> against the fresh
+container before any test — the schema under test is the schema you ship. Both tools
+embed cleanly (<code>iofs</code> source / <code>embed.FS</code>).</li>
+<li><strong>Per-test transaction rollback</strong>: open a tx per test, hand it to the code under test,
+roll back in <code>t.Cleanup</code>. Fast and perfectly isolated — but useless when the code under
+test manages its own transactions.</li>
+<li><strong>Truncate between tests</strong>: <code>TRUNCATE ... RESTART IDENTITY CASCADE</code> in cleanup. Slower,
+but honest about transaction boundaries; the default for repository-layer tests.</li>
+<li><strong>Parallelism</strong>: either one database per <code>t.Parallel</code> test (cheap with <code>CREATE DATABASE</code>) or accept serial execution for the DB suite; sharing one schema across
+parallel tests is the classic flake source.</li>
+</ul>
+<h3>httptest vs containers — choosing</h3>
+<table>
+<thead>
+<tr>
+<th>Boundary</th>
+<th>Tool</th>
+<th>Cost</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Your HTTP API</td>
+<td><code>httptest.Server</code> around your real router</td>
+<td>Milliseconds, in-process</td>
+</tr>
+<tr>
+<td>A downstream HTTP service</td>
+<td><code>httptest.Server</code> serving canned/asserting handlers</td>
+<td>Milliseconds — stdlib WireMock</td>
+</tr>
+<tr>
+<td>SQL database</td>
+<td>testcontainers-go <code>modules/postgres</code></td>
+<td>Seconds to start, shared per package</td>
+</tr>
+<tr>
+<td>Kafka / brokers</td>
+<td>testcontainers-go <code>modules/kafka</code></td>
+<td>Seconds; prefer contract or fake for pure logic</td>
+</tr>
+</tbody>
+</table>
+<h2>Examples</h2>
+<pre><code class="language-go">func TestMain(m *testing.M) { os.Exit(run(m)) }
+
+func run(m *testing.M) int {
+    ctx := context.Background()
+    pg, err := postgres.Run(ctx, &quot;postgres:16-alpine&quot;,
+        postgres.WithDatabase(&quot;app_test&quot;),
+        testcontainers.WithWaitStrategy(wait.ForListeningPort(&quot;5432/tcp&quot;)),
+    )
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer pg.Terminate(ctx)
+
+    dsn, _ := pg.ConnectionString(ctx, &quot;sslmode=disable&quot;)
+    if err := migrateUp(dsn); err != nil { // golang-migrate against the container
+        log.Fatal(err)
+    }
+    os.Setenv(&quot;TEST_DATABASE_URL&quot;, dsn)
+    return m.Run()
+}
+
+func TestCreateOrderEndpoint(t *testing.T) {
+    srv := httptest.NewServer(api.NewRouter(mustOpenDB(t)))
+    t.Cleanup(srv.Close)
+
+    resp, err := http.Post(srv.URL+&quot;/orders&quot;, &quot;application/json&quot;,
+        strings.NewReader(`{&quot;sku&quot;:&quot;A-1&quot;,&quot;qty&quot;:2}`))
+    if err != nil {
+        t.Fatal(err)
+    }
+    defer resp.Body.Close()
+    if resp.StatusCode != http.StatusCreated {
+        t.Fatalf(&quot;status = %d, want 201&quot;, resp.StatusCode)
+    }
+}
+</code></pre>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../go/testing/testing/">Testing in Go — strategies &amp; tooling map</a> — parent map of the strategy portfolio.</li>
+<li><a href="../../../go/testing/end-to-end-testing/">End-to-end testing</a> — the next boundary out: the deployed system.</li>
+<li><a href="../../../go/toolchain/go-tool-cover/">go tool cover</a> — GOCOVERDIR and merging coverage from integration binaries.</li>
+<li><a href="../../../go/storage/relational-databases/">Relational databases in Go</a> — the drivers and query layers these tests exercise.</li>
+<li><a href="../../../java/testing/integration-testing/">Integration testing in Java</a> — Testcontainers' home turf, for contrast.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

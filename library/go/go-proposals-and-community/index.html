@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>How Go evolves — the proposal process &amp; community — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../assets/styles.css" />
+  <link rel="stylesheet" href="../../assets/theme.css" />
+</head>
+<body data-prefix="../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/go</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../">~/library</a><span class="tok-path">/</span><span class="tok-path">go</span> <span class="tok-cmd">cat</span> <span class="tok-file">go-proposals-and-community</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">How Go evolves — the proposal process &amp; community</h1>
+        <p class="lib-lede"><span class="tok-comment"># Go's governance and proposal pipeline, the Go 1 compatibility promise, release cadence, and the community organs around them.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../tags/#go">#go</a><a class="lib-tag" href="../../tags/#governance">#governance</a><a class="lib-tag" href="../../tags/#proposals">#proposals</a><a class="lib-tag" href="../../tags/#releases">#releases</a><a class="lib-tag" href="../../tags/#community">#community</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>Go evolves through an open proposal process run by a core team employed at Google — a
+different trust model from OpenJDK's multi-vendor committer body (contrast
+<a href="../../java/openjdk-and-the-jep-process/">OpenJDK &amp; the JEP process</a>): the discussion is
+public and anyone can file a proposal, but final say rests with a small team funded by one
+company. What makes the arrangement work is the Go 1 compatibility promise — the team's
+standing commitment that code written for Go 1 keeps compiling and running — which turns
+every change discussion into a question of how to improve the language <em>without</em> breaking
+its ecosystem.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>Governance</strong>: the core team (compiler, runtime, tools, libraries) is Google-employed;
+proposal review is public but decisions are the team's, not a vote or a vendor
+consortium. Legibility comes from process transparency, not distributed authority.</li>
+<li><strong>The proposal process</strong>: any significant change starts as a <code>proposal:</code> issue on
+<a href="https://github.com/golang/go" rel="noopener">golang/go</a>; the proposal review group publishes weekly
+minutes; larger changes get a design doc in the
+<a href="https://github.com/golang/proposal" rel="noopener">golang/proposal</a> repository. Issues move through
+<em>active</em> → <em>likely accept</em> / <em>likely decline</em> (a final comment window) → accepted or
+declined.</li>
+<li><strong>The Go 1 compatibility promise</strong> (2012) is the bedrock: programs written to the Go 1
+spec keep working across releases. It covers language and stdlib API, not
+unspecified behaviour — but the team treats even behavioural regressions seriously.</li>
+<li><strong>GODEBUG as the escape hatch</strong>: behaviour changes ship guarded by <code>GODEBUG</code> settings;
+Go 1.21 formalised this — defaults are keyed to the <code>go</code> directive in <code>go.mod</code>, so
+updating the toolchain never silently changes behaviour until the module opts in, and
+old behaviour stays reachable for a documented window.</li>
+<li><strong>Cadence</strong>: a feature release every six months (February and August), with only the
+two most recent releases supported. There is <strong>no LTS</strong> — the compatibility promise is
+meant to make staying current cheap, where Java outsources that cost to vendor LTS
+lines (8/11/17/21…).</li>
+<li><strong>How big changes land — generics</strong>: a decade of design docs (2010s drafts, the 2018
+&quot;contracts&quot; proposal, the 2020 type-parameters redesign) before shipping in 1.18 —
+deliberately modest in final form. The process favours long soak over release-train
+deadlines.</li>
+<li><strong>How careful breaks land — the loop-variable change</strong>: per-iteration <code>for</code> variables
+shipped as a <code>GOEXPERIMENT</code> in 1.21, then became default in 1.22 <em>gated on the module's
+<code>go</code> directive</em>, with <code>bisect</code> tooling to find affected code. This is now the template
+for compatibility-adjacent fixes.</li>
+<li><strong>The x/ repos</strong> (<code>golang.org/x/tools</code>, <code>x/net</code>, <code>x/crypto</code>, <code>x/exp</code>…): the staging
+ground — maintained by the Go team, versioned as ordinary modules, <em>outside</em> the
+compatibility promise; successful APIs graduate into the stdlib (<code>x/net/context</code> →
+<code>context</code>, <code>slices</code>/<code>maps</code> via <code>x/exp</code>).</li>
+</ul>
+<h2>Details</h2>
+<h3>Reading the process from outside</h3>
+<table>
+<thead>
+<tr>
+<th>Source</th>
+<th>What it gives</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>golang/go issues labelled <code>Proposal</code></td>
+<td>Every pending change, with the review group's state labels</td>
+</tr>
+<tr>
+<td>Weekly proposal-review minutes (a pinned golang/go issue)</td>
+<td>The decisions and the reasoning, batched</td>
+</tr>
+<tr>
+<td><a href="https://github.com/golang/proposal" rel="noopener">golang/proposal</a> design docs</td>
+<td>The full designs behind large changes</td>
+</tr>
+<tr>
+<td><a href="https://go.dev/blog" rel="noopener">go.dev/blog</a></td>
+<td>Official announcements and design retrospectives</td>
+</tr>
+<tr>
+<td>Release notes + <code>go.dev/doc/godebug</code></td>
+<td>What changed and which GODEBUG reverts it</td>
+</tr>
+</tbody>
+</table>
+<h3>Community organs</h3>
+<ul>
+<li><strong>Mailing lists</strong>: golang-nuts (users) and golang-dev (toolchain development) — the
+long-form record, though proposals largely moved to the issue tracker.</li>
+<li><strong>Gophers Slack</strong> (and its many channels) — the day-to-day community venue; invite is
+public.</li>
+<li><strong>GopherCon</strong> (plus regional editions) — the flagship conference; many design
+retrospectives land there first as talks.</li>
+<li><strong>The Go blog and Go wiki</strong> — the former for authoritative writing, the latter
+community-maintained.</li>
+</ul>
+<h3>Contrast with OpenJDK in one line each</h3>
+<ul>
+<li>Authority: one company's team vs multi-vendor committers/reviewers under Oracle's lead.</li>
+<li>Unit of change: proposal issue + design doc vs JEP.</li>
+<li>Cadence: 6-month, two-release support, no LTS vs 6-month with vendor LTS lines.</li>
+<li>Compatibility: one promise since 2012 + GODEBUG vs preview/incubator gating and
+multi-release soak.</li>
+</ul>
+<h2>Related</h2>
+<ul>
+<li><a href="../../go/go-deep-dive/">Deep dive Go</a> — the language this process shaped, notably its
+deliberate resistance to features.</li>
+<li><a href="../../java/openjdk-and-the-jep-process/">OpenJDK &amp; the JEP process</a> — the mirror-image
+governance note; same transparency goal, different trust model.</li>
+<li><a href="../../go/compilers-and-runtimes/compilers-and-runtimes/">Compilers &amp; runtimes</a> — where
+the spec ends and implementations (gc, gccgo, TinyGo) begin.</li>
+<li><a href="../../go/toolchain/toolchain/">The go command &amp; tool catalog</a> — toolchain-version
+management (<code>go</code>/<code>toolchain</code> directives) is how the cadence reaches your machine.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../assets/planks.js"></script>
+  <script src="../../assets/search.js" defer></script>
+</body>
+</html>

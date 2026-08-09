@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Graph databases from Go — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/go/storage</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../go/">go</a><span class="tok-path">/</span><span class="tok-path">storage</span> <span class="tok-cmd">cat</span> <span class="tok-file">graph-databases</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Graph databases from Go</h1>
+        <p class="lib-lede"><span class="tok-comment"># Neo4j's official driver and Cypher transaction functions, Gremlin via gremlin-go, Dgraph's dgo client, and when graph beats recursive SQL.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#go">#go</a><a class="lib-tag" href="../../../tags/#storage">#storage</a><a class="lib-tag" href="../../../tags/#graph">#graph</a><a class="lib-tag" href="../../../tags/#neo4j">#neo4j</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>Graph access from Go is query-strings-over-drivers: Cypher through the official Neo4j driver,
+Gremlin traversals through gremlin-go, DQL/GraphQL through Dgraph's dgo. There is no mapping
+layer of consequence — results come back as records and maps you unpack by hand — so the Go
+code stays thin and the modeling effort lives in the query language. Dgraph is the odd one
+out: a graph database written in Go itself, with a client that feels native rather than
+ported.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>Neo4j — neo4j-go-driver</strong> (<code>github.com/neo4j/neo4j-go-driver/v5/neo4j</code>): one long-lived
+<code>DriverWithContext</code> per application (it owns the connection pool), short-lived sessions per
+work unit. Bolt protocol, <code>neo4j://</code> routing URIs for clusters.</li>
+<li><strong>Transaction functions are the idiom</strong>: <code>session.ExecuteRead</code>/<code>ExecuteWrite</code> take a
+closure and retry it on transient cluster errors (leader switch, deadlock) — write the
+closure idempotently. <code>ExecuteQuery</code> is the one-shot convenience for single statements.</li>
+<li><strong>Results are records, not entities</strong>: <code>record.Get(&quot;n&quot;)</code> returns <code>neo4j.Node</code> with a
+<code>Props map[string]any</code> — you write the struct mapping; <code>neo4j.GetProperty[T]</code> helps with
+typed extraction. Parameters are always <code>$param</code> maps — never fmt.Sprintf Cypher.</li>
+<li><strong>Gremlin — gremlin-go</strong> (Apache TinkerPop's official Go GLV): build traversals in Go
+(<code>g.V().HasLabel(&quot;person&quot;).Out(&quot;knows&quot;)</code>) against any TinkerPop-enabled store — JanusGraph,
+Neptune, Cosmos DB Gremlin API. The traversal source connects over a websocket
+<code>DriverRemoteConnection</code>.</li>
+<li><strong>Dgraph — dgo</strong>: gRPC client for a Go-native distributed graph DB; queries in DQL
+(GraphQL-like), mutations as JSON or RDF N-Quads, <code>txn.Commit</code>/<code>Discard</code> for its
+transactional model. Dgraph also serves a spec-compliant GraphQL endpoint directly —
+sometimes no Go client code is needed at all.</li>
+<li><strong>When graph beats recursive SQL</strong>: multi-hop traversals of unpredictable depth
+(fraud rings, dependency chains, org charts, recommendations) where SQL needs recursive
+CTEs and each hop is another self-join. For one or two fixed hops on mostly tabular data,
+Postgres with a recursive CTE is simpler operationally — one store fewer.</li>
+<li><strong>Testing</strong>: testcontainers-go has a dedicated neo4j module (<code>modules/neo4j</code>) — spin the
+real store per test package; Gremlin code tests against a TinkerPop/Gremlin-server
+container; dgo against a Dgraph standalone image.</li>
+</ul>
+<h2>Details</h2>
+<h3>Client landscape</h3>
+<table>
+<thead>
+<tr>
+<th>Store</th>
+<th>Client</th>
+<th>Query language</th>
+<th>Transport</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Neo4j, Aura</td>
+<td>neo4j-go-driver v5</td>
+<td>Cypher</td>
+<td>Bolt</td>
+</tr>
+<tr>
+<td>JanusGraph, Neptune, Cosmos</td>
+<td>gremlin-go</td>
+<td>Gremlin traversals</td>
+<td>WebSocket</td>
+</tr>
+<tr>
+<td>Dgraph</td>
+<td>dgo (or plain GraphQL over HTTP)</td>
+<td>DQL / GraphQL</td>
+<td>gRPC</td>
+</tr>
+</tbody>
+</table>
+<h3>Neo4j session discipline</h3>
+<ul>
+<li>Sessions are cheap and not goroutine-safe: create per request/work unit, <code>defer session.Close(ctx)</code>. The driver instance is the expensive, share-me object.</li>
+<li>Causal consistency across sessions: pass bookmarks (<code>session.LastBookmarks()</code>) into the
+next session's config when a read must observe a prior write on a cluster.</li>
+<li>Everything takes <code>ctx</code> — traversal timeouts are your context deadlines, same as every
+other Go client.</li>
+</ul>
+<h2>Examples</h2>
+<pre><code class="language-go">driver, _ := neo4j.NewDriverWithContext(uri, neo4j.BasicAuth(user, pass, &quot;&quot;))
+defer driver.Close(ctx)
+
+session := driver.NewSession(ctx, neo4j.SessionConfig{})
+defer session.Close(ctx)
+
+// Retryable write transaction: create a follows edge
+_, err := session.ExecuteWrite(ctx,
+    func(tx neo4j.ManagedTransaction) (any, error) {
+        _, err := tx.Run(ctx,
+            `MATCH (a:User {id: $from}), (b:User {id: $to})
+             MERGE (a)-[:FOLLOWS {since: date()}]-&gt;(b)`,
+            map[string]any{&quot;from&quot;: fromID, &quot;to&quot;: toID})
+        return nil, err
+    })
+
+// Multi-hop read: friends-of-friends, the query recursive SQL hates
+records, err := session.ExecuteRead(ctx,
+    func(tx neo4j.ManagedTransaction) (any, error) {
+        res, err := tx.Run(ctx,
+            `MATCH (u:User {id: $id})-[:FOLLOWS*2..3]-&gt;(fof)
+             RETURN DISTINCT fof.id AS id LIMIT 50`,
+            map[string]any{&quot;id&quot;: userID})
+        if err != nil {
+            return nil, err
+        }
+        return res.Collect(ctx)
+    })
+</code></pre>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../go/storage/storage/">Storage access from Go — the map</a> — parent overview by storage kind.</li>
+<li><a href="../../../go/storage/document-and-nosql/">Document and NoSQL stores from Go</a> — sibling non-relational clients with the same structs-and-contexts feel.</li>
+<li><a href="../../../data-storage/databases-and-storage-systems/">Databases and other storage systems</a> — graph storage models and index-free adjacency among the engine internals.</li>
+<li><a href="../../../java/storage/graph-databases/">Graph databases from Java</a> — the JVM mirror: Spring Data Neo4j's mapped entities where Go unpacks records by hand.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

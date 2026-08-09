@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>go build, go run, go install — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/go/toolchain</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../go/">go</a><span class="tok-path">/</span><span class="tok-path">toolchain</span> <span class="tok-cmd">cat</span> <span class="tok-file">go-build-and-run</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">go build, go run, go install</h1>
+        <p class="lib-lede"><span class="tok-comment"># The compile trio — build cache, build tags, ldflags stamping, first-class cross-compilation, race builds, and PGO.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#go">#go</a><a class="lib-tag" href="../../../tags/#tooling">#tooling</a><a class="lib-tag" href="../../../tags/#build">#build</a><a class="lib-tag" href="../../../tags/#cross-compilation">#cross-compilation</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p><code>go build</code> compiles packages, <code>go run</code> builds-and-executes in one step (dev loop), and
+<code>go install</code> builds a binary into <code>GOPATH/bin</code> — the standard way to install Go tools
+(<code>go install tool@version</code>). All three share the content-addressed build cache, so
+&quot;incremental builds&quot; need no configuration: unchanged packages are never recompiled.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>Build cache</strong>: keyed by hashes of source, flags, and toolchain; lives in
+<code>go env GOCACHE</code>; <code>go clean -cache</code> wipes it. Correct by construction — no <code>make clean</code>
+rituals.</li>
+<li><strong>Build tags &amp; file suffixes</strong>: <code>//go:build linux &amp;&amp; amd64</code> constraints and the
+<code>_linux.go</code> / <code>_amd64.go</code> / <code>_test.go</code> filename conventions select files per target;
+this is how the standard library does platform-specific code.</li>
+<li><strong><code>-ldflags &quot;-s -w&quot;</code></strong> strips symbol table and DWARF for smaller binaries;
+<strong><code>-X importpath.Var=value</code></strong> stamps version/commit strings into <code>var</code> declarations at
+link time — the idiomatic version-injection mechanism.</li>
+<li><strong><code>-trimpath</code></strong> removes local filesystem paths from the binary for reproducible builds.</li>
+<li><strong>Cross-compilation is a variable, not a project</strong>: <code>GOOS=linux GOARCH=arm64 go build</code>
+works from any host with no extra toolchain; <code>go tool dist list</code> prints the full matrix.
+CGO is disabled by default when cross-compiling, keeping binaries static.</li>
+<li><strong><code>-race</code></strong> builds with the race detector (needs CGO on most platforms); slower and
+hungrier, but the standard CI gate for concurrent code.</li>
+<li><strong>PGO (1.21+)</strong>: drop a CPU profile as <code>default.pgo</code> next to <code>main</code> and builds apply
+profile-guided optimization automatically — typically low-single-digit percent wins.</li>
+<li><strong><code>go run</code> is not deployment</strong>: it recompiles into a temp location; ship <code>go build</code>
+artifacts.</li>
+</ul>
+<h2>Examples</h2>
+<pre><code class="language-sh"># Static linux binary with version stamped in, reproducible paths
+CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
+  go build -trimpath -ldflags &quot;-s -w -X main.version=$(git describe --tags)&quot; -o bin/app ./cmd/app
+
+go install golang.org/x/vuln/cmd/govulncheck@latest   # install a tool
+</code></pre>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../go/toolchain/toolchain/">The Go toolchain</a> — parent catalog; the environment variables these commands read.</li>
+<li><a href="../../../go/toolchain/go-test/">go test</a> — same build machinery producing test binaries.</li>
+<li><a href="../../../go/modules-and-build/building-and-releasing/">Building &amp; releasing</a> — release pipelines (goreleaser, containers) around these commands.</li>
+<li><a href="../../../go/compilers-and-runtimes/compilers-and-runtimes/">Compilers &amp; runtimes</a> — the gc compiler these commands invoke.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

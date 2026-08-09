@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Relational databases from Go — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/go/storage</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../go/">go</a><span class="tok-path">/</span><span class="tok-path">storage</span> <span class="tok-cmd">cat</span> <span class="tok-file">relational-databases</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Relational databases from Go</h1>
+        <p class="lib-lede"><span class="tok-comment"># The database/sql substrate, pgx for Postgres, and the query-layer spectrum — sqlc, sqlx, GORM, ent, builders, migrations, and explicit transactions.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#go">#go</a><a class="lib-tag" href="../../../tags/#storage">#storage</a><a class="lib-tag" href="../../../tags/#databases">#databases</a><a class="lib-tag" href="../../../tags/#sql">#sql</a><a class="lib-tag" href="../../../tags/#postgres">#postgres</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>Relational access in Go starts from <code>database/sql</code>, a stdlib interface with a built-in pool
+that any driver can register into — the closest thing Go has to JDBC. Unlike the JVM, the
+layers above it never consolidated into a standard: the ecosystem settled into a spectrum from
+raw driver through struct-scanning helpers (sqlx) and SQL-first code generation (sqlc) to full
+ORMs (GORM, ent), with SQL-first firmly the community's centre of gravity. For PostgreSQL
+specifically, pgx is the de-facto driver and increasingly used natively, bypassing
+<code>database/sql</code> altogether.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong><code>database/sql</code></strong>: <code>sql.DB</code> is a pooled handle, not a connection — safe for concurrent use;
+tune with <code>SetMaxOpenConns</code>, <code>SetMaxIdleConns</code>, <code>SetConnMaxLifetime</code>/<code>IdleTime</code>. Its cost is
+the lowest common denominator: <code>any</code>-based scanning, no access to driver-specific features.</li>
+<li><strong>pgx</strong> (jackc/pgx v5) is the Postgres default: native wire protocol, binary encoding for
+Postgres types, <code>SendBatch</code> for pipelined batches, <code>LISTEN/NOTIFY</code>, <code>CopyFrom</code> for bulk
+loads, and <code>pgxpool</code> as its own pool. Use it natively for full power, or through the
+<code>pgx/v5/stdlib</code> shim when a library insists on <code>*sql.DB</code>.</li>
+<li><strong>sqlc</strong> is the community darling: write real SQL in <code>.sql</code> files, run <code>sqlc generate</code>, get
+typed Go functions and structs. Compile-time-checked queries, zero runtime reflection, no
+DSL to learn — the inverse of an ORM.</li>
+<li><strong>sqlx</strong> extends <code>database/sql</code> in place: <code>Get</code>/<code>Select</code> scan rows into structs via <code>db</code>
+tags, named parameters, <code>StructScan</code>. Minimal buy-in, good retrofit path.</li>
+<li><strong>GORM</strong> is the full ORM: convention-based mapping, associations, hooks, auto-migration.
+Trade-offs: reflection-heavy, chatty SQL unless watched, interface{}-typed APIs that defer
+errors to runtime — the standard critique in a statically-typed culture.</li>
+<li><strong>ent</strong> (from Meta) is schema-as-code: define the schema as Go code, generate a typed,
+graph-traversal-flavoured client. Heavier codegen than sqlc, stronger typing than GORM.</li>
+<li><strong>Builders</strong>: squirrel and goqu compose SQL programmatically — the right tool for genuinely
+dynamic filters, not a general replacement for written SQL.</li>
+<li><strong>Migrations</strong> live in dedicated tools: golang-migrate (versioned up/down SQL, CLI or
+library), goose (SQL or Go migrations, simpler), atlas (declarative diffing, powers ent).</li>
+<li><strong>Transactions are explicit</strong>: no <code>@Transactional</code> — you begin a tx, pass it down, and
+commit/rollback yourself. The discipline is API design, not annotations.</li>
+</ul>
+<h2>Details</h2>
+<h3>The spectrum, one axis</h3>
+<table>
+<thead>
+<tr>
+<th>Level</th>
+<th>Library</th>
+<th>You write</th>
+<th>It gives you</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Raw driver</td>
+<td>pgx native</td>
+<td>SQL + manual <code>Scan</code></td>
+<td>full Postgres feature set, best performance</td>
+</tr>
+<tr>
+<td>Portable driver</td>
+<td><code>database/sql</code> (+ pgx stdlib / go-sql-driver/mysql)</td>
+<td>SQL + manual <code>Scan</code></td>
+<td>driver portability, stdlib pool</td>
+</tr>
+<tr>
+<td>Scanning helper</td>
+<td>sqlx (also scany for pgx)</td>
+<td>SQL + tagged structs</td>
+<td>struct mapping, named params</td>
+</tr>
+<tr>
+<td>Codegen</td>
+<td>sqlc</td>
+<td>SQL files + config</td>
+<td>typed functions, compile-time query checking</td>
+</tr>
+<tr>
+<td>Query builder</td>
+<td>squirrel, goqu</td>
+<td>Go expression chains</td>
+<td>safe dynamic SQL composition</td>
+</tr>
+<tr>
+<td>ORM</td>
+<td>GORM, ent</td>
+<td>models / schema code</td>
+<td>CRUD, associations, migrations, hooks</td>
+</tr>
+</tbody>
+</table>
+<p>Rule of thumb: greenfield Postgres service → pgx + sqlc; retrofitting typed scans onto
+existing <code>database/sql</code> code → sqlx; genuinely dynamic search filters → add squirrel for
+those queries; large CRUD surface with a team that wants an ORM → ent before GORM.</p>
+<h3>database/sql mechanics worth knowing</h3>
+<ul>
+<li>Prepared statements are managed per-connection under the hood; a <code>Query</code> on a busy pool may
+re-prepare on another connection — pgx native avoids this with its statement cache.</li>
+<li><code>QueryRow(...).Scan(...)</code> defers errors to <code>Scan</code>, including <code>sql.ErrNoRows</code> — check for it
+explicitly; it is the idiomatic &quot;not found&quot;.</li>
+<li>Nullable columns need <code>sql.NullString</code>/<code>Null[T]</code> (generic since Go 1.22) or pointers —
+there is no entity lifecycle to absorb nulls for you.</li>
+</ul>
+<h3>Transactions without magic</h3>
+<p>The dominant patterns for tx plumbing, in rising order of ceremony:</p>
+<ol>
+<li><strong>Pass <code>pgx.Tx</code>/<code>*sql.Tx</code> explicitly</strong> to every repository function that needs it.</li>
+<li><strong>Interface trick</strong>: repositories accept a <code>Querier</code> interface satisfied by both the pool
+and a tx (sqlc generates exactly this), so the same code runs in or out of a transaction.</li>
+<li><strong>Tx-runner closure</strong>: <code>store.WithTx(ctx, func(q *Queries) error { ... })</code> — begin,
+defer-rollback, commit on nil error; retry wrapper for serialization failures goes here.</li>
+</ol>
+<p>Context cancellation aborts in-flight queries and rolls back — plumb <code>ctx</code> end to end.</p>
+<p>The contrast with JPA's managed-entity world
+(<a href="../../../java/storage/relational-databases/">relational databases from Java</a>) is total: no
+persistence context, no dirty checking, no lazy proxies — and therefore no N+1-by-accident or
+<code>LazyInitializationException</code> class of bugs. You write the joins; you also get to forget one.</p>
+<h2>Examples</h2>
+<pre><code class="language-go">// pgx + sqlc-style Querier interface, explicit transaction
+func (s *Store) TransferFunds(ctx context.Context, from, to int64, amount int64) error {
+    tx, err := s.pool.Begin(ctx)
+    if err != nil {
+        return err
+    }
+    defer tx.Rollback(ctx) // no-op after successful Commit
+
+    q := s.queries.WithTx(tx)
+    if err := q.Debit(ctx, DebitParams{AccountID: from, Amount: amount}); err != nil {
+        return err
+    }
+    if err := q.Credit(ctx, CreditParams{AccountID: to, Amount: amount}); err != nil {
+        return err
+    }
+    return tx.Commit(ctx)
+}
+</code></pre>
+<pre><code class="language-sql">-- sqlc input: queries.sql
+-- name: GetOrder :one
+SELECT id, customer_id, status FROM orders WHERE id = $1;
+
+-- name: ListOpenOrders :many
+SELECT id, customer_id, status FROM orders WHERE status = 'open' ORDER BY id;
+</code></pre>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../go/storage/storage/">Storage access from Go — the map</a> — parent overview by storage kind.</li>
+<li><a href="../../../data-storage/databases-and-storage-systems/">Databases and other storage systems</a> — engine internals, indexing, and isolation beneath the driver.</li>
+<li><a href="../../../go/testing/integration-testing/">Integration testing</a> — Testcontainers against a real Postgres is how this stack is tested.</li>
+<li><a href="../../../java/storage/relational-databases/">Relational databases from Java</a> — the managed-entity contrast: JDBC/JPA where Go passes explicit tx values.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

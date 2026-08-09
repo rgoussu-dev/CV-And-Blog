@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Modules &amp; the Go build ecosystem — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/go/modules-and-build</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../go/">go</a><span class="tok-path">/</span><span class="tok-path">modules-and-build</span> <span class="tok-cmd">cat</span> <span class="tok-file">modules-and-build</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Modules &amp; the Go build ecosystem</h1>
+        <p class="lib-lede"><span class="tok-comment"># Go's single first-party build path — the go command plus modules — and the artifact formats and module ecosystem around it.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#go">#go</a><a class="lib-tag" href="../../../tags/#build">#build</a><a class="lib-tag" href="../../../tags/#tooling">#tooling</a><a class="lib-tag" href="../../../tags/#packaging">#packaging</a><a class="lib-tag" href="../../../tags/#modules">#modules</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>Where Java offers a three-way build world (bare JDK tools, Maven, Gradle — see
+<a href="../../../java/build-ecosystem/build-ecosystem/">The Java build ecosystem</a>), Go ships exactly one
+first-party path: the <code>go</code> command with modules. Compilation, dependency resolution,
+testing, vetting, and installation are all subcommands of one tool, and the module system
+is part of the toolchain rather than a separate package manager. External build systems
+only enter the picture at monorepo scale, and task runners only for orchestration around
+the <code>go</code> command — never as a replacement for it.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>One tool</strong>: <code>go build</code>, <code>go test</code>, <code>go mod</code>, <code>go install</code> cover what Maven/Gradle plus
+a package manager cover elsewhere; there is no community debate about which build tool
+to use — see <a href="../../../go/toolchain/toolchain/">The go command &amp; tool catalog</a>.</li>
+<li><strong>Modules are the only dependency story</strong> since Go 1.16 made them the default: a
+<code>go.mod</code> per module, versions resolved by Minimal Version Selection — deep dive in
+<a href="../../../go/modules-and-build/go-modules/">Go modules</a>.</li>
+<li><strong>Monorepo-scale exceptions</strong>: Bazel with <code>rules_go</code> + Gazelle (BUILD-file generation
+from Go sources), and Please, appear where hermetic caching across many languages pays
+for their complexity. They wrap the Go compiler; they do not replace modules' semantics.</li>
+<li><strong>Task runners orchestrate, never build</strong>: Make and Task (<code>Taskfile.yml</code>) commonly wrap
+<code>go build</code>/<code>go test</code> invocations, lint, and release steps — thin glue, not a build system.</li>
+<li><strong>The default artifact is a static binary</strong>: cross-compiled with <code>GOOS</code>/<code>GOARCH</code> env
+vars, no runtime to install — the inverse of the JVM's fat-jar-plus-runtime model.</li>
+<li><strong>Release engineering</strong> (reproducibility, cross-compilation matrices, GoReleaser,
+containers) is its own craft — see
+<a href="../../../go/modules-and-build/building-and-releasing/">Building &amp; releasing</a>.</li>
+</ul>
+<h2>Details</h2>
+<h3>Artifact formats</h3>
+<table>
+<thead>
+<tr>
+<th>Format</th>
+<th>Produced by</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Static binary</strong></td>
+<td><code>go build</code> (default)</td>
+<td>One self-contained executable per <code>GOOS</code>/<code>GOARCH</code>; no interpreter, no runtime install. Contrast the JVM's jar + runtime split</td>
+</tr>
+<tr>
+<td><strong>c-archive / c-shared</strong></td>
+<td><code>go build -buildmode=c-archive|c-shared</code></td>
+<td>Static/shared library plus C header for embedding Go in C/other hosts; crosses the cgo boundary</td>
+</tr>
+<tr>
+<td><strong>Plugin</strong></td>
+<td><code>go build -buildmode=plugin</code></td>
+<td>Loadable <code>.so</code> via <code>plugin</code> package; Linux/macOS only, must match toolchain and dependency versions exactly — rarely used in practice</td>
+</tr>
+<tr>
+<td><strong>WASM</strong></td>
+<td><code>GOOS=js GOARCH=wasm</code> or <code>GOOS=wasip1 GOARCH=wasm</code></td>
+<td>Browser and WASI targets; large binaries from the stock compiler — <a href="../../../go/compilers-and-runtimes/tinygo/">TinyGo</a> for small ones</td>
+</tr>
+<tr>
+<td><strong>Container image</strong></td>
+<td>Multi-stage Dockerfile, <code>FROM scratch</code>/distroless, or <code>ko</code></td>
+<td>The static binary makes near-empty base images practical; <code>ko</code> builds and pushes images without a Dockerfile</td>
+</tr>
+</tbody>
+</table>
+<h3>The module ecosystem</h3>
+<p>There is no Maven-Central-style hosting step. A module's identity <em>is</em> its VCS path
+(<code>github.com/user/repo</code>), publishing is tagging a commit, and the module proxy
+(<code>proxy.golang.org</code>) fronts the world's VCS hosts with an immutable cache and checksum
+transparency. The consequence: no upload accounts, no namespace registry — and
+availability depends on the proxy, not on the original host staying up. Mechanics in
+<a href="../../../go/modules-and-build/go-modules/">Go modules</a>.</p>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../go/modules-and-build/go-modules/">Go modules</a> — the dependency system in depth:
+MVS, go.sum, the proxy and checksum database.</li>
+<li><a href="../../../go/modules-and-build/building-and-releasing/">Building &amp; releasing</a> — reproducible
+builds, cross-compilation, GoReleaser, container patterns.</li>
+<li><a href="../../../go/toolchain/toolchain/">The go command &amp; tool catalog</a> — the single tool this
+whole ecosystem revolves around.</li>
+<li><a href="../../../go/go-deep-dive/">Deep dive Go</a> — the parent theme note.</li>
+<li><a href="../../../java/build-ecosystem/build-ecosystem/">The Java build ecosystem</a> — the three-way
+contrast: where Java chooses a build tool, Go ships one.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

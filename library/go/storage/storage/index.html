@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Storage access from Go — the map — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/go/storage</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../go/">go</a><span class="tok-path">/</span><span class="tok-path">storage</span> <span class="tok-cmd">cat</span> <span class="tok-file">storage</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Storage access from Go — the map</h1>
+        <p class="lib-lede"><span class="tok-comment"># How Go reaches every storage kind — database/sql, per-store drivers, and the raw-driver-to-ORM spectrum, mapped store by store.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#go">#go</a><a class="lib-tag" href="../../../tags/#storage">#storage</a><a class="lib-tag" href="../../../tags/#databases">#databases</a><a class="lib-tag" href="../../../tags/#drivers">#drivers</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>Go's storage story is thinner and flatter than the JVM's, deliberately. The stdlib gives one
+abstraction — <code>database/sql</code>, a pooled, driver-agnostic interface for relational stores — and
+everything else is a vendor or community client library speaking the store's wire protocol
+directly. There is no JPA equivalent and no framework data layer: no container manages entities
+for you, and the mainstream idiom is closer to the metal. The real decision per store is which
+driver to use and how much query/mapping machinery to stack on top of it.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong><code>database/sql</code> is the only stdlib abstraction</strong>, and it covers relational only. It buys
+driver portability and a built-in connection pool at the cost of a lowest-common-denominator
+API — which is why the Postgres world often bypasses it for pgx's native interface.</li>
+<li><strong>Every non-relational store is a direct client</strong>: go-redis, mongo-go-driver, gocql,
+neo4j-go-driver. Each exposes its own pooling, contexts, and consistency knobs; there is no
+common repository idiom to hide behind.</li>
+<li><strong>No ORM culture the way the JVM has one.</strong> The spectrum runs raw driver → sqlx (struct
+scanning) → sqlc (SQL-first codegen, the community darling) → ent/GORM (full ORM). Most
+teams stop well before the ORM end; SQL-in-the-open is the default aesthetic.</li>
+<li><strong>Contexts everywhere</strong>: every decent client takes a <code>context.Context</code> per call for
+timeouts and cancellation — the moral equivalent of JDBC statement timeouts, but explicit
+and composable.</li>
+<li><strong>Transactions are explicit values</strong> (<code>*sql.Tx</code>, <code>pgx.Tx</code>, driver session objects) passed
+through call chains — no <code>@Transactional</code> proxy magic, so demarcation is visible in the code.</li>
+<li><strong>Testing is Testcontainers-shaped</strong> here too: real store, real driver, in CI — same
+substrate as the Java stack.</li>
+</ul>
+<h2>Details</h2>
+<h3>The map, by storage kind</h3>
+<table>
+<thead>
+<tr>
+<th>Kind</th>
+<th>Canonical stores</th>
+<th>Driver</th>
+<th>Query / mapping layer</th>
+<th>Deep dive</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Relational</td>
+<td>PostgreSQL, MySQL, SQLite</td>
+<td>pgx (native or via <code>database/sql</code>), go-sql-driver/mysql, modernc/mattn sqlite</td>
+<td>sqlc, sqlx, squirrel/goqu, GORM, ent</td>
+<td><a href="../../../go/storage/relational-databases/">Relational databases</a></td>
+</tr>
+<tr>
+<td>Key-value</td>
+<td>Redis, Valkey</td>
+<td>go-redis (v9), rueidis, redigo</td>
+<td>none — commands are the API</td>
+<td><a href="../../../go/storage/redis/">Redis from Go</a></td>
+</tr>
+<tr>
+<td>Document / NoSQL</td>
+<td>MongoDB, Cassandra/Scylla, DynamoDB, Couchbase</td>
+<td>mongo-go-driver, gocql (+ scylladb fork), aws-sdk-go-v2, gocb</td>
+<td>bson/attributevalue struct tags</td>
+<td><a href="../../../go/storage/document-and-nosql/">Document and NoSQL stores</a></td>
+</tr>
+<tr>
+<td>Time series</td>
+<td>Prometheus, InfluxDB, TimescaleDB, VictoriaMetrics</td>
+<td>client_golang (instrumentation), influxdb-client-go, pgx (Timescale is Postgres)</td>
+<td>otel-go metrics as the converging facade</td>
+<td><a href="../../../go/storage/time-series/">Time-series stores</a></td>
+</tr>
+<tr>
+<td>Graph</td>
+<td>Neo4j, Gremlin stores, Dgraph</td>
+<td>neo4j-go-driver, gremlin-go, dgo</td>
+<td>Cypher / Gremlin / DQL strings</td>
+<td><a href="../../../go/storage/graph-databases/">Graph databases</a></td>
+</tr>
+<tr>
+<td>Search</td>
+<td>Elasticsearch, OpenSearch</td>
+<td>go-elasticsearch, opensearch-go</td>
+<td>JSON query DSL, hand-built or typed API</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Object storage</td>
+<td>S3, MinIO, GCS</td>
+<td>aws-sdk-go-v2 <code>s3</code>, minio-go, <a href="http://cloud.google.com/go/storage" rel="noopener">cloud.google.com/go/storage</a></td>
+<td>none — streams and keys</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h3>Choosing an entry point</h3>
+<ul>
+<li>Debugging connectivity, pool exhaustion, or timeouts → the <strong>driver</strong> layer; there is no
+framework above it to hide the problem, which is a feature.</li>
+<li>Query-heavy relational work → decide the <strong>sqlc vs sqlx vs ORM</strong> question early; it shapes
+the whole repository layer. The web framework you chose barely matters here — handlers call
+the same storage code whichever router is in front
+(<a href="../../../go/web-frameworks/web-frameworks/">web frameworks</a>).</li>
+</ul>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../go/storage/relational-databases/">Relational databases from Go</a> — database/sql, pgx, and the query-layer spectrum.</li>
+<li><a href="../../../go/storage/redis/">Redis from Go</a> — go-redis, rueidis, and cache/lock patterns.</li>
+<li><a href="../../../go/storage/document-and-nosql/">Document and NoSQL stores from Go</a> — MongoDB, Cassandra, DynamoDB clients.</li>
+<li><a href="../../../go/storage/time-series/">Time-series stores from Go</a> — Prometheus's home turf, Influx, Timescale.</li>
+<li><a href="../../../go/storage/graph-databases/">Graph databases from Go</a> — Neo4j, Gremlin, Dgraph.</li>
+<li><a href="../../../data-storage/databases-and-storage-systems/">Databases and other storage systems</a> — the store-side internals behind every row of this table.</li>
+<li><a href="../../../go/web-frameworks/web-frameworks/">Go web frameworks</a> — the handler layer that calls into all of this.</li>
+<li><a href="../../../java/storage/storage/">Storage access from Java — the map</a> — the same map on the JVM: three managed layers where Go has one or two explicit ones.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

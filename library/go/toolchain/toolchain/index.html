@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>The Go toolchain — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/go/toolchain</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../go/">go</a><span class="tok-path">/</span><span class="tok-path">toolchain</span> <span class="tok-cmd">cat</span> <span class="tok-file">toolchain</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">The Go toolchain</h1>
+        <p class="lib-lede"><span class="tok-comment"># The single go command as the entire build system — distribution, environment, and the catalog of built-in and companion tools.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#go">#go</a><a class="lib-tag" href="../../../tags/#tooling">#tooling</a><a class="lib-tag" href="../../../tags/#build">#build</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>Go ships its entire build system as one binary: <code>go</code>. Compiling, running, testing,
+dependency management, formatting, vetting, code generation, docs, profiling — all
+subcommands of the same tool, with zero project configuration beyond <code>go.mod</code>. This is a
+deliberate contrast to the JVM world, where the JDK provides
+<a href="../../../java/jdk-and-tools/jdk-and-tools/">compiler and diagnostics</a> but every project bolts on
+Maven or Gradle for the actual build; in Go there is no separate build-tool layer to choose,
+configure, or fight.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>One command, whole lifecycle</strong>: <code>go build/run/test/mod/vet/fmt/doc/generate/work/tool</code>
+— the same interface on every Go project ever; no per-project build scripts to learn.</li>
+<li><strong>One archive to install</strong>: the distribution is a single tarball unpacked to <code>GOROOT</code>
+(compiler, standard library, <code>go</code> command). No plugin ecosystem, no version manager
+strictly needed.</li>
+<li><strong>Toolchain auto-switching (1.21+)</strong>: <code>go.mod</code> can carry a <code>toolchain go1.22.x</code> directive;
+a newer-than-installed requirement makes the <code>go</code> command download and re-exec the exact
+required toolchain — reproducible builds without asking developers to upgrade in lockstep.</li>
+<li><strong><code>go env</code> is the configuration surface</strong>: prints/sets the variables the toolchain reads;
+<code>go env -w</code> persists them to a config file rather than the shell.</li>
+<li><strong>GOPATH is residual</strong>: since modules it no longer scopes your code; it only locates the
+module cache (<code>GOPATH/pkg/mod</code>) and <code>go install</code> binaries (<code>GOPATH/bin</code>).</li>
+<li><strong>GOOS / GOARCH</strong> select the target platform per invocation — cross-compilation is an
+environment variable, not a separate toolchain install.</li>
+<li><strong>CGO_ENABLED</strong> toggles the C interop layer; <code>0</code> yields fully static pure-Go binaries and
+is the default when cross-compiling.</li>
+<li><strong>GOFLAGS</strong> injects default flags into every <code>go</code> invocation (e.g. <code>-mod=vendor</code>,
+<code>-trimpath</code>) — useful in CI images.</li>
+<li><strong>Not everything is a subcommand</strong>: the ecosystem's few essential externals (delve, gopls,
+staticcheck, govulncheck) install with <code>go install</code> and follow the same conventions.</li>
+</ul>
+<h2>Details</h2>
+<h3>Tool catalog</h3>
+<table>
+<thead>
+<tr>
+<th>Purpose</th>
+<th>Tool</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Build &amp; run</td>
+<td><a href="../../../go/toolchain/go-build-and-run/">go build / run / install</a></td>
+<td>Compiles packages and binaries; build cache, tags, ldflags, cross-compilation, PGO</td>
+</tr>
+<tr>
+<td>Build &amp; run</td>
+<td><a href="../../../go/toolchain/go-test/">go test</a></td>
+<td>Compiles and runs test binaries; selectors, cache, race detector</td>
+</tr>
+<tr>
+<td>Dependencies</td>
+<td><a href="../../../go/toolchain/go-mod/">go mod</a></td>
+<td>Manages <code>go.mod</code>/<code>go.sum</code>: init, tidy, download, why, vendor</td>
+</tr>
+<tr>
+<td>Quality &amp; formatting</td>
+<td><a href="../../../go/toolchain/gofmt-and-goimports/">gofmt &amp; goimports</a></td>
+<td>Canonical formatting and import management — no configuration, no debates</td>
+</tr>
+<tr>
+<td>Quality &amp; formatting</td>
+<td><a href="../../../go/toolchain/go-vet/">go vet</a></td>
+<td>Shipped static analyzer for likely-wrong code; runs under <code>go test</code></td>
+</tr>
+<tr>
+<td>Quality &amp; formatting</td>
+<td><a href="../../../go/toolchain/go-tool-cover/">go tool cover</a></td>
+<td>Coverage profiles, HTML annotation, per-function summaries</td>
+</tr>
+<tr>
+<td>Docs</td>
+<td><a href="../../../go/toolchain/go-doc-and-pkgsite/">go doc &amp; pkgsite</a></td>
+<td>Doc comments to terminal docs and pkg.go.dev rendering</td>
+</tr>
+<tr>
+<td>Generate &amp; workspaces</td>
+<td><a href="../../../go/toolchain/go-generate/">go generate</a></td>
+<td>Runs <code>//go:generate</code> directives — explicit, committed code generation</td>
+</tr>
+<tr>
+<td>Generate &amp; workspaces</td>
+<td><a href="../../../go/toolchain/go-work/">go work</a></td>
+<td>Multi-module workspaces for local cross-module development</td>
+</tr>
+<tr>
+<td>Profiling &amp; tracing</td>
+<td><a href="../../../go/toolchain/pprof/">pprof</a></td>
+<td>CPU/heap/goroutine profiles, flame graphs, <code>net/http/pprof</code></td>
+</tr>
+<tr>
+<td>Profiling &amp; tracing</td>
+<td><a href="../../../go/toolchain/execution-tracer/">execution tracer</a></td>
+<td>Nanosecond-scale runtime event traces: scheduling, GC, blocking</td>
+</tr>
+<tr>
+<td>Debugging</td>
+<td><a href="../../../go/toolchain/delve/">delve</a></td>
+<td>The Go debugger: breakpoints, goroutine inspection, core dumps</td>
+</tr>
+<tr>
+<td>Editor &amp; lint</td>
+<td><a href="../../../go/toolchain/gopls/">gopls</a></td>
+<td>The official LSP server behind every serious Go editor setup</td>
+</tr>
+<tr>
+<td>Editor &amp; lint</td>
+<td><a href="../../../go/toolchain/staticcheck-and-golangci-lint/">staticcheck &amp; golangci-lint</a></td>
+<td>The de-facto linters beyond vet</td>
+</tr>
+<tr>
+<td>Vulnerability</td>
+<td><a href="../../../go/toolchain/govulncheck/">govulncheck</a></td>
+<td>Call-graph-aware scanning against the Go vulnerability database</td>
+</tr>
+</tbody>
+</table>
+<p>The first block is what you type daily; the externals in the lower half install via
+<code>go install</code> and are standard on any professional team.</p>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../go/go-deep-dive/">Deep dive Go</a> — parent theme note; tooling-as-language-feature is one of Go's core bets.</li>
+<li><a href="../../../go/modules-and-build/modules-and-build/">Modules &amp; build</a> — the dependency and release machinery this command drives.</li>
+<li><a href="../../../go/compilers-and-runtimes/compilers-and-runtimes/">Compilers &amp; runtimes</a> — gc, gccgo and TinyGo behind the <code>go</code> front-end.</li>
+<li><a href="../../../java/jdk-and-tools/jdk-and-tools/">The JDK, the JRE &amp; their tools</a> — the contrast: a tool catalog that still needs Maven/Gradle on top.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

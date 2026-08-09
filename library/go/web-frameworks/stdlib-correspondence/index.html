@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Frameworks × the stdlib contracts — who honors what — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/go/web-frameworks</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../go/">go</a><span class="tok-path">/</span><span class="tok-path">web-frameworks</span> <span class="tok-cmd">cat</span> <span class="tok-file">stdlib-correspondence</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Frameworks × the stdlib contracts — who honors what</h1>
+        <p class="lib-lede"><span class="tok-comment"># Contract-by-contract table of how chi, Gin, Echo, and Fiber honor, wrap, or replace Go's stdlib interfaces, and why compatibility pays.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#go">#go</a><a class="lib-tag" href="../../../tags/#web">#web</a><a class="lib-tag" href="../../../tags/#frameworks">#frameworks</a><a class="lib-tag" href="../../../tags/#http">#http</a><a class="lib-tag" href="../../../tags/#interoperability">#interoperability</a><a class="lib-tag" href="../../../tags/#middleware">#middleware</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>Java's framework question is &quot;which Jakarta EE / MicroProfile specs does this stack
+implement?&quot; (<a href="../../../java/frameworks/jakarta-ee-correspondence/">the correspondence table</a>).
+Go has no external spec body — <strong>the stdlib interfaces are the contracts</strong>: <code>http.Handler</code>
+is the servlet spec, <code>context.Context</code> the propagation spec, <code>encoding/json</code> the default
+codec. A framework's compatibility posture is therefore a per-contract question: does it
+honor the stdlib interface (everything composes), wrap it (composes at the edges), or
+replace it (composes only through shims)? This note tabulates that for chi, Gin, Echo,
+and Fiber.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>chi is pure stdlib</strong>: every row is a ✔ — it adds routing ergonomics without touching a
+single contract, which is its entire value proposition.</li>
+<li><strong>Gin and Echo wrap</strong>: own <code>Context</code> types inside, <code>ServeHTTP</code>-compatible engines
+outside. Stdlib middleware needs adapters (Echo ships them; Gin mostly leaves it to you).</li>
+<li><strong>Fiber replaces</strong>: fasthttp underneath means ✘ on nearly every contract, with the
+<code>adaptor</code> shim as the only (lossy, allocating) bridge.</li>
+<li><strong>The contract that matters most</strong> is <code>func(http.Handler) http.Handler</code> middleware
+interop — it is how the observability ecosystem (otelhttp, promhttp) ships.</li>
+<li><strong>Cross-cutting libraries converge anyway</strong>: go-playground/validator for validation and
+<code>log/slog</code> for logging appear across all four stacks, softening the divergence above
+the HTTP layer.</li>
+<li><strong>The 1.22 ServeMux raised the bar for wrapping</strong>: with method + wildcard routing in
+the stdlib, a framework's own router must now justify itself on ergonomics alone —
+contract fidelity is the tiebreaker.</li>
+</ul>
+<h2>Details</h2>
+<h3>Contract-by-contract</h3>
+<p>✔ honored natively · ≈ wrapped/adapted · ✘ replaced</p>
+<table>
+<thead>
+<tr>
+<th>Contract</th>
+<th>chi</th>
+<th>Gin</th>
+<th>Echo</th>
+<th>Fiber</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><code>http.Handler</code> / <code>http.HandlerFunc</code></strong></td>
+<td>✔ handlers <em>are</em> stdlib handlers</td>
+<td>≈ own <code>gin.HandlerFunc</code>; <code>gin.Engine</code> implements <code>ServeHTTP</code></td>
+<td>≈ own <code>echo.HandlerFunc</code>; <code>*echo.Echo</code> implements <code>ServeHTTP</code></td>
+<td>✘ <code>fiber.Handler</code> over fasthttp; <code>adaptor</code> shim only</td>
+</tr>
+<tr>
+<td><strong><code>context.Context</code> propagation</strong></td>
+<td>✔ <code>r.Context()</code> untouched</td>
+<td>≈ <code>gin.Context</code> implements it, but keeps a parallel <code>Set</code>/<code>Get</code> bag beside <code>Request.Context()</code></td>
+<td>≈ stdlib context via <code>c.Request().Context()</code>; own value store beside it</td>
+<td>✘ fasthttp's <code>RequestCtx</code>; <code>c.UserContext()</code> bolts a <code>context.Context</code> on</td>
+</tr>
+<tr>
+<td><strong>net/http middleware (<code>func(http.Handler) http.Handler</code>)</strong></td>
+<td>✔ native chain</td>
+<td>≈ hand-written adapters required</td>
+<td>≈ <code>echo.WrapMiddleware</code> provided</td>
+<td>✘ only via <code>adaptor</code>, per-request conversion cost</td>
+</tr>
+<tr>
+<td><strong><code>encoding/json</code></strong></td>
+<td>✔ bring your own encoding</td>
+<td>≈ default renderer (swappable build tags for sonic/go-json)</td>
+<td>≈ default binder/renderer, swappable <code>JSONSerializer</code></td>
+<td>≈ default, swappable <code>JSONEncoder</code>/<code>JSONDecoder</code> (goccy et al.)</td>
+</tr>
+<tr>
+<td><strong><code>html/template</code></strong></td>
+<td>✔ use it directly</td>
+<td>≈ <code>LoadHTMLGlob</code> wraps it</td>
+<td>≈ pluggable <code>Renderer</code> interface, stdlib templates typical</td>
+<td>✘ own <code>Views</code> engines (incl. an html/template adapter)</td>
+</tr>
+<tr>
+<td><strong><code>http.Client</code> / transports (outbound)</strong></td>
+<td>✔ n/a — nothing imposed</td>
+<td>✔ nothing imposed</td>
+<td>✔ nothing imposed</td>
+<td>≈ ecosystem leans to fasthttp's client; stdlib client still usable</td>
+</tr>
+<tr>
+<td><strong>Testing via <code>net/http/httptest</code></strong></td>
+<td>✔ recorder + request, plain</td>
+<td>✔ engine is a Handler; <code>gin.CreateTestContext</code> for unit scope</td>
+<td>✔ <code>e.ServeHTTP(rec, req)</code>; <code>e.NewContext</code> for unit scope</td>
+<td>✘ no recorder path; <code>app.Test(req)</code> converts an <code>*http.Request</code> internally</td>
+</tr>
+</tbody>
+</table>
+<h3>Cross-cutting choices</h3>
+<table>
+<thead>
+<tr>
+<th>Concern</th>
+<th>The convergent answer</th>
+<th>Per-framework notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Validation</strong></td>
+<td>go-playground/validator everywhere</td>
+<td>Gin bundles it behind <code>binding:</code> tags; Echo and chi wire it via a hook/manual call; Fiber docs recommend the same library</td>
+</tr>
+<tr>
+<td><strong>Logging</strong></td>
+<td><code>log/slog</code> since it landed in the stdlib</td>
+<td>Middleware adapters per framework (chi middleware, gin-contrib, Echo's RequestLogger, Fiber logger); zap/zerolog remain common behind slog handlers</td>
+</tr>
+<tr>
+<td><strong>Metrics &amp; tracing</strong></td>
+<td>promhttp + otelhttp/OpenTelemetry</td>
+<td>Native <code>http.Handler</code> wrapping on chi/stdlib; contrib middleware (<code>otelgin</code>, <code>otelecho</code>) re-implement it per framework; Fiber needs otelfiber + adaptor for promhttp</td>
+</tr>
+</tbody>
+</table>
+<h3>The payoff</h3>
+<p>Staying handler-compatible is compounding interest: every <code>func(http.Handler) http.Handler</code> ever written — <code>otelhttp.NewHandler</code>, <code>promhttp.Handler</code>,
+auth proxies, rate limiters — works on chi/stdlib services unchanged, on day one, with no
+per-framework contrib package to wait for. Wrapped frameworks (Gin, Echo) get there via
+maintained adapters and duplicate contrib middleware; Fiber's replaced stack gets each
+integration only when someone ports it. The stdlib contracts are Go's answer to the JVM's
+spec portability — honoring them is what keeps a service's middleware options open for
+the next decade.</p>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../go/web-frameworks/web-frameworks/">Go web frameworks — the landscape</a> — parent overview of the frameworks compared here.</li>
+<li><a href="../../../go/web-frameworks/net-http/">net/http deep dive</a> — the contracts themselves, in depth.</li>
+<li><a href="../../../go/web-frameworks/gin/">Gin deep dive</a> — the &quot;wraps&quot; column in detail.</li>
+<li><a href="../../../go/web-frameworks/echo/">Echo deep dive</a> — the other wrapper, with shipped adapters.</li>
+<li><a href="../../../go/web-frameworks/fiber/">Fiber deep dive</a> — the &quot;replaced&quot; column and its costs.</li>
+<li><a href="../../../go/protocols/rest/">REST in Go</a> — where these interop choices bite in API services.</li>
+<li><a href="../../../java/frameworks/jakarta-ee-correspondence/">Frameworks × Jakarta EE — who implements what</a> — the JVM's version of the same question, against external specs.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

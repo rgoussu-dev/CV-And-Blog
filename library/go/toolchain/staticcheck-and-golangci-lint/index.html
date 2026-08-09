@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>staticcheck &amp; golangci-lint — the lint ecosystem — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/go/toolchain</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../go/">go</a><span class="tok-path">/</span><span class="tok-path">toolchain</span> <span class="tok-cmd">cat</span> <span class="tok-file">staticcheck-and-golangci-lint</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">staticcheck &amp; golangci-lint — the lint ecosystem</h1>
+        <p class="lib-lede"><span class="tok-comment"># Static analysis beyond go vet — staticcheck's check catalogue, golangci-lint as the meta-runner, and keeping lint sets small and intentional.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#go">#go</a><a class="lib-tag" href="../../../tags/#tooling">#tooling</a><a class="lib-tag" href="../../../tags/#static-analysis">#static-analysis</a><a class="lib-tag" href="../../../tags/#linting">#linting</a><a class="lib-tag" href="../../../tags/#ci">#ci</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p><code>go vet</code> ships only high-confidence checks; the community fills the gap. staticcheck is
+the reference third-party analyser — near-zero false positives, treated by many teams as
+mandatory as vet — and golangci-lint is the meta-runner that executes it alongside dozens
+of other linters from one config, one cached pass, one CI step.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>staticcheck categories</strong>: <code>SA</code> (bugs: misuse of APIs, impossible conditions,
+concurrency mistakes), <code>S</code> (simplifications), <code>ST</code> (style), <code>QF</code> (quick fixes). SA is
+the non-negotiable core; <code>SA1019</code> flags use of <code>Deprecated:</code> APIs.</li>
+<li><strong>golangci-lint</strong>: runs many linters in one process over a shared AST/SSA load;
+configured via <code>.golangci.yml</code> (enable/disable, per-path excludes, severity); the
+standard PR gate in Go CI.</li>
+<li><strong>Enabled-set discipline</strong>: enable a small, named list you can defend — typically
+<code>staticcheck</code>, <code>govet</code>, <code>errcheck</code>, <code>unused</code> + a handful — rather than
+&quot;enable-all&quot;, which churns on every release and buries signal in style noise.</li>
+<li><strong>errcheck</strong>: finds silently dropped error returns — Go's most consequential lint,
+since the compiler only rejects unused <em>variables</em>, not unused results.</li>
+<li><strong>revive</strong>: the configurable style linter (successor to golint) — naming, comments on
+exported identifiers, per-rule severity.</li>
+<li><strong>gosec</strong>: security-pattern scanning (hardcoded credentials, weak crypto, command
+injection) — noisier, worth scoping to the checks you'll act on.</li>
+<li><strong>False-positive management</strong>: prefer narrow inline suppression
+(<code>//nolint:errcheck // close on read-only file</code>) with a required reason, over global
+excludes; review nolint growth in code review.</li>
+<li><strong>New-code-only adoption</strong>: on legacy codebases, gate only newly changed lines
+(<code>--new-from-rev</code>) instead of demanding a big-bang cleanup.</li>
+</ul>
+<h2>Examples</h2>
+<pre><code class="language-yaml"># .golangci.yml — small and intentional
+linters:
+  disable-all: true
+  enable: [govet, staticcheck, errcheck, unused, ineffassign, gosec]
+linters-settings:
+  errcheck: { check-type-assertions: true }
+</code></pre>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../go/toolchain/toolchain/">The go command &amp; tool catalog</a> — parent catalog of the toolchain.</li>
+<li><a href="../../../go/toolchain/go-vet/">go vet</a> — the first-party baseline these tools extend.</li>
+<li><a href="../../../go/toolchain/gopls/">gopls</a> — surfaces a staticcheck subset live in the editor, before CI sees it.</li>
+<li><a href="../../../go/toolchain/govulncheck/">govulncheck</a> — sibling analyser aimed at known vulnerabilities rather than code quality.</li>
+<li><a href="../../../engineering-practice/code-review/">Code review</a> — lint automates the mechanical findings so review can argue about design.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>OAuth2 &amp; OIDC in Go — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/go/go-security</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../go/">go</a><span class="tok-path">/</span><span class="tok-path">go-security</span> <span class="tok-cmd">cat</span> <span class="tok-file">oauth2-and-oidc</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">OAuth2 &amp; OIDC in Go</h1>
+        <p class="lib-lede"><span class="tok-comment"># The OAuth2/OIDC protocol family in Go with x/oauth2, go-oidc, JWT libraries, resource-server middleware and embeddable providers.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#go">#go</a><a class="lib-tag" href="../../../tags/#security">#security</a><a class="lib-tag" href="../../../tags/#oauth2">#oauth2</a><a class="lib-tag" href="../../../tags/#oidc">#oidc</a><a class="lib-tag" href="../../../tags/#jwt">#jwt</a><a class="lib-tag" href="../../../tags/#middleware">#middleware</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>Go's OAuth2 story is two small official-adjacent libraries plus composition:
+<code>golang.org/x/oauth2</code> implements the client half of the flows, and <code>coreos/go-oidc</code> layers
+OIDC discovery and ID-token verification on top. There is no resource-server &quot;starter&quot; —
+you write (or import) a middleware that validates bearer JWTs against the provider's JWKS.
+The provider side is either delegated to an external IdP (Keycloak, or the Go-native
+Zitadel/Ory Hydra/Dex) or embedded via Ory Fosite. Protocol semantics live in
+<a href="../../../security/authentication-and-authorization/">Authentication &amp; authorization</a>; this note
+is the Go wiring.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong><code>golang.org/x/oauth2</code></strong>: <code>oauth2.Config</code> (client id/secret, endpoint, scopes,
+redirect), <code>AuthCodeURL</code>/<code>Exchange</code> for the auth-code flow, <code>TokenSource</code> for automatic
+refresh, <code>Config.Client</code> returning an <code>*http.Client</code> that injects and refreshes tokens.</li>
+<li><strong><code>clientcredentials.Config</code></strong> (<code>x/oauth2/clientcredentials</code>) is the service-to-service
+flow — machine identity, no user, the workhorse of internal APIs.</li>
+<li><strong><code>coreos/go-oidc</code></strong> (<code>github.com/coreos/go-oidc/v3/oidc</code>): <code>oidc.NewProvider</code> performs
+discovery from the issuer URL, caches the JWKS, and <code>provider.Verifier</code> validates ID
+tokens (signature, <code>iss</code>, <code>aud</code>, <code>exp</code>) — the correct default for verification.</li>
+<li><strong>JWT libraries</strong>: <code>golang-jwt/jwt</code> v5 (the maintained fork of dgrijalva/jwt-go) for
+general JWT work; <code>lestrrat-go/jwx</code> for full JOSE (JWKS, JWE, JWS). Both grew strict-by-
+default APIs after the algorithm-confusion era — always pin expected algorithms, never
+trust the token's <code>alg</code> header.</li>
+<li><strong>Resource-server middleware is DIY-but-small</strong>: a <code>func(http.Handler) http.Handler</code>
+that extracts the bearer token, verifies it, and stashes claims in the request context;
+gin/echo versions are the same logic behind their middleware signatures.</li>
+<li><strong>Flows that matter</strong>: authorization code + PKCE (<code>oauth2.S256ChallengeOption</code> and
+<code>oauth2.VerifierOption</code> are built in) for anything user-facing, client credentials for
+services. Implicit and password grants are dead (OAuth 2.1 removes them) — don't build them.</li>
+<li><strong>Providers in Go</strong>: delegate to Keycloak like everyone else, or stay in-ecosystem —
+<strong>Dex</strong> (federating OIDC proxy, CNCF), <strong>Zitadel</strong> (full IdP), <strong>Ory Hydra</strong> (headless
+OAuth2 server) with <strong>Ory Fosite</strong> as the embeddable SDK Hydra itself is built on.</li>
+<li><strong>Token propagation</strong>: pass the inbound bearer token (or exchange it, RFC 8693) on
+outgoing calls via <code>oauth2.NewClient</code> + a static/reuse <code>TokenSource</code>; inside a mesh,
+mTLS often carries workload identity instead.</li>
+</ul>
+<h2>Details</h2>
+<h3>Client side: x/oauth2 in practice</h3>
+<p><code>oauth2.Config</code> covers the redirect dance; the subtle part is token lifecycle.
+<code>Config.TokenSource(ctx, tok)</code> wraps a token with auto-refresh (<code>ReuseTokenSource</code>), and
+<code>oauth2.NewClient</code> builds an <code>*http.Client</code> whose transport injects <code>Authorization: Bearer</code>. Pitfalls worth remembering: the package silently ignores refresh failures until a
+request fails; the <code>ctx</code> passed at creation controls the <em>refresh</em> requests' HTTP client
+(via <code>oauth2.HTTPClient</code> context key), which matters for proxies and test doubles.
+Provider endpoint presets live in subpackages (<code>x/oauth2/google</code>, <code>github</code>, etc.), but for
+any OIDC-compliant IdP, <code>go-oidc</code>'s discovered <code>provider.Endpoint()</code> is the better source.</p>
+<h3>Resource server: verification middleware</h3>
+<p>The canonical shape, framework-independent:</p>
+<ol>
+<li>Extract <code>Authorization: Bearer</code> (reject anything else).</li>
+<li>Verify with a cached verifier: <code>go-oidc</code>'s <code>Verifier</code> for ID-token-shaped JWTs, or
+<code>jwx</code>'s <code>jwk.Cache</code> + <code>jwt.Parse</code> with pinned algorithms for plain access tokens.</li>
+<li>Check audience/scope claims for the route; put the claims struct into <code>context</code>.</li>
+</ol>
+<p>For gin the same function is wrapped as <code>gin.HandlerFunc</code> calling <code>c.Abort()</code> on failure;
+echo and chi are analogous. Multi-tenant APIs cache one verifier per issuer. If the IdP
+issues opaque tokens, verification becomes an introspection call (RFC 7662) — cache the
+result briefly.</p>
+<h3>Provider side: embed or delegate</h3>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>What it is</th>
+<th>When</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Keycloak</td>
+<td>External Java IdP, the default everywhere</td>
+<td>You just need an IdP; ops-friendly, huge feature set</td>
+</tr>
+<tr>
+<td>Dex</td>
+<td>Go OIDC provider that federates upstream connectors (LDAP, GitHub, SAML)</td>
+<td>Kubernetes-adjacent, need OIDC in front of existing identity</td>
+</tr>
+<tr>
+<td>Zitadel</td>
+<td>Go-native full IdP (multi-tenant, passkeys)</td>
+<td>Want a modern self-hosted IdP in the ecosystem</td>
+</tr>
+<tr>
+<td>Ory Hydra</td>
+<td>Headless certified OAuth2/OIDC server; you supply login UI</td>
+<td>Need certified flows but own the UX</td>
+</tr>
+<tr>
+<td>Ory Fosite</td>
+<td>Library: handlers for each grant, storage interfaces</td>
+<td>Embedding an authorization server inside your own binary</td>
+</tr>
+</tbody>
+</table>
+<p>Embedding via Fosite is real work (storage, consent, key rotation are yours); default to
+delegating unless the product <em>is</em> identity.</p>
+<h3>Testing</h3>
+<ul>
+<li><strong>Mock OIDC servers</strong>: <code>oauth2-mock</code>-style servers or the lightweight
+<code>mockoidc</code> package stand up a discovery endpoint + JWKS and mint arbitrary tokens —
+ideal for middleware unit tests.</li>
+<li><strong>Testcontainers</strong>: the Keycloak module for testcontainers-go runs the real IdP in
+integration tests; Dex is light enough to run as a plain container too.</li>
+<li><strong>Static keys</strong>: for pure JWT middleware tests, generate an ed25519/RSA key in the test,
+serve its JWKS from <code>httptest.NewServer</code>, sign tokens with <code>jwx</code> — no network, no mocks.</li>
+</ul>
+<h2>Examples</h2>
+<pre><code class="language-go">// Client credentials: service-to-service token source.
+cc := clientcredentials.Config{
+    ClientID:     os.Getenv(&quot;CLIENT_ID&quot;),
+    ClientSecret: os.Getenv(&quot;CLIENT_SECRET&quot;),
+    TokenURL:     &quot;https://idp.example.com/oauth2/token&quot;,
+    Scopes:       []string{&quot;inventory:read&quot;},
+}
+client := cc.Client(ctx) // *http.Client, auto-refreshing
+
+// Resource server: go-oidc verification middleware.
+provider, _ := oidc.NewProvider(ctx, &quot;https://idp.example.com&quot;)
+verifier := provider.Verifier(&amp;oidc.Config{ClientID: &quot;inventory-api&quot;})
+
+func auth(next http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        raw, ok := strings.CutPrefix(r.Header.Get(&quot;Authorization&quot;), &quot;Bearer &quot;)
+        if !ok {
+            http.Error(w, &quot;missing bearer token&quot;, http.StatusUnauthorized)
+            return
+        }
+        idToken, err := verifier.Verify(r.Context(), raw)
+        if err != nil {
+            http.Error(w, &quot;invalid token&quot;, http.StatusUnauthorized)
+            return
+        }
+        next.ServeHTTP(w, r.WithContext(withClaims(r.Context(), idToken)))
+    })
+}
+</code></pre>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../go/go-security/go-security/">Security in Go applications — the map</a> — parent map of concern → library.</li>
+<li><a href="../../../security/authentication-and-authorization/">Authentication &amp; authorization</a> — the protocol semantics behind these flows.</li>
+<li><a href="../../../go/go-security/web-security/">Web security in Go apps</a> — sessions, CSRF and the rest of the perimeter.</li>
+<li><a href="../../../go/testing/integration-testing/">Integration testing</a> — testcontainers patterns used for Keycloak/Dex here.</li>
+<li><a href="../../../java/java-security/oauth2-and-oidc/">OAuth2 &amp; OIDC in Java</a> — the same protocols via Spring/Quarkus starters instead of hand-rolled middleware.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

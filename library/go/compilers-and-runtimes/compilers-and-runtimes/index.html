@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Go compilers &amp; runtimes compared — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/go/compilers-and-runtimes</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../go/">go</a><span class="tok-path">/</span><span class="tok-path">compilers-and-runtimes</span> <span class="tok-cmd">cat</span> <span class="tok-file">compilers-and-runtimes</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Go compilers &amp; runtimes compared</h1>
+        <p class="lib-lede"><span class="tok-comment"># The Go specification versus its implementations — the gc reference toolchain, gccgo, gollvm, TinyGo — and the WASM targets.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#go">#go</a><a class="lib-tag" href="../../../tags/#runtime">#runtime</a><a class="lib-tag" href="../../../tags/#compilers">#compilers</a><a class="lib-tag" href="../../../tags/#gc">#gc</a><a class="lib-tag" href="../../../tags/#wasm">#wasm</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>Like Java, Go separates a <em>language specification</em> from its <em>implementations</em> — but the
+ecosystem looks nothing like the JVM's. One implementation, the <code>gc</code> toolchain shipped
+with every Go release, is utterly dominant: it is the reference, it defines what &quot;current
+Go&quot; means, and its runtime choices (scheduler, GC) are what people mean when they talk
+about &quot;how Go behaves&quot;. The alternatives — gccgo, gollvm, TinyGo — exist for specific
+niches, not as competing general-purpose runtimes the way HotSpot, OpenJ9 and Zing
+compete (contrast <a href="../../../java/jvm-implementations/jvm-implementations/">JVM implementations compared</a>).</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>Spec vs implementation</strong>: the Go spec fixes syntax, types and semantics; goroutine
+scheduling and GC behaviour are <code>gc</code>-implementation detail, not language guarantees.</li>
+<li><strong>gc</strong>: the reference toolchain — compiler written in Go, SSA backend, AOT compilation
+to static binaries, no JIT; the defining trade against the JVM.</li>
+<li><strong>The runtime is linked in</strong>: every gc binary embeds the G-M-P scheduler, the
+tri-colour concurrent GC and the netpoller — there is no separate VM to install.</li>
+<li><strong>gccgo / gollvm</strong>: the same GCC-maintained frontend on GCC and LLVM backends;
+occasionally better codegen, chronically behind the spec, niche.</li>
+<li><strong>TinyGo</strong>: an LLVM-based compiler for microcontrollers and WASM — a genuinely
+different runtime story; see the <a href="../../../go/compilers-and-runtimes/tinygo/">deep dive</a>.</li>
+<li><strong>WASM is a first-class gc target</strong>: <code>js/wasm</code> for browsers, <code>wasip1</code> for runtimes;
+TinyGo produces far smaller modules where size matters.</li>
+<li><strong>No TCK equivalent</strong>: conformance is pragmatic — the spec plus the standard library's
+behaviour as implemented by gc is the de facto contract.</li>
+</ul>
+<h2>Details</h2>
+<h3>The Go specification</h3>
+<p>The <a href="https://go.dev/ref/spec" rel="noopener">Go Programming Language Specification</a> is deliberately
+compact — around a hundred pages, short enough to actually read end to end, and that
+compactness is treated as a feature to defend: proposals are routinely rejected for the
+spec complexity they would add. It fixes syntax, the type system (including generics
+since 1.18 and range-over-func iterators since 1.23), declaration and scoping rules,
+expression and statement semantics, and the built-in types' behaviour. A companion
+document, the <a href="https://go.dev/ref/mem" rel="noopener">Go Memory Model</a>, defines the happens-before
+guarantees for concurrent programs — revised in 2022 to align with C++/Java-style
+data-race semantics (&quot;programs with data races are invalid&quot;).</p>
+<p>Equally important is what the spec <em>leaves open</em>: how goroutines are scheduled, how the
+garbage collector behaves, stack growth, the pacing knobs (<code>GOGC</code>, <code>GOMEMLIMIT</code>) — all
+gc-implementation detail. Code that depends on scheduling order or finalizer timing is
+depending on an implementation, not on Go. Saved reference:
+<a href="../../../go/compilers-and-runtimes/references/go-language-specification/">The Go spec</a>.</p>
+<h3>gc — the reference toolchain</h3>
+<p>The <code>gc</code> toolchain (<code>cmd/compile</code>, historically &quot;gc&quot; for <em>Go compiler</em>, nothing to do
+with garbage collection) ships with every release and is self-hosted: written in Go
+since 1.5. The compiler lowers to a generic SSA form and runs a portable optimisation
+pipeline — escape analysis (deciding which values may live on a goroutine stack instead
+of the heap), inlining, bounds-check elimination, devirtualisation — before
+architecture-specific lowering. Since 1.21, profile-guided optimisation can feed a
+production CPU profile back into inlining and layout decisions.</p>
+<p>The runtime linked into every binary provides:</p>
+<ul>
+<li><strong>G-M-P scheduler</strong> — goroutines (G) multiplexed onto OS threads (M) via per-core
+processors (P); work-stealing, and asynchronous preemption since 1.14 so tight loops
+cannot starve the scheduler.</li>
+<li><strong>Tri-colour concurrent GC</strong> — a non-generational, non-compacting concurrent
+mark-sweep collector with very short stop-the-world phases, paced by <code>GOGC</code> and capped
+by <code>GOMEMLIMIT</code> (1.19).</li>
+<li><strong>Netpoller</strong> — network I/O integrated with the scheduler over epoll/kqueue/IOCP, so a
+blocked read parks the goroutine, not the thread.</li>
+</ul>
+<p>There is no JIT and never has been: gc compiles ahead of time to a statically linked
+native binary. That is the defining trade against the JVM — instant start-up, trivial
+deployment, predictable memory, in exchange for no runtime re-optimisation based on live
+profiles (PGO recovers some of it, offline).</p>
+<h3>gccgo &amp; gollvm</h3>
+<p><strong>gccgo</strong> is a Go frontend for GCC, maintained in the GCC tree and sharing its
+&quot;gofrontend&quot; with gollvm. It benefits from GCC's mature middle-end — on some CPU-bound
+numeric code it produces better machine code than gc — and reaches architectures gc does
+not support. The costs: it trails the spec by releases (generics support arrived long
+after 1.18), its runtime lags, and escape analysis differs. <strong>gollvm</strong> puts the same
+frontend on LLVM; it has always been experimental and development is largely dormant.
+Both are niche answers — &quot;I need GCC's platforms or codegen&quot; — not alternatives you
+reach for by default.</p>
+<h3>TinyGo</h3>
+<p>TinyGo compiles a subset of Go via LLVM for places the standard runtime cannot go:
+microcontrollers with kilobytes of RAM, and WASM where a multi-megabyte module is
+unacceptable. It swaps the runtime story entirely — selectable GC (including none),
+aggressive dead-code elimination, goroutines on bare metal — at the price of stdlib and
+reflection gaps. Full treatment: <a href="../../../go/compilers-and-runtimes/tinygo/">TinyGo deep dive</a>.</p>
+<h3>WASM targets</h3>
+<p>gc has targeted <code>GOOS=js GOARCH=wasm</code> since 1.11 (browser execution via the
+<code>wasm_exec.js</code> shim and <code>syscall/js</code> for DOM interop) and <code>GOOS=wasip1</code> since 1.21
+(WASI preview 1, for server-side runtimes like wazero, Wasmtime and Wasmer). gc modules
+carry the full runtime — typically a couple of megabytes upwards even compressed — which
+is fine for an application, painful for a plugin. TinyGo's output is often one to two
+orders of magnitude smaller, which is why it dominates the WASM-plugin and proxy-filter
+space.</p>
+<h3>Comparison</h3>
+<table>
+<thead>
+<tr>
+<th>Implementation</th>
+<th>Backend</th>
+<th>GC</th>
+<th>Binary size</th>
+<th>Spec currency</th>
+<th>Sweet spot</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>gc (reference)</td>
+<td>Own SSA backend</td>
+<td>Tri-colour concurrent mark-sweep</td>
+<td>MBs, static</td>
+<td>Defines it — always current</td>
+<td>Default; everything</td>
+</tr>
+<tr>
+<td>gccgo</td>
+<td>GCC</td>
+<td>Ported runtime, trails gc</td>
+<td>Comparable; can link dynamically</td>
+<td>Lags by releases</td>
+<td>GCC-only platforms, occasional codegen wins</td>
+</tr>
+<tr>
+<td>gollvm</td>
+<td>LLVM</td>
+<td>As gccgo (shared frontend)</td>
+<td>Comparable</td>
+<td>Lags; largely dormant</td>
+<td>Research / niche</td>
+</tr>
+<tr>
+<td>TinyGo</td>
+<td>LLVM</td>
+<td>Conservative / leaking / none</td>
+<td>KBs to low hundreds of KB</td>
+<td>Subset; trails releases</td>
+<td>Microcontrollers, small WASM</td>
+</tr>
+</tbody>
+</table>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../go/go-deep-dive/">Deep dive Go</a> — parent theme note; the language and runtime in
+context.</li>
+<li><a href="../../../go/compilers-and-runtimes/tinygo/">TinyGo deep dive</a> — the one alternative
+implementation with a genuinely different runtime.</li>
+<li><a href="../../../go/toolchain/toolchain/">The Go toolchain</a> — the <code>go</code> command and tools that drive
+the gc compiler day to day.</li>
+<li><a href="../../../go/go-proposals-and-community/">Go proposals and community</a> — how changes reach the
+spec and the reference implementation.</li>
+<li><a href="../../../java/jvm-implementations/jvm-implementations/">JVM implementations compared</a> — the
+contrast: a spec with several competing runtimes versus Go's single dominant one.</li>
+</ul>
+<h2>Citations</h2>
+<p>[1] <a href="https://go.dev/ref/spec" rel="noopener">The Go Programming Language Specification</a>
+[2] <a href="https://go.dev/ref/mem" rel="noopener">The Go Memory Model</a>
+[3] <a href="https://tip.golang.org/doc/gc-guide" rel="noopener">A Guide to the Go Garbage Collector</a></p>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

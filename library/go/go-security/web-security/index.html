@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Web security in Go apps — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/go/go-security</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../go/">go</a><span class="tok-path">/</span><span class="tok-path">go-security</span> <span class="tok-cmd">cat</span> <span class="tok-file">web-security</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Web security in Go apps</h1>
+        <p class="lib-lede"><span class="tok-comment"># The OWASP web attack surface in Go idiom — injection, XSS, CSRF, CORS, headers, sessions, file handling, SSRF and request limits.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#go">#go</a><a class="lib-tag" href="../../../tags/#security">#security</a><a class="lib-tag" href="../../../tags/#web">#web</a><a class="lib-tag" href="../../../tags/#owasp">#owasp</a><a class="lib-tag" href="../../../tags/#middleware">#middleware</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>The OWASP concerns are universal; what changes in Go is where the defence lives. Some of
+it the language design quietly solved (<code>html/template</code>'s contextual escaping is one of the
+best XSS answers in any ecosystem; no reflective deserialisation gadget chains), some of it
+is a one-line library (<code>rs/cors</code>, <code>gorilla/csrf</code>), and some of it is entirely on you
+because no framework sets defaults — security headers being the canonical example, where
+Spring users get sane values for free and Go users get nothing until they add middleware.
+The general taxonomy lives in <a href="../../../security/appsec-fundamentals/">AppSec fundamentals</a>;
+this note is the Go-specific defence per concern.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>Injection</strong>: <code>database/sql</code> placeholders (<code>$1</code>/<code>?</code>) end SQL injection; the absence of
+ORM magic means there is also nowhere to hide string concatenation — grep for
+<code>fmt.Sprintf</code> feeding <code>Query</code> and you have your audit.</li>
+<li><strong>XSS</strong>: <code>html/template</code> auto-escapes <em>contextually</em> (HTML body vs attribute vs JS vs
+URL); <code>text/template</code> does not escape at all and is the classic footgun when someone
+reaches for it to render HTML.</li>
+<li><strong>CSRF</strong>: <code>gorilla/csrf</code> for cookie-session apps; for pure bearer-token APIs CSRF is
+largely moot, and <code>SameSite=Lax/Strict</code> cookies have downgraded (not eliminated) the
+risk elsewhere — judge per app.</li>
+<li><strong>CORS</strong>: <code>rs/cors</code> as <code>net/http</code> middleware, or the per-framework equivalents
+(<code>gin-contrib/cors</code>, echo's <code>middleware.CORS</code>); never reflect arbitrary origins with
+credentials enabled.</li>
+<li><strong>Headers</strong>: <code>unrolled/secure</code> (HSTS, CSP, frame/content-type options) or ten lines of
+hand-rolled middleware — but it must exist; nothing is emitted by default.</li>
+<li><strong>Sessions</strong>: <code>gorilla/sessions</code> (cookie or store-backed) or the more modern
+<code>alexedwards/scs</code> (server-side, pluggable stores, sane renewal API); regenerate the
+session ID on login either way.</li>
+<li><strong>File paths</strong>: <code>filepath.Clean</code> alone does not stop traversal; use <code>os.Root</code>
+(Go 1.24) to confine all file operations under a directory, or
+<code>cyphar/filepath-securejoin</code> before that.</li>
+<li><strong>SSRF</strong>: validate/allowlist target hosts <em>and</em> control the dialer — resolve-then-check
+is bypassable via DNS rebinding, so enforce in <code>net.Dialer.Control</code> on the actual
+connected IP.</li>
+<li><strong>Resource limits</strong>: <code>http.MaxBytesReader</code> on request bodies, explicit limits when
+decompressing client-supplied gzip/zip (decompression bombs), and <code>Server</code> timeouts
+(<code>ReadHeaderTimeout</code> et al.) which are unset by default.</li>
+</ul>
+<h2>Details</h2>
+<h3>Injection beyond SQL</h3>
+<p><code>database/sql</code> (and <code>pgx</code> natively) parameterise values, not identifiers — table/column
+names still need an allowlist. Query builders (squirrel) and generators (sqlc) keep
+parameterisation while composing dynamically. The same discipline generalises:
+<code>os/exec.Command</code> takes an argv slice, so shell injection only appears when someone
+invokes <code>sh -c</code> with concatenated input; LDAP/NoSQL injection follow the usual encoding
+rules from <a href="../../../security/appsec-fundamentals/">AppSec fundamentals</a>.</p>
+<h3>html/template's contextual model</h3>
+<p>The escaper parses the template, determines the context of every interpolation point, and
+applies the right encoding chain (<code>htmlEscaper</code>, <code>jsValEscaper</code>, <code>urlFilter</code>, …). Typed
+bypasses — <code>template.HTML</code>, <code>template.JS</code>, <code>template.URL</code> — are the explicit &quot;I promise
+this is safe&quot; markers; audit every constructor of those types. Remaining foot-guns:
+rendering user HTML on purpose (sanitise with <code>microcosm-cc/bluemonday</code> first), and
+<em>template injection</em> — never build a template string from user input (<code>template.New(...). Parse(userInput)</code> hands over the escaper itself); user data belongs in the data argument,
+not the template text.</p>
+<h3>CSRF and sessions in practice</h3>
+<p><code>gorilla/csrf</code> issues a masked double-submit token tied to the session and rejects
+mutating requests without it; wire it around the router and expose the token via
+<code>csrf.Token(r)</code>/<code>TemplateField</code>. For APIs authenticated by <code>Authorization</code> headers there
+is no ambient credential, hence no CSRF — the judgement call is hybrid apps where a cookie
+session backs a JSON API: keep CSRF there, or move fully to <code>SameSite=Strict</code> plus
+re-authentication for sensitive actions. With <code>scs</code>, <code>LoadAndSave</code> middleware handles
+cookie lifecycle; call <code>RenewToken</code> on privilege change to prevent session fixation.</p>
+<h3>The unset-by-default tax</h3>
+<p>Worth a literal checklist because nothing supplies it (contrast Spring Security's
+defaults):</p>
+<table>
+<thead>
+<tr>
+<th>Concern</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Security headers</td>
+<td><code>unrolled/secure</code> or hand-rolled: HSTS, CSP, <code>X-Content-Type-Options: nosniff</code>, <code>X-Frame-Options</code>/<code>frame-ancestors</code>, <code>Referrer-Policy</code></td>
+</tr>
+<tr>
+<td>Server timeouts</td>
+<td>set <code>ReadHeaderTimeout</code>, <code>ReadTimeout</code>, <code>WriteTimeout</code>, <code>IdleTimeout</code> on <code>http.Server</code></td>
+</tr>
+<tr>
+<td>Body size</td>
+<td><code>http.MaxBytesReader(w, r.Body, n)</code> before decoding</td>
+</tr>
+<tr>
+<td>Decompression</td>
+<td>wrap gzip readers with <code>io.LimitReader</code>; check zip entry sizes before extraction</td>
+</tr>
+<tr>
+<td>Error leakage</td>
+<td>never <code>http.Error(w, err.Error(), 500)</code> with internal errors</td>
+</tr>
+</tbody>
+</table>
+<h2>Examples</h2>
+<pre><code class="language-go">// Path traversal: confine file access with os.Root (Go 1.24+).
+root, err := os.OpenRoot(&quot;/var/app/uploads&quot;)
+if err != nil { return err }
+defer root.Close()
+f, err := root.Open(userSuppliedName) // cannot escape /var/app/uploads, symlinks included
+</code></pre>
+<pre><code class="language-go">// SSRF: enforce on the connected IP, not the looked-up name.
+dialer := &amp;net.Dialer{
+    Control: func(network, address string, c syscall.RawConn) error {
+        host, _, _ := net.SplitHostPort(address)
+        if ip := net.ParseIP(host); ip != nil &amp;&amp; (ip.IsLoopback() || ip.IsPrivate()) {
+            return fmt.Errorf(&quot;blocked internal address %s&quot;, ip)
+        }
+        return nil
+    },
+}
+client := &amp;http.Client{Transport: &amp;http.Transport{DialContext: dialer.DialContext}}
+</code></pre>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../go/go-security/go-security/">Security in Go applications — the map</a> — parent map of concern → library.</li>
+<li><a href="../../../security/appsec-fundamentals/">AppSec fundamentals</a> — the OWASP taxonomy this note instantiates in Go.</li>
+<li><a href="../../../go/go-security/oauth2-and-oidc/">OAuth2 &amp; OIDC in Go</a> — the authentication perimeter these defences sit behind.</li>
+<li><a href="../../../go/web-frameworks/net-http/">net/http</a> — the server all this middleware wraps, including its unset timeouts.</li>
+<li><a href="../../../java/java-security/web-security/">Web security in Java apps</a> — the contrast: framework-supplied defaults vs Go's explicit checklist.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>TinyGo deep dive — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/go/compilers-and-runtimes</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../go/">go</a><span class="tok-path">/</span><span class="tok-path">compilers-and-runtimes</span> <span class="tok-cmd">cat</span> <span class="tok-file">tinygo</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">TinyGo deep dive</h1>
+        <p class="lib-lede"><span class="tok-comment"># The LLVM-based Go compiler for microcontrollers and WASM — dead-code elimination, selectable GC, the machine package, and its limits.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#go">#go</a><a class="lib-tag" href="../../../tags/#runtime">#runtime</a><a class="lib-tag" href="../../../tags/#compilers">#compilers</a><a class="lib-tag" href="../../../tags/#embedded">#embedded</a><a class="lib-tag" href="../../../tags/#wasm">#wasm</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>TinyGo is an alternative Go compiler built on LLVM, aimed at the two places the standard
+gc toolchain cannot reasonably go: microcontrollers with kilobytes of RAM, and WebAssembly
+where module size is the budget. It compiles real Go — goroutines, channels, interfaces,
+much of the standard library — but with a different compilation model and runtime, so
+adopting it is a porting decision, not a flag flip. It is the Go world's closest analog to
+a &quot;different runtime story&quot;, much as <a href="../../../java/jvm-implementations/graalvm/">GraalVM native-image</a>
+is to HotSpot: dramatic size and start-up wins bought by giving up dynamism.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>LLVM backend</strong>: TinyGo lowers Go through LLVM, inheriting its optimiser and its
+bare-metal and WASM targets; compilation is whole-program.</li>
+<li><strong>Aggressive dead-code elimination</strong>: only code proven reachable is compiled — the main
+reason binaries land in kilobytes where gc produces megabytes.</li>
+<li><strong>Selectable GC</strong>: <code>-gc=conservative</code> (default, mark-sweep), <code>-gc=leaking</code> (never
+free — fine for short-lived WASM calls), <code>-gc=none</code> (allocation is a compile/runtime
+error path; full manual control).</li>
+<li><strong>Goroutines on bare metal</strong>: a cooperative scheduler runs goroutines and channels
+without an OS; <code>-scheduler=none</code> drops even that for pure interrupt-driven code.</li>
+<li><strong>The machine package</strong>: board-specific access to GPIO, I2C, SPI, UART, ADC and PWM;
+dozens of supported boards (Arduino, micro:bit, Raspberry Pi Pico/RP2040, many
+Adafruit SAMD boards, ESP32 variants) selected by <code>-target</code>.</li>
+<li><strong>WASM output size</strong>: small modules — commonly tens of kilobytes versus a couple of
+megabytes from gc — which is why it dominates plugin and filter use cases
+(proxy-wasm/Envoy filters, Extism-style plugins, edge runtimes).</li>
+<li><strong>Subset, not superset</strong>: partial reflection support, stdlib gaps (<code>os/exec</code>, parts of
+<code>net</code>, anything needing full OS facilities), limited cgo; check before adopting.</li>
+</ul>
+<h2>Details</h2>
+<h3>How it differs from gc</h3>
+<p>gc compiles packages separately and links; TinyGo compiles the whole program at once
+through LLVM, which enables cross-package dead-code elimination and interface
+devirtualisation aggressive enough to strip most of the stdlib you don't touch. The
+runtime is TinyGo's own, small enough for bare metal: no netpoller, no OS threads, a
+cooperative goroutine scheduler (goroutines yield at blocking points; on WASM,
+<code>-scheduler=asyncify</code> uses Binaryen's asyncify to suspend the stack). Stack handling, GC
+and memory layout all differ from gc — behaviour that leans on gc runtime details will
+not carry over.</p>
+<h3>Embedded and IoT</h3>
+<p>The <code>machine</code> package is the hardware API: <code>machine.LED</code>, <code>machine.I2C0</code>, pin
+configuration, interrupts — with per-board definitions selected by <code>-target=&lt;board&gt;</code>.
+The TinyGo drivers repository adds several hundred peripheral drivers (sensors,
+displays, radios). <code>tinygo flash</code> builds and programs the board in one step. This makes
+Go a credible MCU language for sensor nodes, badges and IoT prototypes — with the caveat
+that hard-real-time work still fights the GC unless you run <code>-gc=none</code> and preallocate.</p>
+<h3>WASM plugins and filters</h3>
+<p>For browser or WASI targets the size argument is decisive: a plugin host loading
+hundreds of modules, or a proxy hot-loading filters, cannot pay megabytes per module.
+TinyGo is the standard way to write <strong>Envoy/proxy-wasm filters in Go</strong>, and the usual
+choice for WASI plugin ecosystems. gc's <code>wasip1</code> support is fine for running an
+application under a WASM runtime; TinyGo wins when the module is an embedded extension.</p>
+<h3>Limitations to check before adopting</h3>
+<ul>
+<li><strong>Reflection</strong>: substantially supported but not complete — reflection-heavy libraries
+(ORMs, some serialisation/DI code) are the first thing to break; <code>encoding/json</code>
+works in recent releases but verify your dependency tree.</li>
+<li><strong>Stdlib gaps</strong>: no <code>os/exec</code>, incomplete <code>net</code> (no full TCP stack on bare metal;
+WASI networking is limited), and anything assuming an OS.</li>
+<li><strong>Concurrency model</strong>: cooperative scheduling, no parallelism — a busy loop without
+yields blocks everything.</li>
+<li><strong>Tooling</strong>: slower whole-program builds, more limited debugging than delve on gc.</li>
+<li>Rule of thumb: prototype the real dependency graph early — as with GraalVM
+native-image, projects stall on one incompatible transitive dependency, not on the
+compiler.</li>
+</ul>
+<h2>Examples</h2>
+<pre><code class="language-bash"># Build + flash a Raspberry Pi Pico (RP2040); -target selects board + machine package
+tinygo flash -target=pico ./cmd/sensor
+
+# Or just build the firmware image
+tinygo build -target=pico -o firmware.uf2 ./cmd/sensor
+
+# WASI module for a plugin host (wazero, Wasmtime, Envoy-adjacent runtimes)
+tinygo build -target=wasip1 -o plugin.wasm -no-debug -gc=leaking ./cmd/plugin
+
+# Browser WASM (pairs with TinyGo's wasm_exec.js shim)
+tinygo build -target=wasm -no-debug -o web.wasm ./web
+</code></pre>
+<p><code>-no-debug</code> strips DWARF (a large fraction of module size); <code>-gc=leaking</code> suits
+short-lived plugin invocations where the host tears the instance down anyway.</p>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../go/compilers-and-runtimes/compilers-and-runtimes/">Go compilers &amp; runtimes compared</a>
+— parent comparison; where TinyGo sits against gc, gccgo and gollvm.</li>
+<li><a href="../../../go/modules-and-build/building-and-releasing/">Building and releasing</a> — the
+standard gc build/release flow TinyGo substitutes for these targets.</li>
+<li><a href="../../../java/jvm-implementations/graalvm/">GraalVM deep dive</a> — the JVM's analogous trade:
+closed-world compilation for size and start-up, paid for in dynamism.</li>
+</ul>
+<h2>Citations</h2>
+<p>[1] <a href="https://tinygo.org/docs/" rel="noopener">TinyGo documentation</a>
+[2] <a href="https://tinygo.org/docs/reference/lang-support/" rel="noopener">TinyGo language support (reflection, stdlib)</a>
+[3] <a href="https://github.com/proxy-wasm/proxy-wasm-go-sdk" rel="noopener">proxy-wasm Go SDK</a></p>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>
