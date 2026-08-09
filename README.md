@@ -5,8 +5,9 @@ branch via GitHub Pages.
 
 | Path | What | Source |
 |------|------|--------|
-| `/` | Landing page (blog placeholder for now) | [`site/`](site/) in this repo |
+| `/` | Landing page (the blog will grow here) | [`site/`](site/) in this repo |
 | `/cv/` | The CV (EN + FR + PDFs) | Built & deployed from the private `Alfred` repo |
+| `/library/` | The virtual library (curated engineering notes) | Built & deployed from the private `Alfred` repo |
 
 ## How deployment works
 
