@@ -93,6 +93,17 @@ hardware ordering) and breaks on ARM or after a JIT upgrade.</li>
 // Without volatile on `ready`, consume() may see ready==true and payload==0:
 // both reorderings (write side and read side) are legal in a racy program.
 </code></pre>
+<p>The happens-before chain in that example, drawn out — transitivity is what connects the
+payload write to the payload read:</p>
+<pre class="mermaid">flowchart LR
+    subgraph writer [&quot;Writer thread&quot;]
+        W1[&quot;payload = 42&quot;] --&gt;|program order| W2[&quot;volatile write: ready = true&quot;]
+    end
+    subgraph reader [&quot;Reader thread&quot;]
+        R1[&quot;volatile read: ready == true&quot;] --&gt;|program order| R2[&quot;read payload: sees 42&quot;]
+    end
+    W2 --&gt;|volatile write happens-before later read| R1
+</pre>
 <h2>Related</h2>
 <ul>
 <li><a href="../../../java/memory-and-gc/memory-and-gc/">Java memory &amp; GC — the map</a> — why &quot;memory model&quot; ≠ memory management.</li>

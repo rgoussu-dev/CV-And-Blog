@@ -252,6 +252,29 @@
 <li><strong>Creation</strong>: Added concept <a href="../go/protocols/api-documentation/">API documentation in Go</a> — the doc flavors mapped onto net/http/chi, Gin, Echo and Fiber: oapi-codegen, swag, huma/fuego, buf, grpc-gateway.</li>
 <li><strong>Creation</strong>: Added concept <a href="../rust/protocols/api-documentation/">API documentation in Rust</a> — the doc flavors mapped onto Axum, Actix Web and Rocket: utoipa and kin, tonic-build, async-graphql SDL export.</li>
 <li><strong>Update</strong>: Cross-linked the wave both ways from <a href="../system-design/api-design/">API design</a>, the three protocol maps (<a href="../java/protocols/protocols/">Java</a>, <a href="../go/protocols/protocols/">Go</a>, <a href="../rust/protocols/protocols/">Rust</a>), the REST and messaging deep dives per language, and the three framework landscapes (<a href="../java/frameworks/frameworks/">Java</a>, <a href="../go/web-frameworks/web-frameworks/">Go</a>, <a href="../rust/web-frameworks/web-frameworks/">Rust</a>).</li>
+<li><strong>Update</strong>: Diagrammed <a href="../applicative-architecture/hexagonal-architecture/">Hexagonal architecture</a> — the pattern as a flowchart: driving adapters → ports → hexagon → driven ports → driven adapters, dependencies pointing inward.</li>
+<li><strong>Update</strong>: Diagrammed <a href="../java/hexagonal-reference-implementation/hexagonal-reference-implementation/">the reference layout</a> — the module dependency graph from the dependency-rules table, forbidden infrastructure→domain-core edge marked.</li>
+<li><strong>Update</strong>: Diagrammed <a href="../java/hexagonal-reference-implementation/domain-layer/">the domain layer</a> — both port directions living in domain-api, core implementing one side and consuming the other.</li>
+<li><strong>Update</strong>: Diagrammed <a href="../java/hexagonal-reference-implementation/application-layer/">the application layer</a> — deployment units with pair-only-where-the-contract-is-real, cron units as single modules.</li>
+<li><strong>Update</strong>: Diagrammed <a href="../go/hexagonal-reference-implementation/">the Go derivation</a> — nested internal/ visibility boundaries with the compiler-blocked import shown.</li>
+<li><strong>Update</strong>: Diagrammed <a href="../rust/hexagonal-reference-implementation/">the Rust derivation</a> — the workspace crate graph with the Arc dyn-port wiring seam at the binary crates.</li>
+<li><strong>Update</strong>: Diagrammed <a href="../java/memory-and-gc/gc-principles-and-algorithms/">GC principles &amp; algorithms</a> — tri-color marking as a state diagram, with the lost-object mutation and both barrier families.</li>
+<li><strong>Update</strong>: Diagrammed <a href="../system-design/distributed-consensus/">Distributed consensus</a> — Raft's follower/candidate/leader roles and their transitions.</li>
+<li><strong>Update</strong>: Diagrammed <a href="../java/storage/relational-databases/">Relational databases from Java</a> — the JPA entity lifecycle, LazyInitializationException marked on the detached state.</li>
+<li><strong>Update</strong>: Diagrammed <a href="../java/openjdk-and-the-jep-process/">OpenJDK &amp; the JEP process</a> — the JEP lifecycle including retarget/drop until ramp-down.</li>
+<li><strong>Update</strong>: Diagrammed <a href="../java/memory-and-gc/java-memory-model/">the Java memory model</a> — happens-before edges chaining across the Publisher example's two threads.</li>
+<li><strong>Update</strong>: Diagrammed <a href="../rust/ownership-and-concurrency/ownership-and-borrowing/">Ownership &amp; borrowing</a> — a value's states: moves, shared vs exclusive borrows, NLL returns, drop.</li>
+<li><strong>Update</strong>: Diagrammed <a href="../security/tls-https-and-certificates/">TLS/HTTPS &amp; certificates</a> — the handshake as a sequence diagram plus the chain of trust (two diagrams).</li>
+<li><strong>Update</strong>: Diagrammed <a href="../system-design/websockets-and-bidirectional-protocols/">WebSockets &amp; bidirectional protocols</a> — the upgrade handshake and the pub/sub fan-out topology (two diagrams).</li>
+<li><strong>Update</strong>: Diagrammed <a href="../platform/kubernetes-and-containers/">Kubernetes &amp; containers</a> — the reconciliation loop as a cycle plus Deployment→ReplicaSet→Pod containment (two diagrams).</li>
+<li><strong>Update</strong>: Diagrammed <a href="../platform/ci-cd-and-delivery-engineering/">CI/CD &amp; delivery engineering</a> — build-once-promote and expand→migrate→contract (two diagrams).</li>
+<li><strong>Update</strong>: Diagrammed <a href="../java/build-ecosystem/maven/">Maven</a> — the lifecycle phase chain with plugin-goal bindings.</li>
+<li><strong>Update</strong>: Diagrammed <a href="../frontend/browser-internals/">Browser internals</a> — the rendering pipeline with property re-entry points, and the event loop (two diagrams).</li>
+<li><strong>Update</strong>: Diagrammed <a href="../system-administration/git-internals/">Git internals</a> — the object model as an ER diagram plus the worktree/index/repository triangle (two diagrams).</li>
+<li><strong>Update</strong>: Diagrammed <a href="../rust/toolchain/rustc/">rustc</a> — the compilation pipeline from parse to object code with per-phase costs.</li>
+<li><strong>Update</strong>: Diagrammed <a href="../java/jvm-implementations/graalvm/">GraalVM</a> — the Native Image build pipeline with the build-time vs run-time split.</li>
+<li><strong>Update</strong>: Diagrammed <a href="../ai-engineering/agents-rag-and-tool-use/">Agents, RAG &amp; tool use</a> — the RAG pipeline and the agent loop (two diagrams).</li>
+<li><strong>Update</strong>: Diagrammed <a href="../fundamentals/how-a-computer-works/">How a computer works</a> — the fetch/decode/execute/writeback cycle and the memory-hierarchy latency ladder (two diagrams).</li>
 </ul>
 <h3>2026-08-08</h3>
 <ul>

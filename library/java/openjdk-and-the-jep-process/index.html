@@ -82,6 +82,22 @@ today mostly the umbrella Java SE platform spec and its TCK per release — whil
 drive individual features. JSR = spec-level standardisation; JEP = feature-level
 engineering.</li>
 </ul>
+<p>The JEP lifecycle at a glance:</p>
+<pre class="mermaid">stateDiagram-v2
+    state &quot;Draft&quot; as Draft
+    state &quot;Candidate&quot; as Candidate
+    state &quot;Targeted&quot; as Targeted
+    state &quot;Integrated&quot; as Integrated
+    state &quot;Completed&quot; as Completed
+    [*] --&gt; Draft
+    Draft --&gt; Candidate: accepted as a good idea
+    Candidate --&gt; Targeted: targeted to a specific release
+    Targeted --&gt; Integrated: integrated into mainline
+    Integrated --&gt; Completed: ships with the release
+    Targeted --&gt; Targeted: retargeted to another release (until ramp-down)
+    Targeted --&gt; Candidate: dropped (until ramp-down)
+    Completed --&gt; [*]
+</pre>
 <h2>Details</h2>
 <h3>The preview arc — pattern matching as the worked example</h3>
 <p>Preview lets a finished design soak across multiple releases before it is frozen.

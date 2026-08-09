@@ -39,7 +39,7 @@
       <div class="term-out">
         <h1 class="lib-title">Git internals</h1>
         <p class="lib-lede"><span class="tok-comment"># The content-addressed object model under the porcelain — blobs, trees, commits, refs, and why the reflog means almost nothing is ever lost.</span></p>
-        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-08</span></cluster-pk>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-08</span><span class="lib-meta-date">updated 2026-08-09</span></cluster-pk>
         <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../tags/#git">#git</a><a class="lib-tag" href="../../tags/#internals">#internals</a><a class="lib-tag" href="../../tags/#version-control">#version-control</a><a class="lib-tag" href="../../tags/#cli">#cli</a></cluster-pk>
       </div>
     </div>
@@ -52,32 +52,65 @@ mechanical once you know the objects are immutable and the reflog remembers wher
 pointers were.</p>
 <h2>Key points</h2>
 <ul>
-<li><strong>Four object types</strong>: blob (file contents, no name), tree (directory: names → blobs/
+<li>
+<p><strong>Four object types</strong>: blob (file contents, no name), tree (directory: names → blobs/
 trees), commit (a tree + parent commit(s) + author/message), tag. Content-addressing
 means identical content stored once, and history is tamper-evident: change anything
-and every downstream hash changes.</li>
-<li><strong>A commit is a snapshot, not a diff</strong>: each commit points to a complete tree; diffs
+and every downstream hash changes.</p>
+</li>
+<li>
+<p><strong>A commit is a snapshot, not a diff</strong>: each commit points to a complete tree; diffs
 are <em>computed</em> on demand (packfiles delta-compress under the hood, invisibly). This is
-why checkout is fast and why &quot;which files changed&quot; is a comparison, not a stored fact.</li>
-<li><strong>Branches are 41-byte pointers</strong>: a ref is a file containing a commit hash; HEAD
+why checkout is fast and why &quot;which files changed&quot; is a comparison, not a stored fact.</p>
+</li>
+<li>
+<p><strong>Branches are 41-byte pointers</strong>: a ref is a file containing a commit hash; HEAD
 points to a ref (or directly to a commit — &quot;detached&quot;). Creating a branch copies
-nothing; merging/rebasing/resetting just build objects and move pointers.</li>
-<li><strong>The index (staging area) is a real thing</strong>: a snapshot-in-progress sitting between
+nothing; merging/rebasing/resetting just build objects and move pointers.</p>
+<p>The whole model in one picture — a branch is nothing but the <code>REF</code> box, a file
+holding one commit hash:</p>
+<pre class="mermaid">erDiagram
+    COMMIT ||--|| TREE : &quot;snapshots (complete, not a diff)&quot;
+    COMMIT }o--o{ COMMIT : &quot;parent commit(s)&quot;
+    TREE ||--o{ BLOB : &quot;names file contents&quot;
+    TREE ||--o{ TREE : &quot;nests subdirectories&quot;
+    REF }o--|| COMMIT : &quot;a branch is just a file with this hash&quot;
+    HEAD |o--o| REF : &quot;points to&quot;
+    HEAD |o--o| COMMIT : &quot;or directly (detached)&quot;
+</pre>
+</li>
+<li>
+<p><strong>The index (staging area) is a real thing</strong>: a snapshot-in-progress sitting between
 working tree and repository — <code>git status</code> is two diffs (worktree↔index,
-index↔HEAD); partial staging (<code>add -p</code>) is editing that middle snapshot.</li>
-<li><strong>The reflog is the safety net</strong>: every movement of HEAD and each ref is journaled
+index↔HEAD); partial staging (<code>add -p</code>) is editing that middle snapshot.</p>
+<pre class="mermaid">flowchart LR
+    WT[&quot;Working tree&quot;] --&gt;|&quot;add -p edits the middle snapshot&quot;| IX[&quot;Index (staging area)&quot;]
+    IX --&gt; RP[&quot;Repository (HEAD)&quot;]
+    WT -.-|&quot;git status diff 1: worktree vs index&quot;| IX
+    IX -.-|&quot;git status diff 2: index vs HEAD&quot;| RP
+</pre>
+</li>
+<li>
+<p><strong>The reflog is the safety net</strong>: every movement of HEAD and each ref is journaled
 locally (~90 days) — after a botched rebase or hard reset,
 <code>git reflog</code> + <code>git reset --hard &lt;entry&gt;</code> recovers the &quot;lost&quot; state, because commits
-aren't deleted, only unreferenced.</li>
-<li><strong>Rewriting history = writing new history</strong>: rebase/amend create <em>new</em> commits and
+aren't deleted, only unreferenced.</p>
+</li>
+<li>
+<p><strong>Rewriting history = writing new history</strong>: rebase/amend create <em>new</em> commits and
 move pointers; the old ones linger until GC. Hence the one social rule — never rewrite
-what's pushed and shared — and <code>--force-with-lease</code> as the seatbelt when you must.</li>
-<li><strong>Merge mechanics</strong>: three-way merge from the common ancestor; a conflict is merely
+what's pushed and shared — and <code>--force-with-lease</code> as the seatbelt when you must.</p>
+</li>
+<li>
+<p><strong>Merge mechanics</strong>: three-way merge from the common ancestor; a conflict is merely
 both sides touching the same lines — the markers are the three versions laid bare;
-<code>rerere</code> remembers your resolutions.</li>
-<li>To explore: <code>cat-file</code>/<code>ls-tree</code> spelunking (recreate a commit by hand once — it
+<code>rerere</code> remembers your resolutions.</p>
+</li>
+<li>
+<p>To explore: <code>cat-file</code>/<code>ls-tree</code> spelunking (recreate a commit by hand once — it
 cures all fear), packfiles &amp; GC, worktrees, sparse checkout &amp; partial clone at scale,
-interactive-rebase fluency as history <em>authorship</em>.</li>
+interactive-rebase fluency as history <em>authorship</em>.</p>
+</li>
 </ul>
 <h2>Practice</h2>
 <ul>

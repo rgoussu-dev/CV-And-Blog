@@ -39,7 +39,7 @@
       <div class="term-out">
         <h1 class="lib-title">Distributed consensus</h1>
         <p class="lib-lede"><span class="tok-comment"># How machines agree — Raft, quorums, leader election, and what consensus does (and refuses to do) for the systems built on it.</span></p>
-        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-08</span></cluster-pk>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-08</span><span class="lib-meta-date">updated 2026-08-09</span></cluster-pk>
         <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../tags/#consensus">#consensus</a><a class="lib-tag" href="../../tags/#raft">#raft</a><a class="lib-tag" href="../../tags/#distributed-systems">#distributed-systems</a><a class="lib-tag" href="../../tags/#system-design">#system-design</a></cluster-pk>
       </div>
     </div>
@@ -79,6 +79,16 @@ consistency — the pattern is always &quot;consensus for coordination, replicat
 tolerance (when nodes lie — blockchain territory), flexible quorums, the Raft paper
 itself (genuinely readable).</li>
 </ul>
+<p>Raft's node roles, as the one-paragraph summary above gives them:</p>
+<pre class="mermaid">stateDiagram-v2
+    state &quot;Follower&quot; as Follower
+    state &quot;Candidate&quot; as Candidate
+    state &quot;Leader&quot; as Leader
+    [*] --&gt; Follower
+    Follower --&gt; Candidate: stands for election in a new numbered term
+    Candidate --&gt; Leader: wins a majority vote (log-completeness check passed)
+    Leader --&gt; Leader: appends and replicates client commands, an entry commits once a majority holds it
+</pre>
 <h2>Practice</h2>
 <ul>
 <li><strong>Raft, animated</strong> (<a href="http://thesecretlivesofdata.com/raft/" rel="noopener">source</a>) — step through

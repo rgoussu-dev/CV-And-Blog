@@ -39,7 +39,7 @@
       <div class="term-out">
         <h1 class="lib-title">Browser internals</h1>
         <p class="lib-lede"><span class="tok-comment"># What happens between URL and pixels — parsing, the rendering pipeline, the event loop, and the process/security model.</span></p>
-        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-08</span></cluster-pk>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-08</span><span class="lib-meta-date">updated 2026-08-09</span></cluster-pk>
         <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../tags/#frontend">#frontend</a><a class="lib-tag" href="../../tags/#browser">#browser</a><a class="lib-tag" href="../../tags/#rendering">#rendering</a><a class="lib-tag" href="../../tags/#event-loop">#event-loop</a><a class="lib-tag" href="../../tags/#internals">#internals</a></cluster-pk>
       </div>
     </div>
@@ -51,30 +51,57 @@ main threads, and hydration mismatches all become legible once the pipeline unde
 concrete rather than folklore.</p>
 <h2>Key points</h2>
 <ul>
-<li><strong>From bytes to DOM</strong>: HTML parses incrementally into the DOM; CSS into the CSSOM;
+<li>
+<p><strong>From bytes to DOM</strong>: HTML parses incrementally into the DOM; CSS into the CSSOM;
 <code>&lt;script&gt;</code> (without <code>defer</code>/<code>async</code>) <em>blocks parsing</em> — the original reason for
-&quot;scripts at the bottom&quot; and the modern reason for <code>defer</code> as default.</li>
-<li><strong>The rendering pipeline</strong>: style → layout (geometry) → paint (pixels into layers) →
+&quot;scripts at the bottom&quot; and the modern reason for <code>defer</code> as default.</p>
+</li>
+<li>
+<p><strong>The rendering pipeline</strong>: style → layout (geometry) → paint (pixels into layers) →
 composite (GPU assembles layers). Cost descends left to right: <code>width</code> triggers
 layout+paint+composite; <code>transform</code>/<code>opacity</code> composite only — the entire basis of
-&quot;animate transforms, not top/left&quot;.</li>
-<li><strong>The event loop</strong>: one main thread runs JS, style, layout, and paint; tasks
+&quot;animate transforms, not top/left&quot;.</p>
+<pre class="mermaid">flowchart LR
+    ST[Style] --&gt; LY[&quot;Layout (geometry)&quot;]
+    LY --&gt; PT[&quot;Paint (pixels into layers)&quot;]
+    PT --&gt; CP[&quot;Composite (GPU assembles layers)&quot;]
+    W[&quot;Change width&quot;] --&gt;|&quot;re-enters at layout: layout + paint + composite&quot;| LY
+    TR[&quot;Change transform or opacity&quot;] --&gt;|&quot;composite only&quot;| CP
+</pre>
+</li>
+<li>
+<p><strong>The event loop</strong>: one main thread runs JS, style, layout, and paint; tasks
 (macrotasks) run one per loop turn, then the <em>entire</em> microtask queue (promises) drains
 before rendering gets a chance — a long task or a microtask storm freezes the page at
 ~16ms/frame stakes. <code>requestAnimationFrame</code> before paint; workers for real off-thread
-compute.</li>
-<li><strong>Layout thrashing</strong>: interleaving DOM writes with reads of layout-forcing properties
+compute.</p>
+<pre class="mermaid">flowchart TB
+    MT[&quot;Run one macrotask&quot;] --&gt; MQ[&quot;Drain the entire microtask queue (promises)&quot;]
+    MQ --&gt; RAF[&quot;requestAnimationFrame callbacks&quot;]
+    RAF --&gt; RD[&quot;Rendering opportunity: style, layout, paint&quot;]
+    RD --&gt;|&quot;next loop turn&quot;| MT
+</pre>
+</li>
+<li>
+<p><strong>Layout thrashing</strong>: interleaving DOM writes with reads of layout-forcing properties
 (<code>offsetHeight</code>…) forces synchronous reflow per iteration — batch reads, then writes;
-it's the classic self-inflicted performance bug.</li>
-<li><strong>Process &amp; security model</strong>: per-site processes (site isolation), the same-origin
+it's the classic self-inflicted performance bug.</p>
+</li>
+<li>
+<p><strong>Process &amp; security model</strong>: per-site processes (site isolation), the same-origin
 policy as the bedrock rule, CORS as its <em>relaxation</em> protocol (not a server shield),
-cookies vs. storage, and why the network tab shows preflights.</li>
-<li><strong>Modern rendering strategies sit on this</strong>: SSR streams HTML the parser can use
+cookies vs. storage, and why the network tab shows preflights.</p>
+</li>
+<li>
+<p><strong>Modern rendering strategies sit on this</strong>: SSR streams HTML the parser can use
 immediately; hydration re-attaches JS to server-rendered DOM (mismatch bugs = the two
-renders disagreed); islands/server components shrink the JS that must hydrate at all.</li>
-<li>To explore: V8's JIT tiers and hidden classes, speculative parsing &amp; preload scanner,
+renders disagreed); islands/server components shrink the JS that must hydrate at all.</p>
+</li>
+<li>
+<p>To explore: V8's JIT tiers and hidden classes, speculative parsing &amp; preload scanner,
 <code>content-visibility</code>, the RAIL model as budgets — and
-<a href="../../frontend/web-performance/">web performance</a> for the measurement side.</li>
+<a href="../../frontend/web-performance/">web performance</a> for the measurement side.</p>
+</li>
 </ul>
 <h2>Practice</h2>
 <ul>

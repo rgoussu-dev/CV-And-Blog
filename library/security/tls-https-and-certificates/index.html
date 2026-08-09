@@ -39,7 +39,7 @@
       <div class="term-out">
         <h1 class="lib-title">TLS/HTTPS &amp; certificate management</h1>
         <p class="lib-lede"><span class="tok-comment"># How SSL/TLS actually works — the handshake, the certificate/PKI trust architecture, and operating certificates in practice.</span></p>
-        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-08</span></cluster-pk>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-08</span><span class="lib-meta-date">updated 2026-08-09</span></cluster-pk>
         <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../tags/#tls">#tls</a><a class="lib-tag" href="../../tags/#https">#https</a><a class="lib-tag" href="../../tags/#certificates">#certificates</a><a class="lib-tag" href="../../tags/#pki">#pki</a><a class="lib-tag" href="../../tags/#security">#security</a><a class="lib-tag" href="../../tags/#networking">#networking</a></cluster-pk>
       </div>
     </div>
@@ -90,6 +90,24 @@ most TLS incidents are chain, name, or clock problems.</li>
 <li>To explore: TLS termination vs. passthrough trade-offs, HSTS and certificate pinning
 (and why pinning is now discouraged), post-quantum key exchange rollout.</li>
 </ul>
+<p>The handshake in sequence — asymmetric crypto authenticates and exchanges keys, then symmetric crypto carries the data:</p>
+<pre class="mermaid">sequenceDiagram
+    participant C as Client
+    participant S as Server
+    C-&gt;&gt;S: ClientHello (supported versions, ciphers, key share)
+    S--&gt;&gt;C: ServerHello (chosen cipher, key share)
+    S--&gt;&gt;C: Certificate chain + proof of private-key possession
+    Note over C,S: Both sides derive session keys via ephemeral Diffie-Hellman (ECDHE)
+    Note over C,S: Symmetric encryption (AES-GCM / ChaCha20-Poly1305) takes over
+    C-&gt;&gt;S: Application data over the symmetric channel
+    S--&gt;&gt;C: Application data over the symmetric channel
+</pre>
+<p>And the chain of trust — signatures flow down, verification walks back up:</p>
+<pre class="mermaid">flowchart TD
+    Root[&quot;Root CA - offline, in OS/browser trust stores&quot;] -- signs --&gt; Int[&quot;Intermediate CA&quot;]
+    Int -- signs --&gt; Leaf[&quot;Leaf certificate&quot;]
+    Leaf -. &quot;verification walks the chain: signatures, validity dates, name match, constraints&quot; .-&gt; Root
+</pre>
 <h2>Practice</h2>
 <ul>
 <li><strong><a href="http://badssl.com" rel="noopener">badssl.com</a></strong> (<a href="https://badssl.com/" rel="noopener">source</a>) — click through dozens of broken and valid TLS configs in the browser; learn what every chain, name, and clock failure looks like.</li>

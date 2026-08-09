@@ -39,7 +39,7 @@
       <div class="term-out">
         <h1 class="lib-title">Agents, RAG &amp; tool use</h1>
         <p class="lib-lede"><span class="tok-comment"># The systems layer over LLMs — grounding answers in retrieved data, giving models tools, and the loop that turns a model into an agent.</span></p>
-        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-08</span></cluster-pk>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-08</span><span class="lib-meta-date">updated 2026-08-09</span></cluster-pk>
         <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../tags/#agents">#agents</a><a class="lib-tag" href="../../tags/#rag">#rag</a><a class="lib-tag" href="../../tags/#tool-use">#tool-use</a><a class="lib-tag" href="../../tags/#llm">#llm</a><a class="lib-tag" href="../../tags/#ai-engineering">#ai-engineering</a></cluster-pk>
       </div>
     </div>
@@ -52,35 +52,63 @@ software engineering's obligations: evaluation, observability, and security at t
 boundaries. (This very repository — Alfred — is one of these systems.)</p>
 <h2>Key points</h2>
 <ul>
-<li><strong>RAG in one line</strong>: retrieve relevant context, stuff it into the prompt, cite it —
+<li>
+<p><strong>RAG in one line</strong>: retrieve relevant context, stuff it into the prompt, cite it —
 grounding generation in data the model wasn't trained on and keeping answers current
 and attributable. The pipeline: chunk documents (structure-aware beats fixed-size) →
 embed → index → retrieve (hybrid lexical+vector with reranking beats either alone —
 see <a href="../../system-design/search-systems/">search systems</a>) → generate with citations.
 <strong>Retrieval quality is almost always the bottleneck</strong> — debug the retriever before
-blaming the model.</li>
-<li><strong>Tool use</strong>: the model emits a structured function call, <em>your code</em> executes it,
+blaming the model.</p>
+<pre class="mermaid">flowchart LR
+    DOC[Documents] --&gt; CH[&quot;Chunk (structure-aware)&quot;]
+    CH --&gt; EM[Embed]
+    EM --&gt; IX[Index]
+    IX --&gt; RE[&quot;Retrieve (hybrid lexical + vector, reranked)&quot;]
+    RE --&gt; GEN[&quot;Generate with citations&quot;]
+</pre>
+</li>
+<li>
+<p><strong>Tool use</strong>: the model emits a structured function call, <em>your code</em> executes it,
 results return as context, generation continues. Tool definitions are API design for
 a model audience (<a href="../../system-design/api-design/">API design</a>): clear names, tight
-schemas, good error messages — the model reads them like documentation, because it is.</li>
-<li><strong>An agent is a loop</strong>: model → tool call(s) → observe results → decide next step →
+schemas, good error messages — the model reads them like documentation, because it is.</p>
+</li>
+<li>
+<p><strong>An agent is a loop</strong>: model → tool call(s) → observe results → decide next step →
 repeat until done. Reliability engineering, not magic: bounded iterations, checkpoints,
 idempotent tools where possible, human-approval gates on irreversible actions, and
-state kept <em>outside</em> the context window (files, task lists) for anything long-running.</li>
-<li><strong>Context engineering is the core skill</strong>: what enters the window, in what order, and
+state kept <em>outside</em> the context window (files, task lists) for anything long-running.</p>
+<pre class="mermaid">flowchart TB
+    M[Model] --&gt; TC[&quot;Tool call(s)&quot;]
+    TC --&gt; OB[Observe results]
+    OB --&gt; DE[Decide next step]
+    DE --&gt;|repeat| M
+    DE --&gt;|&quot;done (bounded iterations)&quot;| EX[Exit]
+</pre>
+</li>
+<li>
+<p><strong>Context engineering is the core skill</strong>: what enters the window, in what order, and
 what gets summarized away — system prompts as versioned artifacts, retrieved chunks
 budgeted, conversation history compacted. Multi-agent patterns (planner/worker,
-fan-out) are context-partitioning strategies before they are anything else.</li>
-<li><strong>Security: prompt injection is <em>the</em> problem</strong>: retrieved documents, web pages, and
+fan-out) are context-partitioning strategies before they are anything else.</p>
+</li>
+<li>
+<p><strong>Security: prompt injection is <em>the</em> problem</strong>: retrieved documents, web pages, and
 tool outputs are untrusted input that the model may follow as instructions. Treat
 model+tools as a trust boundary (<a href="../../security/threat-modeling/">threat modeling</a>):
 least-privilege tools, output validation, no secrets in prompts, human gates where it
-matters. Unsolved in the general case — design assuming it happens.</li>
-<li><strong>Evaluation or superstition</strong>: golden datasets, LLM-as-judge with spot-checked
+matters. Unsolved in the general case — design assuming it happens.</p>
+</li>
+<li>
+<p><strong>Evaluation or superstition</strong>: golden datasets, LLM-as-judge with spot-checked
 rubrics, tracing every run (inputs, retrievals, tool calls, tokens) — regression-test
-prompts and pipelines like code, because they are.</li>
-<li>To explore: MCP as the emerging tool-integration standard, agentic RAG (retrieval as
-a tool), memory architectures, multi-agent orchestration costs.</li>
+prompts and pipelines like code, because they are.</p>
+</li>
+<li>
+<p>To explore: MCP as the emerging tool-integration standard, agentic RAG (retrieval as
+a tool), memory architectures, multi-agent orchestration costs.</p>
+</li>
 </ul>
 <h2>Practice</h2>
 <ul>

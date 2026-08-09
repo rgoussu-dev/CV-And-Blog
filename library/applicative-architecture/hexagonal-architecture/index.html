@@ -66,6 +66,32 @@ services, pays off when the domain has real logic.</li>
 <li>To explore: where transaction boundaries live, mapping strategies at the ports,
 hexagonal + <a href="../../applicative-architecture/ddd/">DDD</a> tactical patterns as the interior.</li>
 </ul>
+<p>The shape, with every dependency arrow pointing inward:</p>
+<pre class="mermaid">flowchart LR
+    subgraph primary[&quot;Driving side (primary adapters)&quot;]
+        REST[&quot;REST controller&quot;]
+        CLI[&quot;CLI&quot;]
+        SCHED[&quot;Scheduler&quot;]
+    end
+    subgraph hexagon[&quot;The hexagon&quot;]
+        DRIVING[&quot;Driving ports&quot;]
+        DOMAIN[&quot;Domain logic&quot;]
+        DRIVEN[&quot;Driven ports&quot;]
+    end
+    subgraph secondary[&quot;Driven side (secondary adapters)&quot;]
+        PERSIST[&quot;Persistence&quot;]
+        MSG[&quot;Messaging&quot;]
+        EXT[&quot;External APIs&quot;]
+    end
+    REST --&gt;|&quot;calls&quot;| DRIVING
+    CLI --&gt;|&quot;calls&quot;| DRIVING
+    SCHED --&gt;|&quot;calls&quot;| DRIVING
+    DRIVING --- DOMAIN
+    DOMAIN --- DRIVEN
+    PERSIST --&gt;|&quot;implements&quot;| DRIVEN
+    MSG --&gt;|&quot;implements&quot;| DRIVEN
+    EXT --&gt;|&quot;implements&quot;| DRIVEN
+</pre>
 <h2>Details</h2>
 <h3>The house reference principles</h3>
 <p>Three reference implementations —

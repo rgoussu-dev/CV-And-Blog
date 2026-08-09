@@ -131,6 +131,25 @@ read-mostly reference data, and it complicates clustering.</li>
 <li>Long transactions holding many managed entities balloon memory and flush cost; prefer short
 transactions and DTO projections for reads.</li>
 </ul>
+<p>The entity lifecycle, drawn:</p>
+<pre class="mermaid">stateDiagram-v2
+    state &quot;Transient&quot; as Transient
+    state &quot;Managed&quot; as Managed
+    state &quot;Detached&quot; as Detached
+    state &quot;Removed&quot; as Removed
+    [*] --&gt; Transient: new object
+    Transient --&gt; Managed: persist() or find()
+    Managed --&gt; Detached: session closed
+    Managed --&gt; Removed: remove()
+    note right of Managed
+        Dirty checking flushes managed changes
+        at commit - no explicit update() needed.
+    end note
+    note right of Detached
+        Touching a lazy proxy here throws
+        LazyInitializationException.
+    end note
+</pre>
 <h3>Framework data layers</h3>
 <ul>
 <li><strong>Spring Data JPA</strong>: <code>interface OrderRepository extends JpaRepository&lt;Order, Long&gt;</code> +

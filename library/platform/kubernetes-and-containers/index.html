@@ -39,7 +39,7 @@
       <div class="term-out">
         <h1 class="lib-title">Kubernetes &amp; containers deep dive</h1>
         <p class="lib-lede"><span class="tok-comment"># From namespaces and images to the reconciliation loop — what containers actually are and how Kubernetes turns them into a platform.</span></p>
-        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-08</span></cluster-pk>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-08</span><span class="lib-meta-date">updated 2026-08-09</span></cluster-pk>
         <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../tags/#kubernetes">#kubernetes</a><a class="lib-tag" href="../../tags/#containers">#containers</a><a class="lib-tag" href="../../tags/#docker">#docker</a><a class="lib-tag" href="../../tags/#platform">#platform</a><a class="lib-tag" href="../../tags/#orchestration">#orchestration</a></cluster-pk>
       </div>
     </div>
@@ -81,6 +81,19 @@ feels native.</li>
 service mesh, GitOps deployment flows, when Kubernetes is overkill (it often is —
 managed PaaS/serverless first for small estates).</li>
 </ul>
+<p>The reconciliation loop as a cycle — self-healing is nothing more than this loop never stopping:</p>
+<pre class="mermaid">flowchart TD
+    E[&quot;Desired state declared - every object a record in etcd&quot;] --&gt; W[&quot;Controllers watch&quot;]
+    W --&gt; D[&quot;Diff desired vs actual state&quot;]
+    D --&gt; A[&quot;Act to converge&quot;]
+    A --&gt;|the loop never stops| W
+    Sch[&quot;Scheduler&quot;] -. &quot;the controller that assigns pods to nodes&quot; .-&gt; W
+    K[&quot;kubelet&quot;] -. &quot;the node-side reconciler&quot; .-&gt; W
+</pre>
+<p>And the object model's containment in one line:</p>
+<pre class="mermaid">flowchart LR
+    Dep[&quot;Deployment - rolling updates&quot;] --&gt; RS[&quot;ReplicaSet - N copies&quot;] --&gt; Pod[&quot;Pod - co-scheduled containers sharing network and volumes&quot;]
+</pre>
 <h2>Practice</h2>
 <ul>
 <li><strong>Killercoda scenarios</strong> (<a href="https://killercoda.com/" rel="noopener">source</a>) — browser-based Kubernetes playgrounds: kubectl drills, broken-cluster debugging, CKA/CKAD-style tasks; teaches the object model with zero setup cost.</li>

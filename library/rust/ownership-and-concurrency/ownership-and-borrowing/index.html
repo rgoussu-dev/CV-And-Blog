@@ -89,6 +89,32 @@ state is load-bearing in the design; the fixes below are all ways of making
 ownership boundaries explicit — which is why post-fight designs tend to be better
 even judged without the checker.</li>
 </ul>
+<p>A value's states under the three rules:</p>
+<pre class="mermaid">stateDiagram-v2
+    state &quot;Owned&quot; as Owned
+    state &quot;Shared borrows active (read-only, any number)&quot; as Shared
+    state &quot;Exclusive borrow active (exactly one)&quot; as Exclusive
+    state &quot;Moved (source unusable)&quot; as Moved
+    state &quot;Dropped&quot; as Dropped
+    [*] --&gt; Owned
+    Owned --&gt; Owned: Copy types are bit-copied, source stays usable
+    Owned --&gt; Moved: assignment or argument passing (non-Copy)
+    Owned --&gt; Shared: shared references taken
+    Shared --&gt; Owned: last use of the borrows (NLL)
+    Owned --&gt; Exclusive: exclusive reference taken
+    Exclusive --&gt; Owned: last use of the borrow (NLL)
+    Owned --&gt; Dropped: owner goes out of scope
+    Dropped --&gt; [*]: Drop runs, memory and other resources freed
+    note right of Moved
+        Using the moved-from source is a
+        compile error, not a runtime nullity.
+    end note
+    note right of Exclusive
+        Any number of shared references or
+        exactly one exclusive reference -
+        never both at once.
+    end note
+</pre>
 <h2>Details</h2>
 <h3>The recurring fights and their resolutions</h3>
 <table>

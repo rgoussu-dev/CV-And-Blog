@@ -52,30 +52,55 @@ optimization and codegen. Knowing roughly where each phase's cost and each error
 origin lies is what turns &quot;the compiler is slow/angry&quot; into an actionable model.</p>
 <h2>Key points</h2>
 <ul>
-<li><strong>The pipeline</strong>: parse → macro expansion → HIR (type checking, trait resolution) →
+<li>
+<p><strong>The pipeline</strong>: parse → macro expansion → HIR (type checking, trait resolution) →
 MIR (borrow check, drop elaboration, const eval) → monomorphization → LLVM IR →
 object code. The borrow checker is a MIR pass — exactly the analysis
-<a href="../../../rust/toolchain/miri/">miri</a> later <em>interprets</em>.</li>
-<li><strong>Monomorphization is the cost model</strong>: every concrete instantiation of a generic
+<a href="../../../rust/toolchain/miri/">miri</a> later <em>interprets</em>.</p>
+<pre class="mermaid">flowchart TB
+    SRC[Source] --&gt; PA[Parse]
+    PA --&gt; ME[Macro expansion]
+    ME --&gt; HIR[&quot;HIR: type checking, trait resolution&quot;]
+    HIR --&gt; MIR[&quot;MIR: borrow check, drop elaboration, const eval&quot;]
+    MIR --&gt; MO[&quot;Monomorphization: one copy per concrete instantiation, the compile-time and binary-size cost&quot;]
+    MO --&gt; IR[&quot;LLVM IR: optimized in parallel codegen units&quot;]
+    IR --&gt; OBJ[Object code]
+</pre>
+</li>
+<li>
+<p><strong>Monomorphization is the cost model</strong>: every concrete instantiation of a generic
 function gets its own copy — zero-cost dispatch at runtime, paid for in compile time
-and binary size; <code>dyn Trait</code> is the escape valve.</li>
-<li><strong>Codegen units</strong>: each crate is split into parallel LLVM units (16 in release by
+and binary size; <code>dyn Trait</code> is the escape valve.</p>
+</li>
+<li>
+<p><strong>Codegen units</strong>: each crate is split into parallel LLVM units (16 in release by
 default); fewer units = better optimization, slower builds — the
 <code>codegen-units = 1</code> + LTO release recipe lives in
-<a href="../../../rust/build-ecosystem/cargo-in-depth/">profiles</a>.</li>
-<li><strong>Incremental compilation</strong> caches per-query results in <code>target/incremental</code> — on by
-default for dev, off for release; the reason the second <code>cargo check</code> is fast.</li>
-<li><strong>Error codes are documentation</strong>: every <code>E0502</code> has a full explanation via
+<a href="../../../rust/build-ecosystem/cargo-in-depth/">profiles</a>.</p>
+</li>
+<li>
+<p><strong>Incremental compilation</strong> caches per-query results in <code>target/incremental</code> — on by
+default for dev, off for release; the reason the second <code>cargo check</code> is fast.</p>
+</li>
+<li>
+<p><strong>Error codes are documentation</strong>: every <code>E0502</code> has a full explanation via
 <code>rustc --explain E0502</code> — the error-message culture is a deliberate, resourced
-project value.</li>
-<li><strong>Lint levels are compiler-native</strong>: <code>#[allow]</code>/<code>#[warn]</code>/<code>#[deny]</code> per item, crate
+project value.</p>
+</li>
+<li>
+<p><strong>Lint levels are compiler-native</strong>: <code>#[allow]</code>/<code>#[warn]</code>/<code>#[deny]</code> per item, crate
 or command line; <a href="../../../rust/toolchain/clippy/">clippy</a> plugs its lints into this same
-machinery.</li>
-<li><strong><code>RUSTFLAGS</code> and <code>-C</code> flags</strong>: <code>-C target-cpu=native</code>, <code>-C opt-level</code>,
-<code>-C debuginfo</code> — usually reached through cargo profiles, not directly.</li>
-<li><strong>No stable ABI</strong>: rlibs and Rust dylibs only link against artifacts from the <em>same</em>
+machinery.</p>
+</li>
+<li>
+<p><strong><code>RUSTFLAGS</code> and <code>-C</code> flags</strong>: <code>-C target-cpu=native</code>, <code>-C opt-level</code>,
+<code>-C debuginfo</code> — usually reached through cargo profiles, not directly.</p>
+</li>
+<li>
+<p><strong>No stable ABI</strong>: rlibs and Rust dylibs only link against artifacts from the <em>same</em>
 compiler version — the deep reason cargo rebuilds the world per toolchain and
-<a href="../../../rust/build-ecosystem/build-ecosystem/">artifact formats</a> look the way they do.</li>
+<a href="../../../rust/build-ecosystem/build-ecosystem/">artifact formats</a> look the way they do.</p>
+</li>
 </ul>
 <h2>Examples</h2>
 <pre><code class="language-sh">rustc --explain E0382                # use of moved value, chapter and verse

@@ -104,6 +104,31 @@ holds <code>.proto</code> + generated stubs; for <code>kafka-consumers</code> it
 (Avro/JSON schema) the topics carry. For <code>cron-jobs</code> there is no consumable contract, so
 it stays a lone <code>cron-jobs-app</code> module — the tree stays predictable because the <em>rule</em> is
 uniform (pair ⇔ real contract), not because every adapter carries two modules.</p>
+<p>The fan-out, three adapters shown (an arrow reads &quot;depends on&quot;):</p>
+<pre class="mermaid">flowchart TB
+    subgraph restpublic[&quot;rest-public deployment unit, one container&quot;]
+        RPA[&quot;rest-public-api (DTOs, OpenAPI)&quot;]
+        RPP[&quot;rest-public-app + Dockerfile&quot;]
+    end
+    subgraph grpcserver[&quot;grpc-server deployment unit, one container&quot;]
+        GRA[&quot;grpc-server-api (proto, stubs)&quot;]
+        GRP[&quot;grpc-server-app + Dockerfile&quot;]
+    end
+    subgraph cronjobs[&quot;cron-jobs deployment unit, one container&quot;]
+        CRO[&quot;cron-jobs-app + Dockerfile (no consumable contract, no -api)&quot;]
+    end
+    CONF[&quot;configurator (optional)&quot;]
+    DAPI[&quot;domain-api&quot;]
+
+    RPP --&gt; RPA
+    GRP --&gt; GRA
+    RPP --&gt; DAPI
+    GRP --&gt; DAPI
+    CRO --&gt; DAPI
+    RPP --&gt; CONF
+    GRP --&gt; CONF
+    CRO --&gt; CONF
+</pre>
 <h3>The configurator</h3>
 <ul>
 <li>Lives at <code>application/configurator</code>; depends on <code>domain-api</code>, <code>domain-core</code>, and the

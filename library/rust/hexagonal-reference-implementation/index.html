@@ -118,6 +118,32 @@ on an executor.</li>
 <p>No configurator crate: <code>main.rs</code> per binary is the assembly point. If several binaries
 wire identical subsets, extract a small lib crate of assembly constructors; that is a
 deduplication move, not a layer of the architecture.</p>
+<p>The crate graph, rustc-enforced (an arrow reads &quot;depends on&quot;):</p>
+<pre class="mermaid">flowchart TB
+    subgraph application[&quot;application/&quot;]
+        RPA[&quot;rest-public-api (lib crate)&quot;]
+        RPP[&quot;rest-public-app (bin crate)&quot;]
+        CRON[&quot;cron-jobs (single bin crate, no api crate)&quot;]
+    end
+    subgraph domain[&quot;domain/&quot;]
+        CORE[&quot;domain-core&quot;]
+        API[&quot;domain-api (port traits, no deps)&quot;]
+    end
+    subgraph infrastructure[&quot;infrastructure/&quot;]
+        PG[&quot;persistence-postgres&quot;]
+        KAFKA[&quot;messaging-kafka&quot;]
+    end
+
+    CORE --&gt; API
+    PG --&gt; API
+    KAFKA --&gt; API
+    RPP --&gt; RPA
+    RPP --&gt; API
+    RPP --&gt; CORE
+    RPP --&gt;|&quot;wires ports as Arc dyn Port in main.rs&quot;| PG
+    CRON --&gt; API
+    CRON --&gt; CORE
+</pre>
 <h3>The layout elements and their enforcement</h3>
 <table>
 <thead>

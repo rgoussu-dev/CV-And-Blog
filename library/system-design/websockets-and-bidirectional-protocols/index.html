@@ -39,7 +39,7 @@
       <div class="term-out">
         <h1 class="lib-title">WebSockets &amp; bidirectional protocols</h1>
         <p class="lib-lede"><span class="tok-comment"># Pushing data to clients — WebSockets, SSE, long polling, WebTransport, gRPC streaming, webhooks — and how to choose and scale them.</span></p>
-        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-08</span></cluster-pk>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-08</span><span class="lib-meta-date">updated 2026-08-09</span></cluster-pk>
         <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../tags/#websockets">#websockets</a><a class="lib-tag" href="../../tags/#sse">#sse</a><a class="lib-tag" href="../../tags/#realtime">#realtime</a><a class="lib-tag" href="../../tags/#http">#http</a><a class="lib-tag" href="../../tags/#push">#push</a><a class="lib-tag" href="../../tags/#system-design">#system-design</a></cluster-pk>
       </div>
     </div>
@@ -89,6 +89,29 @@ buffering middleboxes break SSE unless flushing/<code>X-Accel-Buffering</code> i
 <li>To explore: GraphQL subscriptions, MQTT (the IoT sibling), CRDTs/OT for the
 collaborative-editing layer above the transport, backpressure on slow consumers.</li>
 </ul>
+<p>The upgrade dance, and where auth has to happen:</p>
+<pre class="mermaid">sequenceDiagram
+    participant B as Browser client
+    participant S as Server
+    Note over B,S: Auth happens at the handshake - cookies or a ticket (headers not settable from browser WebSocket APIs)
+    B-&gt;&gt;S: HTTP/1.1 GET with Upgrade: websocket
+    S--&gt;&gt;B: 101 Switching Protocols
+    Note over B,S: Framed, message-oriented, full-duplex TCP channel - no HTTP semantics afterward
+    B-&gt;&gt;S: Message frames
+    S-&gt;&gt;B: Message frames
+    B-&gt;&gt;S: Ping
+    S--&gt;&gt;B: Pong
+</pre>
+<p>Scaled out, the fan-out topology looks like this:</p>
+<pre class="mermaid">flowchart TD
+    C1[Client] --&gt; LB[&quot;Load balancer - connection-count-aware, sticky routing&quot;]
+    C2[Client] --&gt; LB
+    C3[Client] --&gt; LB
+    LB --&gt; N1[&quot;Connection-holding node A&quot;]
+    LB --&gt; N2[&quot;Connection-holding node B&quot;]
+    N1 &lt;--&gt;|publish and subscribe| BP[&quot;Pub/sub backplane - Redis, Kafka, NATS&quot;]
+    N2 &lt;--&gt;|publish and subscribe| BP
+</pre>
 <h2>Practice</h2>
 <ul>
 <li><strong>Protohackers: Budget Chat</strong> (<a href="https://protohackers.com/problem/3" rel="noopener">source</a>) — a TCP

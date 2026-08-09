@@ -93,6 +93,29 @@ collectors spend CPU and barrier overhead to shrink pauses; throughput collector
 pause hard but waste no cycles between; low footprint forfeits both. This triangle is
 the entire vocabulary of the <a href="../../../java/memory-and-gc/garbage-collectors-compared/">collector comparison</a>.</li>
 </ul>
+<p>Concurrent marking's tri-color machine, and where the barriers step in:</p>
+<pre class="mermaid">stateDiagram-v2
+    state &quot;White (unvisited)&quot; as White
+    state &quot;Grey (found, children pending)&quot; as Grey
+    state &quot;Black (done)&quot; as Black
+    [*] --&gt; White: marking begins
+    White --&gt; Grey: reached by the trace
+    Grey --&gt; Black: children all visited
+    Black --&gt; [*]: marking ends
+    note right of Black
+        The hazard while the app runs:
+        the mutator creates a black to white
+        pointer while the grey path is cut,
+        hiding a live object.
+    end note
+    note right of White
+        Prevented by barriers: SATB write
+        barriers log overwritten references
+        (collect the snapshot), load barriers
+        check colored pointers on every
+        reference load.
+    end note
+</pre>
 <h2>Related</h2>
 <ul>
 <li><a href="../../../java/memory-and-gc/memory-and-gc/">Java memory &amp; GC — the map</a> — the group overview.</li>

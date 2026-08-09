@@ -157,6 +157,29 @@ backed by the enforcer plugin and ArchUnit.</li>
 </table>
 <p>Dependencies always point inward; the only module allowed to see both <code>domain-core</code> and
 infrastructure is the configurator (or, without one, each <code>*-app</code>'s wiring class).</p>
+<p>The same rules as a graph (an arrow reads &quot;depends on&quot;):</p>
+<pre class="mermaid">flowchart TD
+    subgraph application[&quot;application/&quot;]
+        APPAPI[&quot;adapter -api modules (transport contracts only)&quot;]
+        APP[&quot;adapter -app modules (deployment units)&quot;]
+        CONF[&quot;configurator&quot;]
+    end
+    subgraph domain[&quot;domain/&quot;]
+        CORE[&quot;domain-core&quot;]
+        API[&quot;domain-api (depends on nothing)&quot;]
+    end
+    INFRA[&quot;infrastructure modules&quot;]
+
+    APP --&gt; APPAPI
+    APP --&gt; API
+    APP --&gt; CONF
+    CORE --&gt; API
+    INFRA --&gt; API
+    CONF --&gt; API
+    CONF --&gt; CORE
+    CONF --&gt; INFRA
+    INFRA -.-&gt;|&quot;never&quot;| CORE
+</pre>
 <h3>Documentation convention</h3>
 <p>Each directory/module's <code>AGENTS.md</code> states: what belongs here, what must never end up
 here, and the local conventions (naming, mapping, testing). The <code>README.md</code> is for the

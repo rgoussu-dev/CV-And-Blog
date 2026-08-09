@@ -100,6 +100,22 @@ conventionally under <code>META-INF/native-image/</code>. The <strong>tracing ag
 libraries increasingly ship theirs in the shared
 <a href="https://github.com/oracle/graalvm-reachability-metadata" rel="noopener">graalvm-reachability-metadata</a>
 repository, which build plugins consume automatically.</p>
+<p>The build pipeline, and where the work lands:</p>
+<pre class="mermaid">flowchart TB
+    subgraph BT[&quot;Build time (native-image builder)&quot;]
+        EP[Entry points] --&gt; PT[&quot;Points-to analysis: closed set of reachable classes, methods, fields&quot;]
+        RM[&quot;Reachability metadata (JSON config or tracing agent output)&quot;] --&gt; PT
+        PT --&gt; SC[Unreachable code stripped]
+        SC --&gt; CI[&quot;Build-time class init: static initializers run in the builder JVM&quot;]
+        CI --&gt; IH[&quot;Static state serialized into the image heap&quot;]
+    end
+    subgraph RT[&quot;Run time&quot;]
+        EXE[&quot;Standalone executable with Substrate VM embedded (no classloading, interpreter, or JIT)&quot;]
+        RI[&quot;Runtime-initialized classes init on first use&quot;]
+    end
+    IH --&gt; EXE
+    EXE --&gt; RI
+</pre>
 <h3>Performance profile</h3>
 <ul>
 <li><strong>Startup</strong>: milliseconds to first request — no classloading, no warm-up; state

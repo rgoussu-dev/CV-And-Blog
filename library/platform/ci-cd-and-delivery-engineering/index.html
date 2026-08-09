@@ -39,7 +39,7 @@
       <div class="term-out">
         <h1 class="lib-title">CI/CD &amp; delivery engineering</h1>
         <p class="lib-lede"><span class="tok-comment"># Trunk-based development, pipelines, feature flags, and progressive deployment — shipping safely as a solved engineering problem.</span></p>
-        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-08</span></cluster-pk>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-08</span><span class="lib-meta-date">updated 2026-08-09</span></cluster-pk>
         <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../tags/#ci-cd">#ci-cd</a><a class="lib-tag" href="../../tags/#delivery">#delivery</a><a class="lib-tag" href="../../tags/#devops">#devops</a><a class="lib-tag" href="../../tags/#deployment">#deployment</a><a class="lib-tag" href="../../tags/#platform">#platform</a></cluster-pk>
       </div>
     </div>
@@ -70,6 +70,18 @@ is an attack surface (see the Security theme).</li>
 <li>To explore: GitOps (declared state, reconciliation), merge queues, ephemeral preview
 environments, platform engineering as the productized form of all this.</li>
 </ul>
+<p>The pipeline shape — one artifact, built once, promoted:</p>
+<pre class="mermaid">flowchart LR
+    F[&quot;Fast feedback first - lint and unit tests in minutes&quot;] --&gt; SL[&quot;Slower suites, staged after&quot;]
+    SL --&gt; B[&quot;Build the artifact once&quot;]
+    B --&gt; Stg[&quot;Staging&quot;]
+    Stg --&gt; Prod[&quot;Production&quot;]
+    B -.-&gt;|the same artifact is promoted through environments| Prod
+</pre>
+<p>And the database half, spread over three deploys so no single deploy breaks anything:</p>
+<pre class="mermaid">flowchart LR
+    D1[&quot;Deploy 1: expand&quot;] --&gt; D2[&quot;Deploy 2: migrate&quot;] --&gt; D3[&quot;Deploy 3: contract&quot;]
+</pre>
 <h2>Practice</h2>
 <ul>
 <li><strong>Staged pipeline for a toy service</strong> (<a href="https://docs.github.com/en/actions/quickstart" rel="noopener">source</a>) — build a GitHub Actions pipeline that lints and unit-tests in minutes, then builds one artifact and promotes that same artifact through staging to &quot;prod&quot;; teaches build-once-promote and fast-feedback staging on your own code.</li>

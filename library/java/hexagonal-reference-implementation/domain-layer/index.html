@@ -123,6 +123,23 @@ slicing the domain itself is a service boundary question, not a module one.</li>
 </tr>
 </tbody>
 </table>
+<p>Both port directions in the contract module, with their callers and implementors:</p>
+<pre class="mermaid">flowchart LR
+    CALLERS[&quot;Primary adapters (application)&quot;]
+    subgraph api[&quot;domain-api (the contract)&quot;]
+        DRIVING[&quot;Driving ports (use-case interfaces)&quot;]
+        DRIVEN[&quot;Driven ports&quot;]
+    end
+    subgraph core[&quot;domain-core (the implementation)&quot;]
+        SERVICES[&quot;Domain services (entities and value objects stay inside)&quot;]
+    end
+    IMPLEMENTORS[&quot;Infrastructure modules&quot;]
+
+    CALLERS --&gt;|&quot;call&quot;| DRIVING
+    SERVICES --&gt;|&quot;implement&quot;| DRIVING
+    SERVICES --&gt;|&quot;depend on&quot;| DRIVEN
+    IMPLEMENTORS --&gt;|&quot;implement&quot;| DRIVEN
+</pre>
 <h3>Testing</h3>
 <ul>
 <li><code>domain-core</code>: plain JUnit against the driving ports, driven ports faked in-memory.

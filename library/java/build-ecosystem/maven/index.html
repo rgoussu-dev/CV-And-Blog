@@ -74,6 +74,15 @@ inter-module build order and builds them in one invocation.</li>
 <li><strong>Maven 4</strong> in one line: a modernised core — cleaner POM (build vs consumer POM split),
 better multi-module ergonomics — while staying compatible with the existing model.</li>
 </ul>
+<p>The default lifecycle's phase chain with its bindings — invoking any phase runs every phase before it, so <code>./mvnw verify</code> compiles, tests, and packages first:</p>
+<pre class="mermaid">flowchart LR
+    C[&quot;compile - compiler:compile&quot;] --&gt; T[&quot;test - surefire:test&quot;]
+    T --&gt; P[&quot;package - jar:jar&quot;]
+    P --&gt; IT[&quot;integration-test - failsafe&quot;]
+    IT --&gt; V[&quot;verify - failsafe&quot;]
+    V --&gt; I[&quot;install - install:install&quot;]
+    I --&gt; Dep[&quot;deploy - deploy:deploy&quot;]
+</pre>
 <h2>Details</h2>
 <h3>dependencyManagement and BOMs</h3>
 <ul>

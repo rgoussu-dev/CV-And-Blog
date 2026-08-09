@@ -125,6 +125,23 @@ holds fine.</li>
 ├── compose.yaml
 └── deployment/            # IaC: OpenTofu modules + per-environment stacks
 </code></pre>
+<p>The visibility wall that replaces the Maven graph:</p>
+<pre class="mermaid">flowchart TB
+    subgraph unit[&quot;cmd/rest-public (deployment unit)&quot;]
+        MAIN[&quot;main.go (the assembly point)&quot;]
+    end
+    subgraph contract[&quot;internal/domain (exported contract face)&quot;]
+        PORTS[&quot;Ports, commands, events&quot;]
+        FACTORY[&quot;Exported factories returning driving-port interfaces&quot;]
+        subgraph hidden[&quot;internal/domain/internal (compiler-hidden core)&quot;]
+            CORE[&quot;Entities, domain services&quot;]
+        end
+    end
+    MAIN --&gt;|&quot;imports&quot;| PORTS
+    MAIN --&gt;|&quot;calls domain.NewPlaceOrder&quot;| FACTORY
+    FACTORY --&gt;|&quot;constructs&quot;| CORE
+    MAIN -.-&gt;|&quot;blocked by compiler&quot;| CORE
+</pre>
 <h3>The walls and what enforces them</h3>
 <table>
 <thead>

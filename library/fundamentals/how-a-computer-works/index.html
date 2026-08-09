@@ -52,47 +52,74 @@ why cache-friendly code is 100× faster than big-O predicts, and what a compiler
 actually lowering your code <em>to</em>. It is the floor the whole stack stands on.</p>
 <h2>Key points</h2>
 <ul>
-<li><strong>Everything is bits, meaning is interpretation</strong>: the same 32 bits are an unsigned
+<li>
+<p><strong>Everything is bits, meaning is interpretation</strong>: the same 32 bits are an unsigned
 int, a signed int, a float, four characters, or an instruction — only context decides.
 Hexadecimal is byte-notation shorthand (one hex digit = one nibble), not a different
 number system in spirit. Word size (32/64-bit), <em>endianness</em> (byte order in memory —
 little-endian won), and <em>alignment</em> (why structs have padding) are the conventions
-underneath every binary format and network protocol.</li>
-<li><strong>Two's complement is why integer arithmetic works — and overflows</strong>: negation is
+underneath every binary format and network protocol.</p>
+</li>
+<li>
+<p><strong>Two's complement is why integer arithmetic works — and overflows</strong>: negation is
 &quot;flip the bits, add one&quot;, so the <em>same</em> adder circuit handles signed and unsigned;
 the price is asymmetric range (−2³¹ … 2³¹−1) and silent wraparound — <code>INT_MAX + 1</code>
 is negative, <code>abs(INT_MIN)</code> overflows, and languages differ on whether that's
-defined behavior, a wrap, or an exception.</li>
-<li><strong>Floating point is scientific notation in base 2 (IEEE 754)</strong>: sign, exponent,
+defined behavior, a wrap, or an exception.</p>
+</li>
+<li>
+<p><strong>Floating point is scientific notation in base 2 (IEEE 754)</strong>: sign, exponent,
 mantissa. Most decimals (0.1!) have no finite binary representation — hence
 <code>0.1 + 0.2 ≠ 0.3</code>; comparison needs epsilons, addition isn't associative, and money
 never goes in a float (use integer cents or decimal types). Special values (±0,
 ±Inf, NaN ≠ NaN) and the precision cliff of mixing magnitudes are part of the
-contract every language inherits.</li>
-<li><strong>Boolean logic → gates → an ALU</strong>: AND/OR/NOT (all buildable from NAND alone) are
+contract every language inherits.</p>
+</li>
+<li>
+<p><strong>Boolean logic → gates → an ALU</strong>: AND/OR/NOT (all buildable from NAND alone) are
 transistors in circuits; wire a XOR and an AND together and you have a half adder;
 chain full adders and you're doing arithmetic. Combinational logic computes,
 <em>sequential</em> logic (flip-flops latching on a clock edge) remembers — registers and
-memory are just that. A CPU is nothing but these two kinds of circuit, composed.</li>
-<li><strong>The processor loop</strong>: fetch (at the program counter) → decode → execute →
+memory are just that. A CPU is nothing but these two kinds of circuit, composed.</p>
+</li>
+<li>
+<p><strong>The processor loop</strong>: fetch (at the program counter) → decode → execute →
 writeback, against a small set of registers. The <em>instruction set architecture</em>
 (x86-64, ARM, RISC-V) is the hardware/software contract — the stored-program idea
 (code is data in the same memory, the von Neumann architecture) is why compilers,
-loaders, and JITs can exist at all.</li>
-<li><strong>Modern CPUs cheat relentlessly</strong>: pipelining overlaps the stages; superscalar
+loaders, and JITs can exist at all.</p>
+<pre class="mermaid">flowchart LR
+    F[&quot;Fetch (at the program counter)&quot;] --&gt; D[Decode]
+    D --&gt; E[Execute]
+    E --&gt; W[&quot;Writeback (to registers)&quot;]
+    W --&gt; F
+</pre>
+</li>
+<li>
+<p><strong>Modern CPUs cheat relentlessly</strong>: pipelining overlaps the stages; superscalar
 cores issue several instructions per cycle; out-of-order execution reorders around
 stalls; <em>branch prediction</em> speculates past every <code>if</code> — a mispredict costs ~15–20
 cycles, which is why sorted data can be faster to scan than unsorted, and why
-speculation leaking through caches became Spectre/Meltdown.</li>
-<li><strong>The memory hierarchy is the performance story</strong>: registers (~0 cycles) → L1/L2/L3
+speculation leaking through caches became Spectre/Meltdown.</p>
+</li>
+<li>
+<p><strong>The memory hierarchy is the performance story</strong>: registers (~0 cycles) → L1/L2/L3
 caches (~4/12/40 cycles) → RAM (~100+ cycles) → SSD (~100 µs, orders of magnitude
 again). Data moves in 64-byte <em>cache lines</em>, so spatial and temporal locality —
 arrays over pointer-chasing, structs sized to lines, false sharing avoided — decide
-real speed; &quot;mechanical sympathy&quot; is writing code shaped like the hierarchy.</li>
-<li>To explore: virtual memory and the MMU (the bridge to the
+real speed; &quot;mechanical sympathy&quot; is writing code shaped like the hierarchy.</p>
+<pre class="mermaid">flowchart TB
+    R[&quot;Registers (~0 cycles)&quot;] --&gt; C[&quot;L1 / L2 / L3 caches (~4 / 12 / 40 cycles)&quot;]
+    C --&gt; M[&quot;RAM (~100+ cycles)&quot;]
+    M --&gt; S[&quot;SSD (~100 microseconds, orders of magnitude again)&quot;]
+</pre>
+</li>
+<li>
+<p>To explore: virtual memory and the MMU (the bridge to the
 <a href="../../system-administration/linux-deep-dive/">OS layer</a>), interrupts and how I/O
 actually happens, SIMD and why GPUs are shaped differently, what the compiler emits
-(read some <code>-O2</code> disassembly on <a href="https://godbolt.org" rel="noopener">godbolt.org</a>).</li>
+(read some <code>-O2</code> disassembly on <a href="https://godbolt.org" rel="noopener">godbolt.org</a>).</p>
+</li>
 </ul>
 <h2>Practice</h2>
 <ul>
