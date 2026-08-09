@@ -111,6 +111,16 @@ definition (Dockerfile and the likes) lives beside it, never centralised.</li>
 directions, command DTOs and events on the contract side; entities and services on
 the implementation side. Everything depends on the contract; almost nothing on the
 implementation.</li>
+<li><strong>Business logic enters the hexagon as command/query data through one explicit
+dispatch seam</strong> — primary adapters construct commands and never import concrete
+handlers. The <em>mechanism</em> behind the seam is per-language, settled 2026-08-09:
+Java routes through a registry <strong>Mediator</strong> (handlers self-declare via
+<code>supports()</code>); Rust keeps per-use-case driving-port traits and, where a unified
+seam is justified, makes the compiler the registry (commands as an enum, one
+exhaustive <code>match</code>); Go and the frontend skip the mediator object — per-use-case
+driving ports, explicitly wired in <code>main</code> (Go) or delivered by typed context keys
+(frontend) — with cross-cutting concerns as decorators around the seam. Each
+reference records its stance and the rejected alternatives.</li>
 <li><strong>An adapter's API artifact exists only where the contract is real and consumable</strong>
 (REST DTOs/OpenAPI, protos, message schemas) — the pair is earned, never imposed for
 symmetry; a cron unit is a single module.</li>

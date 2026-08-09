@@ -90,6 +90,10 @@ when several binaries wire identical subsets.</li>
 <li><strong>Dependency injection is a pattern here, not a container</strong> — see the Details section
 for the settled stance: constructor injection at the composition root by default,
 <code>wire</code> as the sanctioned escalation, reflection containers (fx/dig) ruled out.</li>
+<li><strong>Command dispatch: no mediator object (settled 2026-08-09)</strong> — commands stay
+structs, the driving port stays a per-use-case interface wired explicitly in
+<code>main</code>, and cross-cutting concerns are decorator functions around the ports. The
+ruling and the rejected registry form are in the Details.</li>
 <li><strong>The linter covers only the softer rules.</strong> With the core compiler-hidden, what's
 left for <code>depguard</code>/<code>go-arch-lint</code> in CI: <code>domain</code> imports nothing from <code>app</code>/<code>infra</code>,
 <code>infra</code> never imports <code>app</code>, adapters never import each other. A <code>go.work</code>
@@ -189,6 +193,26 @@ already have: it changes who <em>types</em> the wiring, not the architecture —
 stays visible and errors stay at build time.</li>
 <li><strong>Ruled out: fx/dig.</strong> A runtime reflection container reintroduces startup-time
 resolution errors and an obscured graph, and blurs &quot;the assembly point is <code>main.go</code>&quot;.</li>
+</ul>
+<h3>Command dispatch — no mediator (settled 2026-08-09)</h3>
+<p>The registry-probing Mediator object is <strong>ruled out for Go</strong>; what stays is the
+principle behind it — commands as data, one explicit seam, adapters never importing
+concrete handlers — realized the way the language wants:</p>
+<ul>
+<li><strong>Default</strong>: <code>Command</code>/<code>Query</code> structs in <code>internal/domain/</code>, a per-use-case
+driving-port interface (<code>PlaceOrders</code>), the exported factory returning it — the
+shape this reference already uses. The seam is the port; <code>main</code>'s wiring is the
+registry, checked by the compiler.</li>
+<li><strong>Cross-cutting</strong> (logging, metrics, tx): decorator functions
+(<code>func(next PlaceOrders) PlaceOrders</code>) applied at the assembly point — the same
+seam a mediator would give, without erasure.</li>
+<li><strong>Why the mediator is rejected</strong>: Go generics cannot type a heterogeneous handler
+registry with per-command result types, so dispatch degenerates to <code>any</code> plus type
+switches or reflection — Java's one unchecked cast becomes pervasive erasure,
+paying real type safety for cosmetic symmetry. And the indirection itself is
+anti-idiomatic: explicit call graphs and consumer-defined interfaces are the
+design center, and &quot;the dependency list reads like the ops runbook&quot; only works
+when calls are direct.</li>
 </ul>
 <h3>Nothing left open</h3>
 <p>The last question — where DTO↔command mapping helpers live when two transport adapters

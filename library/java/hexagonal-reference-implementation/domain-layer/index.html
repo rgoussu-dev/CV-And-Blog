@@ -59,6 +59,12 @@ in the build points at it.</li>
 primary adapters call) and driven ports (the interfaces infrastructure implements).
 Driven ports must sit in the contract module, not in core — otherwise infrastructure
 modules would need <code>domain-core</code> to compile, and the whole layering collapses.</li>
+<li><strong>Dispatch is Command/Query + Mediator (settled 2026-08-09).</strong> The <code>Mediator</code>
+interface is the domain's primary driving port; sealed <code>Command</code>/<code>Query</code> records in
+<code>domain-api</code> name every supported operation, handlers in <code>domain-core</code> self-declare
+via <code>supports()</code>, and the <code>RegistryMediator</code> is built from a <code>Collection&lt;Handler&gt;</code>
+— never an injected map, no reflection. See the Details ruling for the rejected
+alternative.</li>
 <li><strong>Boundary types, not entities, cross the line.</strong> Commands, queries, results and events
 in <code>domain-api</code> are dedicated types (records, ideally). Entities and value objects stay
 internal to <code>domain-core</code> — they are the domain's working state, not its published
@@ -87,9 +93,9 @@ slicing the domain itself is a service boundary question, not a module one.</li>
 </thead>
 <tbody>
 <tr>
-<td>Driving ports (use-case interfaces)</td>
+<td>The <code>Mediator</code> driving port + sealed <code>Command</code>/<code>Query</code> records</td>
 <td><code>domain-api</code></td>
-<td>e.g. <code>PlaceOrder</code>, <code>CancelOrder</code> — one per use case or grouped per aggregate, house style is per use case</td>
+<td>the single dispatch seam primary adapters call; commands name every supported operation</td>
 </tr>
 <tr>
 <td>Driven ports</td>
@@ -112,9 +118,14 @@ slicing the domain itself is a service boundary question, not a module one.</li>
 <td>never leak; mapped at the boundary</td>
 </tr>
 <tr>
-<td>Domain services (port impls)</td>
+<td>Handlers + <code>RegistryMediator</code></td>
 <td><code>domain-core</code></td>
-<td>plain classes, constructor-injected ports</td>
+<td>handlers self-declare via <code>supports()</code>; the mediator builds its own registry from a handler collection</td>
+</tr>
+<tr>
+<td>Domain services</td>
+<td><code>domain-core</code></td>
+<td>plain classes, constructor-injected driven ports, called by handlers</td>
 </tr>
 <tr>
 <td>Domain errors</td>
@@ -140,6 +151,24 @@ slicing the domain itself is a service boundary question, not a module one.</li>
     SERVICES --&gt;|&quot;depend on&quot;| DRIVEN
     IMPLEMENTORS --&gt;|&quot;implement&quot;| DRIVEN
 </pre>
+<h3>Dispatch — Command/Query + Mediator (settled 2026-08-09)</h3>
+<p>Java is the pattern's home turf, and the ruling makes it the default:</p>
+<ul>
+<li><strong>Why it fits</strong>: sealed interfaces + records give genuinely sealed command
+hierarchies; CDI/Spring collect the <code>Collection&lt;Handler&gt;</code> for free; one dispatch
+seam gives uniform cross-cutting (transactions, validation, audit) by decorating
+the mediator — no AOP; and the module graph stays honest, since adapters depend on
+the command vocabulary in <code>domain-api</code> and never on <code>domain-core</code>.</li>
+<li><strong>Cost accepted</strong>: one unchecked cast inside the dispatcher; a missing handler is a
+runtime wiring error surfaced at first dispatch (the Rust realization does better —
+its compiler is the registry; see the
+<a href="../../../rust/hexagonal-reference-implementation/">Rust reference</a>).</li>
+<li><strong>Rejected as default — per-use-case driving interfaces</strong> (<code>PlaceOrder</code>,
+<code>CancelOrder</code>): finer-grained dependency truth per unit, but every cross-cutting
+concern is re-plumbed per interface and each new use case touches every wiring
+site. They remain the right shape in Go and the frontend, where the mediator
+object fights the platform — the stances are recorded per reference.</li>
+</ul>
 <h3>Testing</h3>
 <ul>
 <li><code>domain-core</code>: plain JUnit against the driving ports, driven ports faked in-memory.

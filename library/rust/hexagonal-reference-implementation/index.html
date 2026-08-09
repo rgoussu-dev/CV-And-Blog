@@ -86,6 +86,11 @@ generic parameters from leaking past its own public surface where possible.</li>
 <li><strong>Port design follows from the ruling</strong>: ports in <code>domain-api</code> are object-safe
 (no generic methods), <code>Send + Sync</code>, boxed-async accepted — so every port <em>can</em> be
 wired as <code>dyn</code>, and a generics opt-in remains possible per call site.</li>
+<li><strong>Command dispatch: the compiler is the registry (settled 2026-08-09)</strong> —
+per-use-case driving-port traits by default; where a unified dispatch seam is
+justified, commands become an enum dispatched by one exhaustive <code>match</code>. The
+runtime registry of trait objects probed via <code>supports()</code> is ruled out — details
+below.</li>
 <li><strong>Async is decided at the edges</strong>: the runtime (tokio) is a dependency of binary
 crates and infra crates; <code>domain-api</code> traits stay runtime-agnostic (<code>async fn</code> in
 traits / <code>#[trait_variant]</code>, no tokio types in signatures) so the domain never depends
@@ -196,6 +201,23 @@ deduplication move, not a layer of the architecture.</p>
 </tr>
 </tbody>
 </table>
+<h3>Command dispatch — the compiler is the registry (settled 2026-08-09)</h3>
+<ul>
+<li><strong>Default</strong>: per-use-case driving-port traits (<code>PlaceOrder</code>) implemented by
+services in <code>domain-core</code> — the shape the wiring rule already assumes.</li>
+<li><strong>When a unified seam is justified</strong> (audit trail, command log/replay, uniform
+middleware): the mediator pattern applies in its Rust-native form — the sealed
+command hierarchy is literally an <code>enum</code> in <code>domain-api</code>, and dispatch is one
+exhaustive <code>match</code>. A new command without an arm is a <strong>compile error</strong> — strictly
+stronger than the JVM's runtime &quot;no handler supports&quot; exception; the compiler
+walks you through every dispatch site.</li>
+<li><strong>Ruled out — the registry-probing form</strong> (<code>Vec&lt;Box&lt;dyn Handler&gt;&gt;</code> with a
+<code>supports()</code> scan): carrying per-command result types through <code>dyn</code> forces <code>Any</code>
+downcasts and erases the command→result link — dynamic dispatch where the
+language wants static.</li>
+<li><strong>Cross-cutting</strong>: wrap the dispatch function (or decorate individual port impls)
+at the assembly point, same as the other references.</li>
+</ul>
 <h3>Nothing left open</h3>
 <p>The compile-time cost of many small crates is settled (2026-08-09): <strong>accepted by
 design</strong> — the dependency-rule enforcement the crate separation buys is the point of the

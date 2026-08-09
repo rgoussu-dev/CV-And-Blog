@@ -103,6 +103,12 @@ port map it built — the assembly point keeps the graph. The protocol is built 
 baseline DOM events, so there is <strong>no browser-support surface at all</strong>. Ruled out:
 module-scope singletons (a service locator with a hidden graph) and reflection DI
 containers.</li>
+<li><strong>Command dispatch: no mediator (settled 2026-08-09)</strong> — commands stay plain
+objects, but the dispatch seam is the per-use-case driving port delivered by its
+typed context key; a central dispatcher is ruled out (it would defeat
+tree-shaking, collapse the typed context keys into one, and weaken subtree
+scoping). Cross-cutting concerns are factory decorations in <code>main.ts</code>. Details
+under the wiring section.</li>
 <li><strong>Test strategy per the house rule</strong>: the domain is unit-tested in Node with no DOM
 lib; components are tested in a real browser against the domain's own in-memory
 fakes; <code>gateway-rest</code> is integration-tested against the real API contract. No
@@ -239,6 +245,23 @@ trick), <em>constructor injection via code-only construction</em> of port-bound 
 (honest signatures, but bans port-bound elements from markup and gives up the scoping
 wins), <em>property injection</em> (temporal coupling, wiring scattered across creation
 sites), and — with prejudice — module-scope singletons and reflection containers.</li>
+</ul>
+<h3>Command dispatch — no mediator (settled 2026-08-09)</h3>
+<p>The mediator object is <strong>ruled out for the frontend</strong>; the principle it serves —
+commands as data, one explicit seam, components never importing concrete handlers —
+is already delivered by the per-use-case driving ports and the Context wiring:</p>
+<ul>
+<li><strong>Tree-shaking is decisive.</strong> A mediator is one object referencing every handler:
+any unit touching one command drags the whole domain into its bundle, breaking
+&quot;a deployment unit ships only what it uses&quot;. Per-port factories keep the import
+graph — and the bundle — honest.</li>
+<li><strong>The Context protocol already settled the seam.</strong> Ports arrive per typed context
+key; a mediator would collapse every key into one <code>dispatch</code> entry, erasing the
+per-port typing the protocol was chosen for and weakening the scoping prize
+(per-route providers, fake-backed preview subtrees swap <em>individual</em> ports).</li>
+<li><strong>Cross-cutting</strong> (command logging, optimistic-update policy hooks): decorate the
+domain factories in <code>main.ts</code> (<code>createPlaceOrder</code> wrapped with logging) — the
+assembly point is the seam, exactly like Go's decorators.</li>
 </ul>
 <h3>Rendering and state without a framework</h3>
 <ul>

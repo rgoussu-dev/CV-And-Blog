@@ -70,8 +70,10 @@ API and back-office), one gRPC server, one Kafka consumer group, one cron runner
 containers, five <code>&lt;adapter&gt;-app</code> modules, each with its Dockerfile beside it. Scaling,
 resource profiles and rollout cadence are decided per adapter, not per service.</li>
 <li><strong>Adapters translate, never decide.</strong> An <code>-app</code> module maps transport DTOs to domain
-commands, calls a driving port from <code>domain-api</code>, and maps results back. Business rules
-living in a controller are a smell — push them through the port.</li>
+commands, dispatches them through the <code>Mediator</code> driving port from <code>domain-api</code>
+(the settled dispatch seam — see the
+<a href="../../../java/hexagonal-reference-implementation/domain-layer/">domain layer</a>), and maps results back. Business rules living in
+a controller are a smell — push them through the port.</li>
 <li><strong>The configurator is optional and is the only assembly point.</strong> It exposes the wiring
 of <code>domain-core</code> with the infrastructure modules (as Spring <code>@Configuration</code> /
 CDI producers); each deployment unit imports it and selects what it needs. Without one,
