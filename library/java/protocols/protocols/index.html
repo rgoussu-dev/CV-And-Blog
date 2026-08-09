@@ -62,7 +62,8 @@ consumable; protobuf (gRPC) and Avro (Kafka) are compact, fast and schema-enforc
 need tooling to inspect.</li>
 <li><strong>Contract location</strong>: REST contracts are documented after the fact (OpenAPI); GraphQL
 and gRPC are schema-first by construction (SDL, <code>.proto</code>); messaging contracts live in
-a schema registry if they live anywhere.</li>
+a schema registry if they live anywhere. The doc tooling per stack has its own note:
+<a href="../../../java/protocols/api-documentation/">API documentation in Java</a>.</li>
 <li><strong>Spec vs framework</strong>: the standard defines annotations and semantics (Jakarta REST,
 Jakarta WebSocket, Jakarta Messaging, MicroProfile GraphQL); Spring historically ships
 its own equivalent APIs, while Quarkus and Micronaut mostly implement or wrap the
@@ -142,6 +143,7 @@ habits suggest. The deep dives cover the trade-offs per protocol.</p>
 <li><a href="../../../java/protocols/grpc/">gRPC in Java</a> — binary contract-first RPC for internal services.</li>
 <li><a href="../../../java/protocols/websockets/">WebSockets &amp; SSE in Java</a> — server push and bidirectional channels.</li>
 <li><a href="../../../java/protocols/messaging/">Messaging in Java — Kafka, JMS &amp; AMQP</a> — asynchronous integration.</li>
+<li><a href="../../../java/protocols/api-documentation/">API documentation in Java</a> — the doc/contract tooling (OpenAPI, AsyncAPI, proto, SDL) across these protocols and stacks.</li>
 <li><a href="../../../system-design/api-design/">API design</a> — the protocol-agnostic design principles behind all of these.</li>
 <li><a href="../../../java/frameworks/frameworks/">Java frameworks</a> — the stacks these protocols plug into.</li>
 <li><a href="../../../go/protocols/protocols/">Backend protocols in Go — the map</a> — the same protocols carried by Go's stdlib and de-facto libraries.</li>

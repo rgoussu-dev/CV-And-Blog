@@ -39,7 +39,7 @@
       <div class="term-out">
         <h1 class="lib-title">API design</h1>
         <p class="lib-lede"><span class="tok-comment"># Designing service contracts — REST done properly, gRPC, GraphQL, versioning, and evolving APIs without breaking consumers.</span></p>
-        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-08</span></cluster-pk>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-08</span><span class="lib-meta-date">updated 2026-08-09</span></cluster-pk>
         <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../tags/#api">#api</a><a class="lib-tag" href="../../tags/#rest">#rest</a><a class="lib-tag" href="../../tags/#grpc">#grpc</a><a class="lib-tag" href="../../tags/#graphql">#graphql</a><a class="lib-tag" href="../../tags/#system-design">#system-design</a><a class="lib-tag" href="../../tags/#contracts">#contracts</a></cluster-pk>
       </div>
     </div>
@@ -60,7 +60,8 @@ queries — pays off with many heterogeneous clients, costs server complexity an
 caching), webhooks/events for push.</li>
 <li><strong>Contract-first</strong>: OpenAPI / protobuf schema as the source of truth — generated
 clients/servers, contract tests in CI, and consumer-driven contracts to keep providers
-honest.</li>
+honest. The doc formats and the generate-doc-from-code vs generate-code-from-doc trade
+get their own note: <a href="../../system-design/api-documentation/">API documentation</a>.</li>
 <li><strong>Versioning is a last resort</strong>: additive, backward-compatible evolution first
 (tolerant reader: ignore unknown fields); when breaking is unavoidable — explicit
 versions, deprecation windows, sunset headers. Never silently change semantics.</li>
@@ -68,8 +69,8 @@ versions, deprecation windows, sunset headers. Never silently change semantics.<
 idempotency keys for unsafe retries, timeouts documented as part of the contract.</li>
 <li><strong>Design for the consumer</strong>: the best APIs are designed from the caller's use cases
 inward, not the database schema outward.</li>
-<li>To explore: API gateways vs. BFFs, hypermedia (when HATEOAS earns its keep), AsyncAPI
-for event contracts, gRPC error model.</li>
+<li>To explore: API gateways vs. BFFs, hypermedia (when HATEOAS earns its keep), gRPC
+error model.</li>
 </ul>
 <h2>Practice</h2>
 <ul>
@@ -94,6 +95,8 @@ included, with someone else's tests as the judge.</li>
 </ul>
 <h2>Related</h2>
 <ul>
+<li><a href="../../system-design/api-documentation/">API documentation</a> — the contract artifacts themselves: OpenAPI,
+AsyncAPI, <code>.proto</code>, SDL, and which direction the code flows.</li>
 <li><a href="../../system-design/microservice-architecture/">Microservice architecture</a> — service independence lives
 or dies on contract discipline.</li>
 <li><a href="../../applicative-architecture/hexagonal-architecture/">Hexagonal architecture</a> — the

@@ -53,7 +53,8 @@ serde for every serialization boundary, Tokio for every I/O path, and
 across protocols — the same middleware stack can wrap a REST router and a gRPC
 server, which neither neighbour ecosystem manages. Contracts follow the same logic as
 everywhere: REST documents after the fact (utoipa), GraphQL and gRPC are schema-first
-by construction.</p>
+by construction — the doc tooling per framework has its own note:
+<a href="../../../rust/protocols/api-documentation/">API documentation in Rust</a>.</p>
 <h2>Key points</h2>
 <ul>
 <li><strong>No stdlib networking above TCP</strong>: <code>std::net</code> stops at sockets; HTTP itself is
@@ -136,6 +137,8 @@ workflows.</li>
 the framework built-ins.</li>
 <li><a href="../../../rust/protocols/messaging/">Messaging in Rust — Kafka, AMQP &amp; NATS</a> —
 asynchronous integration.</li>
+<li><a href="../../../rust/protocols/api-documentation/">API documentation in Rust</a> — the doc/contract
+tooling (OpenAPI, AsyncAPI, proto, SDL) across these protocols and frameworks.</li>
 <li><a href="../../../system-design/api-design/">API design</a> — protocol-agnostic design principles.</li>
 <li><a href="../../../rust/web-frameworks/web-frameworks/">Rust web frameworks</a> — the HTTP layer these
 protocols build on.</li>

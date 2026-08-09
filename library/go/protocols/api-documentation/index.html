@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>API documentation in Go — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/go/protocols</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../go/">go</a><span class="tok-path">/</span><span class="tok-path">protocols</span> <span class="tok-cmd">cat</span> <span class="tok-file">api-documentation</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">API documentation in Go</h1>
+        <p class="lib-lede"><span class="tok-comment"># OpenAPI, AsyncAPI, protobuf and GraphQL SDL tooling for net/http/chi, Gin, Echo and Fiber — oapi-codegen, swag, huma/fuego, buf and grpc-gateway — and Go's codegen-first take on the direction trade.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#go">#go</a><a class="lib-tag" href="../../../tags/#protocols">#protocols</a><a class="lib-tag" href="../../../tags/#documentation">#documentation</a><a class="lib-tag" href="../../../tags/#openapi">#openapi</a><a class="lib-tag" href="../../../tags/#asyncapi">#asyncapi</a><a class="lib-tag" href="../../../tags/#codegen">#codegen</a><a class="lib-tag" href="../../../tags/#frameworks">#frameworks</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>Go has no runtime annotations, so the ecosystem answers the
+<a href="../../../system-design/api-documentation/">doc-from-code vs code-from-doc</a> question with the
+tool it always reaches for: code generation, in both directions. Contract-first is
+unusually natural here — oapi-codegen emits server interfaces for every router in
+<a href="../../../go/web-frameworks/web-frameworks/">the landscape</a>, and the gRPC world's buf toolchain
+is the same idea perfected. Code-first exists in two generations: comment-driven (swag)
+and the newer types-driven frameworks (huma, fuego) that derive the spec from handler
+signatures. This note maps each flavor onto net/http + chi, Gin, Echo and Fiber.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>OpenAPI contract-first, the default move</strong>: oapi-codegen turns an OpenAPI 3 document
+into server interfaces + typed clients with dedicated targets for stdlib <code>ServeMux</code>,
+chi, Echo, Gin and Fiber — you implement the interface, drift is a compile error. ogen
+is the stricter, more opinionated alternative; goa goes further and makes a Go DSL the
+design source, generating code <em>and</em> spec from it.</li>
+<li><strong>OpenAPI code-first, comments generation</strong>: swag parses <code>// @Summary</code>-style handler
+comments into a (Swagger 2) spec, with serving shims per framework — gin-swagger,
+echo-swagger, fiber-swagger, plain <code>http.Handler</code> for stdlib. Fine for retrofitting;
+the comments rot like all comments.</li>
+<li><strong>OpenAPI code-first, types generation</strong>: huma (adapters for stdlib/chi/Gin/Echo/Fiber)
+and fuego (net/http-native) derive OpenAPI 3.1 from typed request/response structs and
+validate requests against it — the correct-by-construction middle path.</li>
+<li><strong>AsyncAPI is the thin spot</strong>: no dominant tool. asyncapi-codegen (lerenn) generates
+pub/sub bindings from an AsyncAPI 2/3 document (code-from-doc, NATS/Kafka); otherwise
+hand-author the spec, validate/render with the AsyncAPI CLI in CI, and keep payload
+contracts in a schema registry — <a href="../../../go/protocols/messaging/">watermill</a> has no spec
+story of its own.</li>
+<li><strong>gRPC: proto is the source, buf is the pipeline</strong>: <code>buf generate</code> (protoc-gen-go +
+protoc-gen-go-grpc), <code>buf lint</code> and <code>buf breaking</code> as CI gates, Buf Schema Registry for
+rendered docs. grpc-gateway + protoc-gen-openapiv2 serves REST <em>and</em> its OpenAPI
+document from the same <code>.proto</code> — one contract, two protocols.</li>
+<li><strong>GraphQL is schema-first by consensus</strong>: gqlgen generates resolver scaffolding from
+SDL — the schema file is simultaneously the design artifact and the docs, introspection
+and playground come free.</li>
+<li><strong>Spec quality is a CI job</strong>: Spectral or vacuum for linting, oasdiff for
+breaking-change gates on OpenAPI; <code>buf</code> covers proto natively.</li>
+</ul>
+<h2>Details</h2>
+<h3>Flavor × router/framework matrix</h3>
+<table>
+<thead>
+<tr>
+<th>Flavor</th>
+<th>net/http (+ chi)</th>
+<th>Gin</th>
+<th>Echo</th>
+<th>Fiber</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>OpenAPI, contract-first</strong></td>
+<td>oapi-codegen <code>std-http</code>/<code>chi-server</code> targets; ogen (stdlib-based)</td>
+<td>oapi-codegen <code>gin-server</code></td>
+<td>oapi-codegen <code>echo-server</code></td>
+<td>oapi-codegen <code>fiber-server</code></td>
+</tr>
+<tr>
+<td><strong>OpenAPI, code-first (comments)</strong></td>
+<td>swag + <code>httpSwagger.Handler</code></td>
+<td>swag + gin-swagger</td>
+<td>swag + echo-swagger</td>
+<td>swag + fiber-swagger</td>
+</tr>
+<tr>
+<td><strong>OpenAPI, code-first (types)</strong></td>
+<td>huma (chi/stdlib adapters), fuego (native)</td>
+<td>huma gin adapter</td>
+<td>huma echo adapter</td>
+<td>huma fiber adapter</td>
+</tr>
+<tr>
+<td><strong>AsyncAPI</strong></td>
+<td>Framework-independent: asyncapi-codegen bindings or hand-authored spec + AsyncAPI CLI — attaches to the <a href="../../../go/protocols/messaging/">messaging clients</a>, not the router</td>
+<td>← same</td>
+<td>← same</td>
+<td>← same</td>
+</tr>
+<tr>
+<td><strong>gRPC docs</strong></td>
+<td>buf pipeline; grpc-gateway mounts as a plain <code>http.Handler</code> next to your mux</td>
+<td>grpc-gateway behind <code>gin.WrapH</code></td>
+<td>grpc-gateway via <code>echo.WrapHandler</code></td>
+<td>Awkward: fasthttp ≠ <code>net/http</code> — run the gateway on a separate listener</td>
+</tr>
+<tr>
+<td><strong>GraphQL</strong></td>
+<td>gqlgen serves a plain <code>http.Handler</code></td>
+<td><code>gin.WrapH(srv)</code></td>
+<td><code>echo.WrapHandler(srv)</code></td>
+<td>fasthttp adaptor shim</td>
+</tr>
+</tbody>
+</table>
+<p>The pattern in the bottom rows is the <a href="../../../go/web-frameworks/stdlib-correspondence/">stdlib-correspondence</a>
+story again: doc-serving tools ship as <code>http.Handler</code>s, so stdlib and chi mount them
+natively, Gin and Echo wrap them, and Fiber pays its fasthttp tax with adaptors or a
+second listener.</p>
+<h3>Choosing a direction in Go</h3>
+<p>The community's center of gravity: contract-first (oapi-codegen) when the API crosses a
+team or language boundary; types-first code-first (huma/fuego) for greenfield services
+that want the spec for free with validation included; swag only when retrofitting docs
+onto an existing service. If the service is internal and both ends are Go, skip the
+argument — <a href="../../../go/protocols/grpc/">gRPC with buf</a> gives contract, codegen, docs and
+breaking-change gates in one toolchain, and grpc-gateway keeps a documented REST surface
+for everyone else.</p>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../go/protocols/protocols/">Backend protocols in Go — the map</a> — parent map; the
+protocols these documents describe.</li>
+<li><a href="../../../system-design/api-documentation/">API documentation</a> — the flavors and the
+code-first vs contract-first trade in the abstract.</li>
+<li><a href="../../../go/protocols/rest/">REST &amp; HTTP APIs in Go</a> — the OpenAPI workflows in their REST
+context, including the huma/fuego details.</li>
+<li><a href="../../../go/protocols/messaging/">Messaging in Go — Kafka, NATS &amp; AMQP</a> — the channels an
+AsyncAPI document would describe.</li>
+<li><a href="../../../go/protocols/grpc/">gRPC in Go</a> — the buf toolchain and grpc-gateway in full.</li>
+<li><a href="../../../go/protocols/graphql/">GraphQL in Go</a> — gqlgen's schema-first codegen in detail.</li>
+<li><a href="../../../go/web-frameworks/web-frameworks/">Go web frameworks — the landscape</a> — the routers
+and frameworks this note maps onto.</li>
+<li><a href="../../../java/protocols/api-documentation/">API documentation in Java</a> and
+<a href="../../../rust/protocols/api-documentation/">in Rust</a> — the neighbours: annotation-shaped and
+derive-shaped where Go is codegen-shaped.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>API documentation in Java — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/java/protocols</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../java/">java</a><span class="tok-path">/</span><span class="tok-path">protocols</span> <span class="tok-cmd">cat</span> <span class="tok-file">api-documentation</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">API documentation in Java</h1>
+        <p class="lib-lede"><span class="tok-comment"># OpenAPI, AsyncAPI, protobuf and GraphQL SDL tooling across Spring, Quarkus and Micronaut — springdoc, SmallRye/Micronaut OpenAPI, Springwolf, OpenAPI Generator — and which direction each stack favors.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#java">#java</a><a class="lib-tag" href="../../../tags/#protocols">#protocols</a><a class="lib-tag" href="../../../tags/#documentation">#documentation</a><a class="lib-tag" href="../../../tags/#openapi">#openapi</a><a class="lib-tag" href="../../../tags/#asyncapi">#asyncapi</a><a class="lib-tag" href="../../../tags/#codegen">#codegen</a><a class="lib-tag" href="../../../tags/#frameworks">#frameworks</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>The JVM is the home turf of annotation-driven code-first documentation: every stack can
+decorate the code it already has (<code>@Operation</code>, <code>@Schema</code>, MicroProfile OpenAPI
+annotations) and emit the spec at build or run time, which is why
+<a href="../../../system-design/api-documentation/">generate-doc-from-code</a> is the Java default.
+Contract-first lives one layer up, in the build: OpenAPI Generator's Maven/Gradle plugins
+turn a hand-authored spec into Spring interfaces, JAX-RS stubs or typed clients. This note
+maps each doc flavor onto <a href="../../../java/frameworks/frameworks/">Spring, Quarkus and Micronaut</a>.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>OpenAPI code-first is one dependency per stack</strong>: springdoc-openapi (Spring),
+quarkus-smallrye-openapi (Quarkus, MicroProfile OpenAPI), micronaut-openapi (compile
+time). Each serves the document and a Swagger UI out of the box.</li>
+<li><strong>OpenAPI contract-first is generator-shaped</strong>: OpenAPI Generator's <code>spring</code> target
+(interfaces + delegate pattern your controllers implement), <code>jaxrs-spec</code> for
+Quarkus-style resources, and <code>java-micronaut-server</code>; Quarkus adds
+quarkus-openapi-generator for build-time typed <em>clients</em> from a spec.</li>
+<li><strong>AsyncAPI has one real code-first citizen</strong>: Springwolf — scans Spring Kafka/AMQP/JMS
+listeners and produces an AsyncAPI document plus UI, springdoc-style. Elsewhere it is
+contract-first or nothing: AsyncAPI Generator templates for Spring, hand-authored specs
+validated in CI for Quarkus/Micronaut.</li>
+<li><strong>gRPC is contract-first by construction</strong>: <code>.proto</code> + protobuf-maven-plugin or buf →
+grpc-java stubs, wrapped by Spring gRPC, quarkus-grpc (Mutiny stubs at build time) and
+micronaut-grpc; human-readable docs come from protoc-gen-doc or the Buf Schema Registry,
+never hand-written.</li>
+<li><strong>GraphQL splits by stack</strong>: Spring for GraphQL and Netflix DGS are schema-first (the
+SDL in <code>resources/graphql/</code> is the doc); SmallRye GraphQL (Quarkus) is code-first —
+annotations generate the schema, served at <code>/graphql/schema.graphql</code>; Micronaut wraps
+graphql-java and leaves the choice open, commonly schema-first.</li>
+<li><strong>Micronaut's twist</strong>: its OpenAPI support runs in the annotation processor — the spec
+is a build artifact with zero runtime cost, consistent with its
+<a href="../../../java/frameworks/micronaut/">compile-time ethos</a>.</li>
+<li><strong>CI belongs to the spec</strong>: whichever direction, lint with Spectral, diff with oasdiff
+(or <code>buf lint</code>/<code>buf breaking</code> for proto) and publish the rendered doc from the same
+pipeline — see the <a href="../../../system-design/api-documentation/">trade-off note</a> for why.</li>
+</ul>
+<h2>Details</h2>
+<h3>Flavor × stack matrix</h3>
+<table>
+<thead>
+<tr>
+<th>Flavor</th>
+<th>Spring</th>
+<th>Quarkus</th>
+<th>Micronaut</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>OpenAPI, code-first</strong></td>
+<td>springdoc-openapi: runtime scan of MVC/WebFlux annotations → <code>/v3/api-docs</code> + Swagger UI; enrich with swagger-core <code>@Operation</code>/<code>@Schema</code></td>
+<td>quarkus-smallrye-openapi: MicroProfile OpenAPI annotations → <code>/q/openapi</code> + Dev UI Swagger; auto-augmented from Jakarta REST metadata at build time</td>
+<td>micronaut-openapi: annotation processor emits the spec at compile time; swagger-ui/redoc rendering via config</td>
+</tr>
+<tr>
+<td><strong>OpenAPI, contract-first</strong></td>
+<td>OpenAPI Generator <code>spring</code> target — API interfaces + delegate pattern; controllers implement, drift is a compile error</td>
+<td>OpenAPI Generator <code>jaxrs-spec</code>; quarkus-openapi-generator for typed REST clients generated during augmentation</td>
+<td>OpenAPI Generator <code>java-micronaut-server</code> / <code>-client</code> targets</td>
+</tr>
+<tr>
+<td><strong>AsyncAPI</strong></td>
+<td>Springwolf (code-first from <code>@KafkaListener</code>/<code>@RabbitListener</code> + UI); AsyncAPI Generator <code>java-spring</code> template for contract-first</td>
+<td>No first-class extension: hand-author the spec, validate with AsyncAPI CLI in CI; payload contracts via Apicurio/Avro registry</td>
+<td>Same as Quarkus — spec by hand, registry for payloads</td>
+</tr>
+<tr>
+<td><strong>gRPC docs</strong></td>
+<td><code>.proto</code> is the contract: protobuf-maven-plugin or buf → grpc-java; Spring gRPC starter wires servers/clients</td>
+<td>quarkus-grpc generates stubs at build; Dev UI lists services</td>
+<td>micronaut-grpc on the same codegen</td>
+</tr>
+<tr>
+<td><strong>GraphQL</strong></td>
+<td>Spring for GraphQL: schema-first — SDL files are the source, <code>@SchemaMapping</code> binds resolvers; GraphiQL built in</td>
+<td>SmallRye GraphQL: code-first — <code>@GraphQLApi</code> annotations → SDL served by the app</td>
+<td>micronaut-graphql: bring graphql-java either way; commonly schema-first</td>
+</tr>
+</tbody>
+</table>
+<h3>Choosing a direction on the JVM</h3>
+<p>Code-first is the path of least resistance everywhere above, and with the build-time
+stacks (Micronaut, Quarkus) it sheds its classic weakness — the spec exists before deploy,
+so it can be linted and diffed in CI like a hand-written one. Prefer contract-first when
+the spec is the product: public APIs, multi-team boundaries where the OpenAPI document is
+reviewed like code, or polyglot consumers generating their own clients. The delegate
+pattern (generated interface, hand-written implementation) is the Spring idiom that makes
+contract-first survivable — never edit generated sources, regenerate on every spec change.</p>
+<p>For events, be honest about where the contract lives: if the schema registry (Avro +
+compatibility rules) is the enforced artifact, AsyncAPI is documentation <em>about</em> it —
+generate or hand-write it accordingly, and let <a href="../../../java/protocols/messaging/">messaging</a>
+carry the delivery semantics.</p>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../java/protocols/protocols/">Backend protocols in Java — the map</a> — parent map; the
+protocols these documents describe.</li>
+<li><a href="../../../system-design/api-documentation/">API documentation</a> — the flavors and the
+code-first vs contract-first trade in the abstract.</li>
+<li><a href="../../../java/protocols/rest/">REST &amp; HTTP APIs in Java</a> — the endpoints these OpenAPI
+documents cover, per stack.</li>
+<li><a href="../../../java/protocols/messaging/">Messaging in Java — Kafka, JMS &amp; AMQP</a> — the channels an
+AsyncAPI document describes.</li>
+<li><a href="../../../java/protocols/grpc/">gRPC in Java</a> — the contract-first flavor in full.</li>
+<li><a href="../../../java/protocols/graphql/">GraphQL on the JVM</a> — SDL, introspection and the
+schema-first vs code-first split in detail.</li>
+<li><a href="../../../java/frameworks/frameworks/">Java application frameworks — the landscape</a> — the
+stacks this note maps onto.</li>
+<li><a href="../../../go/protocols/api-documentation/">API documentation in Go</a> and
+<a href="../../../rust/protocols/api-documentation/">in Rust</a> — the neighbours: codegen-shaped and
+derive-shaped where Java is annotation-shaped.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

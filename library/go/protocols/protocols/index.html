@@ -66,7 +66,8 @@ make the long-lived-connection cases unusually cheap in Go.</li>
 (gRPC) and Avro (Kafka) are compact and schema-enforced but need tooling.</li>
 <li><strong>Contract location</strong>: REST documents after the fact (OpenAPI, via codegen tools);
 GraphQL and gRPC are schema-first by construction; messaging contracts live in a schema
-registry if anywhere.</li>
+registry if anywhere. The doc tooling per framework has its own note:
+<a href="../../../go/protocols/api-documentation/">API documentation in Go</a>.</li>
 <li><strong>Codegen is the idiom</strong>: where Java leans on annotations and reflection, Go leans on
 code generation — gqlgen, protoc-gen-go/buf and oapi-codegen all emit plain Go you can
 read and debug.</li>
@@ -138,6 +139,7 @@ async option in an all-Go shop.</p>
 <li><a href="../../../go/protocols/grpc/">gRPC in Go</a> — the reference implementation lives here.</li>
 <li><a href="../../../go/protocols/websockets/">WebSockets &amp; SSE in Go</a> — server push on cheap goroutines.</li>
 <li><a href="../../../go/protocols/messaging/">Messaging in Go — Kafka, NATS &amp; AMQP</a> — asynchronous integration.</li>
+<li><a href="../../../go/protocols/api-documentation/">API documentation in Go</a> — the doc/contract tooling (OpenAPI, AsyncAPI, proto, SDL) across these protocols and frameworks.</li>
 <li><a href="../../../system-design/api-design/">API design</a> — protocol-agnostic design principles.</li>
 <li><a href="../../../go/web-frameworks/web-frameworks/">Go web frameworks</a> — the HTTP layer these protocols build on.</li>
 <li><a href="../../../java/protocols/protocols/">Backend protocols in Java — the map</a> — the mirror map on the JVM, spec-and-framework shaped where Go is library-shaped.</li>
