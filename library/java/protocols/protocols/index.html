@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Backend protocols in Java — the map — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/java/protocols</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../java/">java</a><span class="tok-path">/</span><span class="tok-path">protocols</span> <span class="tok-cmd">cat</span> <span class="tok-file">protocols</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Backend protocols in Java — the map</h1>
+        <p class="lib-lede"><span class="tok-comment"># How the main service protocols — REST, GraphQL, gRPC, WebSockets/SSE, messaging — map onto Jakarta, Spring, Quarkus and Micronaut.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#java">#java</a><a class="lib-tag" href="../../../tags/#protocols">#protocols</a><a class="lib-tag" href="../../../tags/#frameworks">#frameworks</a><a class="lib-tag" href="../../../tags/#api-design">#api-design</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>Protocol choice shapes a Java service more than most design decisions: it fixes whether
+calls are synchronous request/response or asynchronous fire-and-forget, whether the wire
+format is human-readable text or a binary schema, and whether the interaction is a single
+exchange or a long-lived stream. Each protocol arrives in the JVM ecosystem twice over —
+once as a standard or de-facto spec (Jakarta REST, GraphQL, gRPC, Jakarta WebSocket,
+Jakarta Messaging) and once per framework as the Spring, Quarkus and Micronaut integration
+of that spec. Knowing both layers is what lets you move between stacks without relearning
+the protocol.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>Sync vs async</strong>: REST, GraphQL and gRPC unary calls are request/response; messaging
+decouples producer from consumer in time; WebSockets/SSE hold a connection open for
+server push. Pick per interaction, not per service — most systems mix them.</li>
+<li><strong>Text vs binary</strong>: JSON over HTTP (REST, GraphQL) is debuggable and universally
+consumable; protobuf (gRPC) and Avro (Kafka) are compact, fast and schema-enforced but
+need tooling to inspect.</li>
+<li><strong>Contract location</strong>: REST contracts are documented after the fact (OpenAPI); GraphQL
+and gRPC are schema-first by construction (SDL, <code>.proto</code>); messaging contracts live in
+a schema registry if they live anywhere.</li>
+<li><strong>Spec vs framework</strong>: the standard defines annotations and semantics (Jakarta REST,
+Jakarta WebSocket, Jakarta Messaging, MicroProfile GraphQL); Spring historically ships
+its own equivalent APIs, while Quarkus and Micronaut mostly implement or wrap the
+standards.</li>
+<li><strong>Streaming is the differentiator</strong>: only gRPC, WebSockets/SSE and messaging handle
+server push and long-lived flows naturally; forcing streaming through REST means
+polling.</li>
+<li><strong>Every deep dive below names the concrete library per stack</strong> — that mapping is the
+point of this group.</li>
+</ul>
+<h2>Details</h2>
+<h3>The protocol × stack matrix</h3>
+<table>
+<thead>
+<tr>
+<th>Protocol</th>
+<th>Standard / spec</th>
+<th>Spring</th>
+<th>Quarkus</th>
+<th>Micronaut</th>
+<th>Deep dive</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>REST / HTTP APIs</td>
+<td>Jakarta REST (JAX-RS), impls RESTEasy &amp; Jersey</td>
+<td>Spring MVC / WebFlux (<code>@RestController</code>)</td>
+<td>Quarkus REST (RESTEasy Reactive)</td>
+<td>Micronaut HTTP (<code>@Controller</code>)</td>
+<td><a href="../../../java/protocols/rest/">REST</a></td>
+</tr>
+<tr>
+<td>GraphQL</td>
+<td>GraphQL spec; MicroProfile GraphQL; graphql-java engine</td>
+<td>Spring for GraphQL</td>
+<td>SmallRye GraphQL</td>
+<td>Micronaut GraphQL</td>
+<td><a href="../../../java/protocols/graphql/">GraphQL</a></td>
+</tr>
+<tr>
+<td>gRPC</td>
+<td>gRPC + protobuf; grpc-java</td>
+<td>Spring gRPC / grpc-spring starter</td>
+<td>Quarkus gRPC (Mutiny stubs)</td>
+<td>Micronaut gRPC</td>
+<td><a href="../../../java/protocols/grpc/">gRPC</a></td>
+</tr>
+<tr>
+<td>WebSockets / SSE</td>
+<td>Jakarta WebSocket; SSE in Jakarta REST</td>
+<td>spring-websocket + STOMP; WebFlux reactive</td>
+<td>WebSockets Next</td>
+<td>Micronaut WebSocket (<code>@ServerWebSocket</code>)</td>
+<td><a href="../../../java/protocols/websockets/">WebSockets &amp; SSE</a></td>
+</tr>
+<tr>
+<td>Messaging (Kafka / JMS / AMQP)</td>
+<td>Jakarta Messaging (JMS); Kafka &amp; AMQP wire protocols</td>
+<td>Spring Kafka, Spring AMQP, Spring Cloud Stream</td>
+<td>SmallRye Reactive Messaging</td>
+<td>Micronaut Kafka / JMS / RabbitMQ</td>
+<td><a href="../../../java/protocols/messaging/">Messaging</a></td>
+</tr>
+</tbody>
+</table>
+<h3>Choosing</h3>
+<p>Default to REST for public and browser-facing APIs; reach for GraphQL when clients need
+flexible aggregation over many resources; gRPC for internal service-to-service calls where
+latency, streaming or polyglot contracts matter; WebSockets/SSE when the server must push;
+messaging whenever the work can be asynchronous — which is more often than request/response
+habits suggest. The deep dives cover the trade-offs per protocol.</p>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../java/protocols/rest/">REST &amp; HTTP APIs in Java</a> — the default protocol, spec and stacks.</li>
+<li><a href="../../../java/protocols/graphql/">GraphQL on the JVM</a> — query-language alternative for flexible clients.</li>
+<li><a href="../../../java/protocols/grpc/">gRPC in Java</a> — binary contract-first RPC for internal services.</li>
+<li><a href="../../../java/protocols/websockets/">WebSockets &amp; SSE in Java</a> — server push and bidirectional channels.</li>
+<li><a href="../../../java/protocols/messaging/">Messaging in Java — Kafka, JMS &amp; AMQP</a> — asynchronous integration.</li>
+<li><a href="../../../system-design/api-design/">API design</a> — the protocol-agnostic design principles behind all of these.</li>
+<li><a href="../../../java/frameworks/frameworks/">Java frameworks</a> — the stacks these protocols plug into.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

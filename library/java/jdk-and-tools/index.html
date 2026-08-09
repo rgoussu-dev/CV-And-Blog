@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>The JDK, the JRE &amp; their tools — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../assets/styles.css" />
+  <link rel="stylesheet" href="../../assets/theme.css" />
+</head>
+<body data-prefix="../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/java/jdk-and-tools</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block"><div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../java/">java</a><span class="tok-path">/</span><span class="tok-path">jdk-and-tools</span> <span class="tok-cmd">ls</span> <span class="tok-flag">-la</span></div>
+      <div class="term-out"><h1 class="lib-title">The JDK, the JRE &amp; their tools</h1><p class="lib-lede"><span class="tok-comment"># The JDK vs the JRE, and one note per JDK command-line tool, from javac to jdb.</span></p></div>
+    </div><section class="lib-section"><h2 class="lib-h" aria-label="documents/"><span class="tok-p">❯</span> <span class="tok-dim">cat</span> <span class="tok-file">documents/</span></h2>
+      <ul class="lib-rows"><li class="lib-row">
+    <a class="lib-row-link" href="../../java/jdk-and-tools/jdk-and-tools/">
+      <span class="lib-row-perms" aria-hidden="true">-rw-r--r--</span>
+      <span class="lib-row-title">The JDK, the JRE &amp; their tools</span>
+      <span class="lib-type" data-type="concept">Concept</span>
+      <span class="lib-row-date">2026-08-09</span>
+    </a>
+    <p class="lib-row-desc">What the JDK ships beyond the compiler — the runtime, and the full catalog of command-line tools grouped by purpose.</p>
+  </li><li class="lib-row">
+    <a class="lib-row-link" href="../../java/jdk-and-tools/jar-tool/">
+      <span class="lib-row-perms" aria-hidden="true">-rw-r--r--</span>
+      <span class="lib-row-title">jar — archives &amp; manifests</span>
+      <span class="lib-type" data-type="concept">Concept</span>
+      <span class="lib-row-date">2026-08-09</span>
+    </a>
+    <p class="lib-row-desc">The jar tool — creating and inspecting archives, MANIFEST.MF semantics, executable jars, and multi-release jars.</p>
+  </li><li class="lib-row">
+    <a class="lib-row-link" href="../../java/jdk-and-tools/java-launcher/">
+      <span class="lib-row-perms" aria-hidden="true">-rw-r--r--</span>
+      <span class="lib-row-title">java — the launcher</span>
+      <span class="lib-type" data-type="concept">Concept</span>
+      <span class="lib-row-date">2026-08-09</span>
+    </a>
+    <p class="lib-row-desc">The java launcher — running classes, jars, modules and source files, plus the JVM flag families that matter.</p>
+  </li><li class="lib-row">
+    <a class="lib-row-link" href="../../java/jdk-and-tools/javac/">
+      <span class="lib-row-perms" aria-hidden="true">-rw-r--r--</span>
+      <span class="lib-row-title">javac — the Java compiler</span>
+      <span class="lib-type" data-type="concept">Concept</span>
+      <span class="lib-row-date">2026-08-09</span>
+    </a>
+    <p class="lib-row-desc">The JDK compiler — compilation model, classpath vs module path, --release, annotation processing, and lint flags.</p>
+  </li><li class="lib-row">
+    <a class="lib-row-link" href="../../java/jdk-and-tools/javadoc-tool/">
+      <span class="lib-row-perms" aria-hidden="true">-rw-r--r--</span>
+      <span class="lib-row-title">javadoc — API documentation</span>
+      <span class="lib-type" data-type="concept">Concept</span>
+      <span class="lib-row-date">2026-08-09</span>
+    </a>
+    <p class="lib-row-desc">The javadoc tool — doc comments and tags, doclets, JEP 413 snippets, and publishing API docs from builds.</p>
+  </li><li class="lib-row">
+    <a class="lib-row-link" href="../../java/jdk-and-tools/javap/">
+      <span class="lib-row-perms" aria-hidden="true">-rw-r--r--</span>
+      <span class="lib-row-title">javap — the class file disassembler</span>
+      <span class="lib-type" data-type="concept">Concept</span>
+      <span class="lib-row-date">2026-08-09</span>
+    </a>
+    <p class="lib-row-desc">The javap disassembler — reading bytecode and the constant pool to verify what the compiler actually generated.</p>
+  </li><li class="lib-row">
+    <a class="lib-row-link" href="../../java/jdk-and-tools/jcmd/">
+      <span class="lib-row-perms" aria-hidden="true">-rw-r--r--</span>
+      <span class="lib-row-title">jcmd — the JVM diagnostic command hub</span>
+      <span class="lib-type" data-type="concept">Concept</span>
+      <span class="lib-row-date">2026-08-09</span>
+    </a>
+    <p class="lib-row-desc">Sends diagnostic commands to a running JVM — flags, heap info, thread dumps, JFR control — superseding most older j* tools.</p>
+  </li><li class="lib-row">
+    <a class="lib-row-link" href="../../java/jdk-and-tools/jconsole/">
+      <span class="lib-row-perms" aria-hidden="true">-rw-r--r--</span>
+      <span class="lib-row-title">jconsole — the JMX console</span>
+      <span class="lib-type" data-type="concept">Concept</span>
+      <span class="lib-row-date">2026-08-09</span>
+    </a>
+    <p class="lib-row-desc">The JDK's Swing GUI for browsing JMX MBeans and live memory, thread and class charts on local or remote JVMs.</p>
+  </li><li class="lib-row">
+    <a class="lib-row-link" href="../../java/jdk-and-tools/jdb/">
+      <span class="lib-row-perms" aria-hidden="true">-rw-r--r--</span>
+      <span class="lib-row-title">jdb — the CLI debugger and JDWP</span>
+      <span class="lib-type" data-type="concept">Concept</span>
+      <span class="lib-row-date">2026-08-09</span>
+    </a>
+    <p class="lib-row-desc">The JDK's command-line debugger and the JDWP/JDI machinery behind it — the same wire protocol every IDE debugger speaks.</p>
+  </li><li class="lib-row">
+    <a class="lib-row-link" href="../../java/jdk-and-tools/jdeps/">
+      <span class="lib-row-perms" aria-hidden="true">-rw-r--r--</span>
+      <span class="lib-row-title">jdeps — dependency analysis</span>
+      <span class="lib-type" data-type="concept">Concept</span>
+      <span class="lib-row-date">2026-08-09</span>
+    </a>
+    <p class="lib-row-desc">The jdeps analyser — class, package and module-level dependencies, JDK-internal usage, and feeding jlink.</p>
+  </li><li class="lib-row">
+    <a class="lib-row-link" href="../../java/jdk-and-tools/jfr-and-jmc/">
+      <span class="lib-row-perms" aria-hidden="true">-rw-r--r--</span>
+      <span class="lib-row-title">JDK Flight Recorder &amp; Mission Control</span>
+      <span class="lib-type" data-type="concept">Concept</span>
+      <span class="lib-row-date">2026-08-09</span>
+    </a>
+    <p class="lib-row-desc">Always-on, low-overhead JVM event recording (JFR) and its analysis GUI (JMC) — the built-in production profiling stack.</p>
+  </li><li class="lib-row">
+    <a class="lib-row-link" href="../../java/jdk-and-tools/jlink/">
+      <span class="lib-row-perms" aria-hidden="true">-rw-r--r--</span>
+      <span class="lib-row-title">jlink — custom runtime images</span>
+      <span class="lib-type" data-type="concept">Concept</span>
+      <span class="lib-row-date">2026-08-09</span>
+    </a>
+    <p class="lib-row-desc">Assembles a trimmed, self-contained Java runtime from a set of modules, replacing the standalone JRE for application distribution.</p>
+  </li><li class="lib-row">
+    <a class="lib-row-link" href="../../java/jdk-and-tools/jmap/">
+      <span class="lib-row-perms" aria-hidden="true">-rw-r--r--</span>
+      <span class="lib-row-title">jmap — heap histograms and heap dumps</span>
+      <span class="lib-type" data-type="concept">Concept</span>
+      <span class="lib-row-date">2026-08-09</span>
+    </a>
+    <p class="lib-row-desc">Produces class histograms and full hprof heap dumps for leak analysis in MAT or VisualVM, at a real pause cost on large heaps.</p>
+  </li><li class="lib-row">
+    <a class="lib-row-link" href="../../java/jdk-and-tools/jmod/">
+      <span class="lib-row-perms" aria-hidden="true">-rw-r--r--</span>
+      <span class="lib-row-title">jmod — the JMOD format and tool</span>
+      <span class="lib-type" data-type="concept">Concept</span>
+      <span class="lib-row-date">2026-08-09</span>
+    </a>
+    <p class="lib-row-desc">Link-time packaging format for modules that can carry native libraries and config, consumed by jlink but never shipped to run.</p>
+  </li><li class="lib-row">
+    <a class="lib-row-link" href="../../java/jdk-and-tools/jpackage/">
+      <span class="lib-row-perms" aria-hidden="true">-rw-r--r--</span>
+      <span class="lib-row-title">jpackage — native installers and app images</span>
+      <span class="lib-type" data-type="concept">Concept</span>
+      <span class="lib-row-date">2026-08-09</span>
+    </a>
+    <p class="lib-row-desc">Packages a Java application with a bundled runtime into platform-native installers (deb, rpm, msi, exe, dmg, pkg) per JEP 392.</p>
+  </li><li class="lib-row">
+    <a class="lib-row-link" href="../../java/jdk-and-tools/jps/">
+      <span class="lib-row-perms" aria-hidden="true">-rw-r--r--</span>
+      <span class="lib-row-title">jps — listing JVM processes</span>
+      <span class="lib-type" data-type="concept">Concept</span>
+      <span class="lib-row-date">2026-08-09</span>
+    </a>
+    <p class="lib-row-desc">Lists running JVMs with pids, main classes and arguments, backed by the JVM's shared-memory perfdata files.</p>
+  </li><li class="lib-row">
+    <a class="lib-row-link" href="../../java/jdk-and-tools/jshell/">
+      <span class="lib-row-perms" aria-hidden="true">-rw-r--r--</span>
+      <span class="lib-row-title">jshell — the Java REPL</span>
+      <span class="lib-type" data-type="concept">Concept</span>
+      <span class="lib-row-date">2026-08-09</span>
+    </a>
+    <p class="lib-row-desc">The jshell REPL — exploratory snippets, /commands, feedback modes, and scripting use.</p>
+  </li><li class="lib-row">
+    <a class="lib-row-link" href="../../java/jdk-and-tools/jstack/">
+      <span class="lib-row-perms" aria-hidden="true">-rw-r--r--</span>
+      <span class="lib-row-title">jstack — thread dumps</span>
+      <span class="lib-type" data-type="concept">Concept</span>
+      <span class="lib-row-date">2026-08-09</span>
+    </a>
+    <p class="lib-row-desc">Captures platform-thread stack traces with lock and deadlock information; superseded by jcmd, and blind to virtual threads.</p>
+  </li><li class="lib-row">
+    <a class="lib-row-link" href="../../java/jdk-and-tools/jstat/">
+      <span class="lib-row-perms" aria-hidden="true">-rw-r--r--</span>
+      <span class="lib-row-title">jstat — GC and class-loading statistics</span>
+      <span class="lib-type" data-type="concept">Concept</span>
+      <span class="lib-row-date">2026-08-09</span>
+    </a>
+    <p class="lib-row-desc">Samples HotSpot perfdata counters at intervals — GC utilisation, class loading, compilation — as a lightweight live-monitoring CLI.</p>
+  </li><li class="lib-row">
+    <a class="lib-row-link" href="../../java/jdk-and-tools/jwebserver/">
+      <span class="lib-row-perms" aria-hidden="true">-rw-r--r--</span>
+      <span class="lib-row-title">jwebserver — the minimal static file server</span>
+      <span class="lib-type" data-type="concept">Concept</span>
+      <span class="lib-row-date">2026-08-09</span>
+    </a>
+    <p class="lib-row-desc">JDK 18's zero-config static HTTP file server (JEP 408) for prototyping and local file serving, not for production.</p>
+  </li><li class="lib-row">
+    <a class="lib-row-link" href="../../java/jdk-and-tools/keytool/">
+      <span class="lib-row-perms" aria-hidden="true">-rw-r--r--</span>
+      <span class="lib-row-title">keytool — keystores and certificates</span>
+      <span class="lib-type" data-type="concept">Concept</span>
+      <span class="lib-row-date">2026-08-09</span>
+    </a>
+    <p class="lib-row-desc">Manages PKCS12 keystores and truststores — keypairs, CSRs, CA imports, cacerts — and underpins most JVM TLS debugging.</p>
+  </li></ul></section>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../assets/planks.js"></script>
+  <script src="../../assets/search.js" defer></script>
+</body>
+</html>

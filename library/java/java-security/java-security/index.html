@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Security in Java applications — the map — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/java/java-security</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../java/">java</a><span class="tok-path">/</span><span class="tok-path">java-security</span> <span class="tok-cmd">cat</span> <span class="tok-file">java-security</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Security in Java applications — the map</h1>
+        <p class="lib-lede"><span class="tok-comment"># How the recurring security concerns map onto Spring Security, Quarkus and Micronaut modules and the standards behind them.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#java">#java</a><a class="lib-tag" href="../../../tags/#security">#security</a><a class="lib-tag" href="../../../tags/#frameworks">#frameworks</a><a class="lib-tag" href="../../../tags/#spring">#spring</a><a class="lib-tag" href="../../../tags/#quarkus">#quarkus</a><a class="lib-tag" href="../../../tags/#micronaut">#micronaut</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>Security in a Java application is rarely invented; it is assembled. The concerns are the
+same everywhere — who is calling (authn), what they may do (authz), the OAuth2/OIDC
+protocol family, the web attack surface, cryptography and secrets, and the platform's own
+hardening — and each major framework ships a security stack that implements the relevant
+standards. This note maps concern → standard → framework module, and hands off to the deep
+dives. General theory (threat models, protocol semantics, crypto principles) lives in the
+Security theme; here we only care how it lands in Java code.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>Authn vs authz</strong>: every stack separates <em>establishing an identity</em> (filters/interceptors
+producing a <code>SecurityContext</code>/<code>Authentication</code>) from <em>enforcing permissions</em> (URL rules,
+<code>@RolesAllowed</code>/<code>@PreAuthorize</code>-style annotations, method interceptors).</li>
+<li><strong>OAuth2/OIDC is the default perimeter</strong>: resource-server JWT validation for APIs,
+OIDC login for browser apps, an external IdP (usually Keycloak) as authorization server —
+see <a href="../../../java/java-security/oauth2-and-oidc/">OAuth2 &amp; OIDC in Java</a>.</li>
+<li><strong>The web attack surface</strong> (injection, XSS, CSRF, CORS, headers, deserialization) is
+partly framework-handled, partly your job — see <a href="../../../java/java-security/web-security/">Web security</a>.</li>
+<li><strong>Crypto &amp; secrets</strong>: the JDK's JCA/JSSE providers plus Bouncy Castle, and Vault-style
+external secret stores — see <a href="../../../java/java-security/cryptography-and-jca/">Cryptography in Java</a>.</li>
+<li><strong>Platform security</strong>: keep the JDK patched (CPU releases quarterly); the old
+<code>SecurityManager</code> is deprecated for removal and no longer a sandboxing answer — process
+isolation and containers are.</li>
+<li><strong>Spring Security</strong> is filter-chain based (<code>SecurityFilterChain</code> beans); <strong>Quarkus</strong>
+builds on Elytron/SmallRye plus per-concern extensions; <strong>Micronaut Security</strong> uses
+compile-time AOP rules — same concepts, different wiring.</li>
+<li><strong>Supply chain</strong>: dependency scanning, SBOMs and the tooling around them are covered in
+<a href="../../../java/testing/security-testing/">Security testing</a>, not here.</li>
+</ul>
+<h2>Details</h2>
+<h3>Concern × standard × framework</h3>
+<table>
+<thead>
+<tr>
+<th>Concern</th>
+<th>Standard / spec</th>
+<th>Spring Security</th>
+<th>Quarkus</th>
+<th>Micronaut Security</th>
+<th>Deep dive</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Authentication (form, basic, LDAP)</td>
+<td>RFC 7617 (Basic), LDAP</td>
+<td><code>spring-boot-starter-security</code> core, <code>AuthenticationManager</code></td>
+<td><code>quarkus-elytron-security-*</code> (JDBC, LDAP, properties)</td>
+<td><code>micronaut-security</code> authentication providers</td>
+<td><a href="../../../java/java-security/web-security/">Web security</a></td>
+</tr>
+<tr>
+<td>Authorization (roles, method security)</td>
+<td>Jakarta <code>@RolesAllowed</code>, framework annotations</td>
+<td><code>@PreAuthorize</code>, <code>AuthorizationManager</code>, URL matchers</td>
+<td><code>@RolesAllowed</code>, <code>@Authenticated</code>, HTTP policy config</td>
+<td><code>@Secured</code>, security rules, intercept-url maps</td>
+<td><a href="../../../java/java-security/web-security/">Web security</a></td>
+</tr>
+<tr>
+<td>OAuth2 resource server (JWT APIs)</td>
+<td>RFC 6749/9068, RFC 7519 (JWT), RFC 7517 (JWKS)</td>
+<td><code>spring-security-oauth2-resource-server</code></td>
+<td><code>quarkus-oidc</code> / <code>quarkus-smallrye-jwt</code> (MP JWT)</td>
+<td><code>micronaut-security-jwt</code></td>
+<td><a href="../../../java/java-security/oauth2-and-oidc/">OAuth2 &amp; OIDC</a></td>
+</tr>
+<tr>
+<td>OAuth2/OIDC client &amp; login</td>
+<td>OIDC Core, RFC 7636 (PKCE)</td>
+<td><code>spring-security-oauth2-client</code></td>
+<td><code>quarkus-oidc</code> (web-app mode)</td>
+<td><code>micronaut-security-oauth2</code></td>
+<td><a href="../../../java/java-security/oauth2-and-oidc/">OAuth2 &amp; OIDC</a></td>
+</tr>
+<tr>
+<td>Authorization server</td>
+<td>RFC 6749, OIDC Core</td>
+<td>Spring Authorization Server</td>
+<td>delegate to Keycloak (Dev Services)</td>
+<td>delegate to an external IdP</td>
+<td><a href="../../../java/java-security/oauth2-and-oidc/">OAuth2 &amp; OIDC</a></td>
+</tr>
+<tr>
+<td>CSRF, CORS, headers, sessions</td>
+<td>OWASP guidance, Fetch/CORS spec</td>
+<td><code>CsrfFilter</code>, <code>CorsConfigurationSource</code>, header writers</td>
+<td><code>quarkus-security</code> + HTTP config (<code>quarkus.http.cors.*</code>)</td>
+<td><code>micronaut-security-csrf</code>, CORS config</td>
+<td><a href="../../../java/java-security/web-security/">Web security</a></td>
+</tr>
+<tr>
+<td>Crypto primitives &amp; password hashing</td>
+<td>JCA/JCE, NIST SP 800-63B</td>
+<td><code>spring-security-crypto</code> (<code>PasswordEncoder</code>)</td>
+<td>JCA + Bouncy Castle (<code>quarkus-security</code> utilities)</td>
+<td>JCA + Bouncy Castle directly</td>
+<td><a href="../../../java/java-security/cryptography-and-jca/">Cryptography</a></td>
+</tr>
+<tr>
+<td>TLS / mTLS</td>
+<td>TLS 1.2/1.3, X.509</td>
+<td>Boot SSL bundles</td>
+<td><code>quarkus.tls.*</code> registry, credentials extensions</td>
+<td>Micronaut HTTP server/client SSL config</td>
+<td><a href="../../../java/java-security/cryptography-and-jca/">Cryptography</a></td>
+</tr>
+<tr>
+<td>Secrets in config</td>
+<td>— (Vault, cloud KMS)</td>
+<td>Spring Cloud Vault</td>
+<td><code>quarkus-vault</code></td>
+<td><code>micronaut-vault</code></td>
+<td><a href="../../../java/java-security/cryptography-and-jca/">Cryptography</a></td>
+</tr>
+</tbody>
+</table>
+<h3>Jakarta Security</h3>
+<p>For completeness: Jakarta EE defines its own portable security API — Jakarta Security
+(<code>HttpAuthenticationMechanism</code>, <code>IdentityStore</code>), Jakarta Authentication (JASPIC lineage)
+and Jakarta Authorization (JACC lineage) — implemented by full EE servers such as WildFly,
+Payara and Open Liberty. In practice the three frameworks above ship their own richer
+stacks and only borrow the annotations (<code>@RolesAllowed</code> et al.); you meet Jakarta Security
+proper mainly on classic application servers.</p>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../java/java-security/oauth2-and-oidc/">OAuth2 &amp; OIDC in Java</a> — the protocol family as it lands in each framework.</li>
+<li><a href="../../../java/java-security/web-security/">Web security in Java apps</a> — OWASP concerns and where each framework handles them.</li>
+<li><a href="../../../java/java-security/cryptography-and-jca/">Cryptography in Java — JCA/JSSE</a> — providers, primitives, TLS and secrets.</li>
+<li><a href="../../../security/appsec-fundamentals/">AppSec fundamentals</a> — the general theory this note deliberately does not duplicate.</li>
+<li><a href="../../../security/authentication-and-authorization/">Authentication &amp; authorization</a> — protocol-level authn/authz concepts.</li>
+<li><a href="../../../java/frameworks/frameworks/">Frameworks overview</a> — the three stacks these security modules belong to.</li>
+<li><a href="../../../java/testing/security-testing/">Security testing</a> — dependency scanning, SAST/DAST and the supply chain.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

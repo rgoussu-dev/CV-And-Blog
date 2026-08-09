@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>jpackage — native installers and app images — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/java/jdk-and-tools</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../java/">java</a><span class="tok-path">/</span><span class="tok-path">jdk-and-tools</span> <span class="tok-cmd">cat</span> <span class="tok-file">jpackage</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">jpackage — native installers and app images</h1>
+        <p class="lib-lede"><span class="tok-comment"># Packages a Java application with a bundled runtime into platform-native installers (deb, rpm, msi, exe, dmg, pkg) per JEP 392.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#java">#java</a><a class="lib-tag" href="../../../tags/#tooling">#tooling</a><a class="lib-tag" href="../../../tags/#packaging">#packaging</a><a class="lib-tag" href="../../../tags/#distribution">#distribution</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p><code>jpackage</code> (standard since Java 16, JEP 392) turns a Java application plus a runtime into
+something end users can actually install: a native app image (a self-contained directory with a
+platform launcher) or a platform installer — <code>deb</code>/<code>rpm</code> on Linux, <code>msi</code>/<code>exe</code> on Windows,
+<code>dmg</code>/<code>pkg</code> on macOS. Users never install Java separately; the runtime travels inside the
+package. It replaced the old JavaFX <code>javapackager</code>.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>Two-stage model</strong>: it first builds an <em>app image</em> (launcher + <code>app/</code> with your jars +
+<code>runtime/</code>), then wraps it in an installer; <code>--type app-image</code> stops after stage one.</li>
+<li><strong>Runtime bundling</strong>: by default jpackage runs jlink itself (use <code>--add-modules</code> /
+<code>--jlink-options</code> to trim); or pass a pre-built image with <code>--runtime-image</code> for full control.</li>
+<li><strong>Platform-bound</strong>: it produces packages only for the OS it runs on and needs local packaging
+tools (WiX on Windows, <code>dpkg</code>/<code>rpmbuild</code> on Linux, Xcode command-line tools on macOS) — CI
+needs one build job per target platform.</li>
+<li><strong>Inputs</strong>: modular (<code>--module</code>) or classpath (<code>--input</code> dir + <code>--main-jar</code>/<code>--main-class</code>)
+applications both work.</li>
+<li><strong>Launcher polish</strong>: <code>--icon</code> (<code>.ico</code>/<code>.icns</code>/<code>.png</code> per platform), <code>--java-options</code> for fixed
+JVM flags, <code>--arguments</code> for defaults, <code>--add-launcher</code> for extra entry points, file
+associations via <code>--file-associations</code>.</li>
+<li><strong>Signing is on you</strong>: macOS Gatekeeper requires codesigning and notarisation
+(<code>--mac-sign</code> and related options help); Windows SmartScreen expects Authenticode signing of
+the msi/exe, which jpackage does not do — sign afterwards with <code>signtool</code>.</li>
+<li><strong>Not cross-platform, not an updater</strong>: no built-in update channel; pair with platform stores
+or an updater library if you need one.</li>
+</ul>
+<h2>Examples</h2>
+<pre><code class="language-bash">jpackage --name MyApp --app-version 2.1.0 \
+         --input build/libs --main-jar myapp.jar \
+         --icon assets/myapp.icns \
+         --java-options '-Xmx512m' \
+         --type dmg
+</code></pre>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../java/jdk-and-tools/jdk-and-tools/">JDK &amp; tools</a> — parent catalogue of the JDK toolchain.</li>
+<li><a href="../../../java/jdk-and-tools/jlink/">jlink</a> — builds the trimmed runtime jpackage embeds.</li>
+<li><a href="../../../java/jdk-and-tools/jmod/">jmod</a> — link-time format behind the bundled runtime's JDK modules.</li>
+<li><a href="../../../java/jdk-and-tools/jar-tool/">jar tool</a> — the application artefacts that go into <code>--input</code>.</li>
+<li><a href="../../../java/build-ecosystem/build-ecosystem/">Build ecosystem</a> — how packaging fits the Maven/Gradle release pipeline.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

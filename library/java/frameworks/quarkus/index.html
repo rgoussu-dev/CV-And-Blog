@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Quarkus deep dive — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/java/frameworks</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../java/">java</a><span class="tok-path">/</span><span class="tok-path">frameworks</span> <span class="tok-cmd">cat</span> <span class="tok-file">quarkus</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Quarkus deep dive</h1>
+        <p class="lib-lede"><span class="tok-comment"># Quarkus in depth — build-time augmentation, ArC CDI, RESTEasy Reactive, Panache, Mutiny, Dev Services and first-class native image.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#java">#java</a><a class="lib-tag" href="../../../tags/#frameworks">#frameworks</a><a class="lib-tag" href="../../../tags/#quarkus">#quarkus</a><a class="lib-tag" href="../../../tags/#graalvm">#graalvm</a><a class="lib-tag" href="../../../tags/#microprofile">#microprofile</a><a class="lib-tag" href="../../../tags/#reactive">#reactive</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>Quarkus (&quot;supersonic subatomic Java&quot;, Red Hat) is built around one idea: do at <strong>build
+time</strong> what other frameworks do at every startup. Classpath scanning, annotation
+processing, config parsing and bean-graph resolution happen during augmentation; the
+runtime just executes pre-computed bytecode. That yields fast JVM startup, low memory, and
+— because all reflection and dynamic behavior is known at build time — the smoothest
+GraalVM native-image path in the ecosystem, while staying standards-based (Jakarta EE core
+profile + MicroProfile).</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>Build-time augmentation</strong>: extensions run <em>build steps</em> that scan, index (Jandex) and
+generate bytecode once; startup work collapses to executing recorded initialization.</li>
+<li><strong>ArC</strong>: Quarkus's CDI implementation (&quot;CDI-lite&quot;) — build-time resolved
+<code>@ApplicationScoped</code>/<code>@Inject</code>, unused beans removed, client proxies generated ahead
+of time.</li>
+<li><strong>REST</strong>: RESTEasy Reactive (<code>quarkus-rest</code>) implements Jakarta REST (JAX-RS) and runs
+blocking or reactive endpoints on the same stack, dispatching to the right thread pool.</li>
+<li><strong>Persistence</strong>: Hibernate ORM with <strong>Panache</strong> (<code>quarkus-hibernate-orm-panache</code>) —
+active-record or repository style with boilerplate stripped.</li>
+<li><strong>Mutiny</strong>: the reactive core (<code>Uni</code>/<code>Multi</code>) used across reactive extensions; Vert.x
+event loop underneath everything.</li>
+<li><strong>Dev mode</strong>: <code>quarkus dev</code> gives live reload, a Dev UI, <strong>Dev Services</strong>
+(auto-provisioned databases/brokers via Testcontainers) and <strong>continuous testing</strong>.</li>
+<li><strong>Native first-class</strong>: <code>-Dnative</code> builds via GraalVM or <strong>Mandrel</strong> (Red Hat's
+native-image distribution), containerized build option requiring no local GraalVM.</li>
+<li><strong>Standards</strong>: MicroProfile Config/Health/Metrics/OpenAPI/Fault-Tolerance implemented by
+the <strong>SmallRye</strong> project family.</li>
+</ul>
+<h2>Details</h2>
+<h3>Augmentation and the extensions model</h3>
+<p>A Quarkus <em>extension</em> has a deployment module (build steps, executed at build time) and a
+runtime module (what ships). Build steps read the Jandex class index, resolve
+configuration, pre-generate serializers and proxies, and record bytecode that replays at
+boot. This is also how native image is tamed: the extension declares reflection/resource
+needs itself, so users rarely write <code>reflect-config.json</code> by hand. The catalog
+(<code>code.quarkus.io</code>) covers Kafka (<code>quarkus-messaging-kafka</code>), Redis, Keycloak/OIDC
+(<code>quarkus-oidc</code>), scheduler, gRPC, and hundreds more.</p>
+<h3>Programming model</h3>
+<p>CDI annotations (<code>@Inject</code>, <code>@ApplicationScoped</code>, <code>@Observes</code>) via ArC; JAX-RS
+annotations (<code>@Path</code>, <code>@GET</code>) via RESTEasy Reactive; config via MicroProfile
+<code>@ConfigProperty</code> or typed <code>@ConfigMapping</code>. ArC's build-time nature brings limits worth
+knowing: no runtime bean registration, portable CDI extensions unsupported (build-time
+extensions instead).</p>
+<h3>Reactive core</h3>
+<p>Vert.x is the engine: all I/O runs on its event loops. RESTEasy Reactive inspects method
+signatures — return <code>Uni&lt;T&gt;</code>/<code>Multi&lt;T&gt;</code> and you run on the event loop; return <code>T</code> or
+annotate <code>@Blocking</code> and you're dispatched to a worker (or virtual) thread. Mutiny was
+designed as a more navigable API than RxJava/Reactor (no 400-operator wall).</p>
+<h3>Developer experience</h3>
+<p>Dev mode is the flagship: code changes recompile on next request; <strong>Dev Services</strong> detect
+a missing datasource/broker config and silently start a Testcontainers-backed PostgreSQL,
+Kafka, Keycloak, etc.; continuous testing re-runs affected tests on change. <code>@QuarkusTest</code>
+boots the app once per test profile for fast integration tests.</p>
+<h3>Native image</h3>
+<p><code>./mvnw package -Dnative</code> (or <code>quarkus build --native</code>) produces a static binary — tens of
+milliseconds startup, tens of MB RSS — ideal for serverless and high-density Kubernetes.
+Trade-off: longer builds, peak throughput typically below JIT; measure before committing.
+<code>@QuarkusIntegrationTest</code> re-runs the test suite against the built native binary.</p>
+<h2>Examples</h2>
+<pre><code class="language-java">@Path(&quot;/orders&quot;)
+public class OrderResource {
+  @Inject OrderService service;               // ArC, resolved at build time
+
+  @GET
+  public Uni&lt;List&lt;Order&gt;&gt; list() {            // reactive: event loop
+    return Order.&lt;Order&gt;listAll();            // Panache active record
+  }
+
+  @POST
+  @Blocking                                    // explicit worker-thread dispatch
+  public Order create(OrderRequest req) { return service.place(req); }
+}
+</code></pre>
+<pre><code class="language-bash">quarkus dev                       # live reload + Dev Services + continuous testing
+./mvnw package -Dnative -Dquarkus.native.container-build=true   # Mandrel in a container
+</code></pre>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../java/frameworks/frameworks/">Java application frameworks — the landscape</a> — parent overview and comparison table.</li>
+<li><a href="../../../java/frameworks/jakarta-ee-correspondence/">Frameworks × Jakarta EE — who implements what</a> — Quarkus as the spec-implementing stack of the three.</li>
+<li><a href="../../../java/jvm-implementations/graalvm/">GraalVM</a> — native image and Mandrel, Quarkus's headline target.</li>
+<li><a href="../../../java/testing/integration-testing/">Integration testing</a> — <code>@QuarkusTest</code>, Dev Services and Testcontainers.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

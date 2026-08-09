@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>The JDK, the JRE &amp; their tools — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/java/jdk-and-tools</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../java/">java</a><span class="tok-path">/</span><span class="tok-path">jdk-and-tools</span> <span class="tok-cmd">cat</span> <span class="tok-file">jdk-and-tools</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">The JDK, the JRE &amp; their tools</h1>
+        <p class="lib-lede"><span class="tok-comment"># What the JDK ships beyond the compiler — the runtime, and the full catalog of command-line tools grouped by purpose.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#java">#java</a><a class="lib-tag" href="../../../tags/#jdk">#jdk</a><a class="lib-tag" href="../../../tags/#tooling">#tooling</a><a class="lib-tag" href="../../../tags/#jvm">#jvm</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>The JDK (Java Development Kit) is the full development distribution: compiler, runtime,
+and a couple of dozen command-line tools for packaging, inspecting, monitoring and
+debugging. The JRE (Java Runtime Environment) was the runtime-only subset shipped
+separately up to Java 8; from Java 9/11 onward Oracle and the OpenJDK vendors stopped
+distributing standalone JREs — the modular JDK plus <a href="../../../java/jdk-and-tools/jlink/">jlink</a>
+lets you cut a custom runtime image containing exactly the modules an application needs,
+which replaced the one-size-fits-all JRE. In practice today you install a JDK (Temurin,
+Corretto, Oracle, …) everywhere, and produce trimmed runtimes per application when
+footprint matters.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>JDK = JRE + tools</strong>: historically the JRE was the JDK minus development tools; since
+the module system (Java 9) the distinction is generated, not shipped — <code>jlink</code> builds
+runtime images on demand.</li>
+<li><strong>Install layout</strong>: <code>bin/</code> (all the tools below), <code>lib/</code> (runtime internals,
+<code>modules</code> image, <code>src.zip</code>), <code>jmods/</code> (packaged platform modules consumed by jlink),
+<code>conf/</code> (editable configuration: <code>security/java.security</code>, logging, net properties).</li>
+<li><strong>One <code>java</code>, many roles</strong>: the <a href="../../../java/jdk-and-tools/java-launcher/">launcher</a> runs
+classes, jars, modules, and since JEP 330/458 plain source files directly.</li>
+<li><strong>Inspection is built in</strong>: <a href="../../../java/jdk-and-tools/javap/">javap</a> disassembles what the
+compiler generated; <a href="../../../java/jdk-and-tools/jdeps/">jdeps</a> maps class/package/module
+dependencies and flags JDK-internal API usage.</li>
+<li><strong>Diagnostics ship with the runtime</strong>: <code>jcmd</code> is the umbrella tool; JFR records
+production-grade profiles with low overhead.</li>
+<li><strong>Vendors differ in distribution, not tools</strong>: every OpenJDK-derived JDK carries
+essentially this same toolchain (see
+<a href="../../../java/jvm-implementations/jvm-implementations/">JVM implementations</a>).</li>
+</ul>
+<h2>Details</h2>
+<h3>Tool catalog</h3>
+<table>
+<thead>
+<tr>
+<th>Purpose</th>
+<th>Tool</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Compile &amp; run</td>
+<td><a href="../../../java/jdk-and-tools/javac/">javac</a></td>
+<td>Compiles <code>.java</code> sources to bytecode</td>
+</tr>
+<tr>
+<td>Compile &amp; run</td>
+<td><a href="../../../java/jdk-and-tools/java-launcher/">java</a></td>
+<td>Launches classes, jars, modules, source files</td>
+</tr>
+<tr>
+<td>Compile &amp; run</td>
+<td><a href="../../../java/jdk-and-tools/jwebserver/">jwebserver</a></td>
+<td>Minimal static file server for dev use (JEP 408)</td>
+</tr>
+<tr>
+<td>Package &amp; distribute</td>
+<td><a href="../../../java/jdk-and-tools/jar-tool/">jar</a></td>
+<td>Creates/inspects jar archives, manifests, multi-release jars</td>
+</tr>
+<tr>
+<td>Package &amp; distribute</td>
+<td><a href="../../../java/jdk-and-tools/jlink/">jlink</a></td>
+<td>Assembles custom runtime images from modules</td>
+</tr>
+<tr>
+<td>Package &amp; distribute</td>
+<td><a href="../../../java/jdk-and-tools/jmod/">jmod</a></td>
+<td>Packages <code>.jmod</code> files (native libs, configs) for jlink</td>
+</tr>
+<tr>
+<td>Package &amp; distribute</td>
+<td><a href="../../../java/jdk-and-tools/jpackage/">jpackage</a></td>
+<td>Builds native installers/app images (msi, dmg, deb…)</td>
+</tr>
+<tr>
+<td>Inspect &amp; document</td>
+<td><a href="../../../java/jdk-and-tools/javadoc-tool/">javadoc</a></td>
+<td>Generates API documentation from doc comments</td>
+</tr>
+<tr>
+<td>Inspect &amp; document</td>
+<td><a href="../../../java/jdk-and-tools/javap/">javap</a></td>
+<td>Disassembles class files; shows bytecode and constant pool</td>
+</tr>
+<tr>
+<td>Inspect &amp; document</td>
+<td><a href="../../../java/jdk-and-tools/jdeps/">jdeps</a></td>
+<td>Static dependency analysis; module migration aid</td>
+</tr>
+<tr>
+<td>REPL</td>
+<td><a href="../../../java/jdk-and-tools/jshell/">jshell</a></td>
+<td>Interactive read–eval–print loop for exploration</td>
+</tr>
+<tr>
+<td>Monitor &amp; diagnose</td>
+<td><a href="../../../java/jdk-and-tools/jcmd/">jcmd</a></td>
+<td>Multiplexed diagnostic commands against a live JVM</td>
+</tr>
+<tr>
+<td>Monitor &amp; diagnose</td>
+<td><a href="../../../java/jdk-and-tools/jps/">jps</a></td>
+<td>Lists running JVM processes</td>
+</tr>
+<tr>
+<td>Monitor &amp; diagnose</td>
+<td><a href="../../../java/jdk-and-tools/jstat/">jstat</a></td>
+<td>Sampled GC/class/JIT statistics</td>
+</tr>
+<tr>
+<td>Monitor &amp; diagnose</td>
+<td><a href="../../../java/jdk-and-tools/jstack/">jstack</a></td>
+<td>Thread dumps; deadlock detection</td>
+</tr>
+<tr>
+<td>Monitor &amp; diagnose</td>
+<td><a href="../../../java/jdk-and-tools/jmap/">jmap</a></td>
+<td>Heap dumps and heap histograms</td>
+</tr>
+<tr>
+<td>Monitor &amp; diagnose</td>
+<td><a href="../../../java/jdk-and-tools/jconsole/">jconsole</a></td>
+<td>GUI monitoring over JMX</td>
+</tr>
+<tr>
+<td>Profile</td>
+<td><a href="../../../java/jdk-and-tools/jfr-and-jmc/">JFR &amp; JMC</a></td>
+<td>Flight Recorder events + Mission Control analysis</td>
+</tr>
+<tr>
+<td>Security</td>
+<td><a href="../../../java/jdk-and-tools/keytool/">keytool</a></td>
+<td>Manages keystores, certificates, truststores</td>
+</tr>
+<tr>
+<td>Debug</td>
+<td><a href="../../../java/jdk-and-tools/jdb/">jdb</a></td>
+<td>Command-line debugger over JDWP</td>
+</tr>
+</tbody>
+</table>
+<p>Build tools drive <code>javac</code>/<code>jar</code>/<code>javadoc</code> for you day to day; the inspection and
+diagnostic tools are the ones worth knowing by hand.</p>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../java/java-deep-dive/">Deep dive Java</a> — parent theme note; the JVM these tools compile for and observe.</li>
+<li><a href="../../../java/build-ecosystem/build-ecosystem/">Build ecosystem</a> — Maven/Gradle wrap the compile/package/document tools in reproducible builds.</li>
+<li><a href="../../../java/jvm-implementations/jvm-implementations/">JVM implementations</a> — the vendor distributions this toolchain ships in.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

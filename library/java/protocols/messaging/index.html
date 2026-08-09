@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Messaging in Java — Kafka, JMS &amp; AMQP — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/java/protocols</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../java/">java</a><span class="tok-path">/</span><span class="tok-path">protocols</span> <span class="tok-cmd">cat</span> <span class="tok-file">messaging</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Messaging in Java — Kafka, JMS &amp; AMQP</h1>
+        <p class="lib-lede"><span class="tok-comment"># Kafka clients and their Spring, Quarkus and Micronaut integrations, JMS and AMQP alternatives, delivery semantics, Avro serialization and broker testing.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#java">#java</a><a class="lib-tag" href="../../../tags/#protocols">#protocols</a><a class="lib-tag" href="../../../tags/#messaging">#messaging</a><a class="lib-tag" href="../../../tags/#kafka">#kafka</a><a class="lib-tag" href="../../../tags/#frameworks">#frameworks</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>Messaging decouples services in time: a producer writes to a broker and moves on; a
+consumer processes when ready. The Java landscape splits into three families — <strong>Kafka</strong>
+(a partitioned, replayable event log with its own protocol), <strong>JMS/Jakarta Messaging</strong> (the
+Java-standard API over brokers like ActiveMQ Artemis), and <strong>AMQP</strong> (RabbitMQ's wire
+protocol with rich routing). Each framework wraps them differently, but the hard problems
+are broker-independent: delivery semantics, idempotency, atomic write-plus-publish, and
+schema evolution on the wire.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>kafka-clients</strong> is the foundation: <code>KafkaProducer</code>/<code>KafkaConsumer</code>, consumer groups,
+partition assignment, offset commits — every framework integration wraps it.</li>
+<li><strong>Spring Kafka</strong>: <code>@KafkaListener</code> methods and <code>KafkaTemplate</code>, container-managed
+concurrency, error handlers with retries and a <code>DeadLetterPublishingRecoverer</code>.</li>
+<li><strong>Spring Cloud Stream</strong> abstracts the broker behind <em>binders</em> (Kafka, Rabbit): you
+write <code>Function&lt;In, Out&gt;</code>/<code>Consumer&lt;In&gt;</code> beans bound to channels by configuration —
+portable, at the cost of distance from broker-specific features.</li>
+<li><strong>Quarkus</strong> uses <strong>SmallRye Reactive Messaging</strong> (MicroProfile Reactive Messaging):
+<code>@Incoming</code>/<code>@Outgoing</code> channel methods, Mutiny streams, connectors for Kafka, AMQP
+and JMS; <code>Emitter</code> bridges imperative code into channels.</li>
+<li><strong>Micronaut Kafka</strong>: compile-time <code>@KafkaListener</code> consumers and declarative
+<code>@KafkaClient</code> producer interfaces; sibling modules cover JMS and RabbitMQ.</li>
+<li><strong>JMS / Jakarta Messaging</strong> (<code>jakarta.jms</code>): queues and topics behind a standard API;
+<strong>ActiveMQ Artemis</strong> is the reference broker; Spring gives <code>JmsTemplate</code> and
+<code>@JmsListener</code>.</li>
+<li><strong>AMQP / RabbitMQ</strong>: exchanges, bindings and routing keys; <strong>Spring AMQP</strong> provides
+<code>RabbitTemplate</code> and <code>@RabbitListener</code>.</li>
+<li><strong>Delivery is at-least-once by default</strong> everywhere sensible — design consumers to be
+idempotent instead of chasing exactly-once.</li>
+<li><strong>Serialization</strong>: JSON for convenience; <strong>Avro or protobuf with a schema registry</strong>
+(Confluent, Apicurio) for contracts that must evolve safely.</li>
+<li><strong>Test against real brokers with Testcontainers</strong>, not in-memory imitations.</li>
+</ul>
+<h2>Details</h2>
+<h3>Kafka integrations compared</h3>
+<table>
+<thead>
+<tr>
+<th>Concern</th>
+<th>Plain kafka-clients</th>
+<th>Spring Kafka</th>
+<th>Spring Cloud Stream</th>
+<th>Quarkus (SmallRye)</th>
+<th>Micronaut Kafka</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Consume</td>
+<td><code>poll()</code> loop you own</td>
+<td><code>@KafkaListener</code></td>
+<td><code>Consumer&lt;T&gt;</code> bean + binding</td>
+<td><code>@Incoming(&quot;channel&quot;)</code></td>
+<td><code>@KafkaListener</code></td>
+</tr>
+<tr>
+<td>Produce</td>
+<td><code>KafkaProducer.send</code></td>
+<td><code>KafkaTemplate</code></td>
+<td><code>StreamBridge</code> / <code>Supplier</code></td>
+<td><code>@Outgoing</code> / <code>Emitter</code></td>
+<td><code>@KafkaClient</code> interface</td>
+</tr>
+<tr>
+<td>Error handling</td>
+<td>manual</td>
+<td><code>DefaultErrorHandler</code>, DLT publishing</td>
+<td>binder retry/DLQ config</td>
+<td>failure strategies (nack, DLQ)</td>
+<td>exception handlers</td>
+</tr>
+<tr>
+<td>Model</td>
+<td>imperative</td>
+<td>imperative</td>
+<td>functional</td>
+<td>reactive streams</td>
+<td>compile-time declarative</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Kafka Streams</strong>, in one paragraph: a client-side processing library (no cluster of its
+own) that turns topics into <code>KStream</code>/<code>KTable</code> topologies — map, join, window, aggregate —
+with local state stores backed by changelog topics and exactly-once processing within the
+Kafka domain. Spring Boot and Quarkus both configure a topology bean; reach for it when
+consumers stop being &quot;handle one record&quot; and become continuous stream transformation.</p>
+<h3>JMS and AMQP</h3>
+<p>JMS is an API standard, not a wire protocol: code against <code>jakarta.jms</code> and swap brokers.
+Artemis (the modern ActiveMQ engine) is the usual choice; Quarkus connects via the
+SmallRye JMS/AMQP connectors, Micronaut via <code>micronaut-jms</code>. RabbitMQ's AMQP 0-9-1 model
+adds broker-side routing — producers publish to <em>exchanges</em>, bindings route to queues by
+routing key — which makes fan-out, topic routing and per-consumer queues first-class.
+Rule of thumb: Kafka for event streams you may replay and for throughput; Rabbit/Artemis
+for classic work queues, request/reply and routing-heavy integration.</p>
+<h3>Delivery semantics honestly stated</h3>
+<ul>
+<li><strong>At-most-once</strong>: commit/ack before processing — you lose messages on crash. Rarely
+what you want.</li>
+<li><strong>At-least-once</strong>: process, then commit — the default posture; crash between the two
+redelivers, so <strong>consumers must be idempotent</strong> (natural keys, upserts, dedup tables).</li>
+<li><strong>&quot;Exactly-once&quot;</strong> is scoped, not universal: Kafka's idempotent producer plus
+transactions give exactly-once <em>within</em> Kafka (consume-process-produce, Kafka Streams
+EOS); the moment a side effect leaves Kafka (a DB write, an email) you are back to
+at-least-once plus idempotency.</li>
+<li><strong>Outbox pattern</strong> solves atomic &quot;update DB and publish&quot;: write the event to an outbox
+table in the business transaction, relay it to the broker afterwards (Debezium CDC or a
+poller) — see the message-brokers note for the full treatment.</li>
+<li>Ordering holds per Kafka partition (choose keys accordingly) and per queue elsewhere;
+DLQs need monitoring, or they are silent data loss with extra steps.</li>
+</ul>
+<h3>Serialization and schema evolution</h3>
+<p>JSON is fine between two services you own; at organisational scale use <strong>Avro</strong> (or
+protobuf) with a <strong>schema registry</strong> — producers register schemas, consumers resolve
+them by id from the record, and the registry enforces compatibility modes
+(backward/forward/full) so a producer cannot silently break its consumers. Apicurio is
+the open registry commonly paired with Quarkus; Confluent's with Spring. Treat the
+schema as API and review it like one.</p>
+<h3>Testing</h3>
+<p><strong>Testcontainers</strong> modules for Kafka, RabbitMQ and Artemis spin the real broker per test
+class — the only way serializer config, rebalancing and transaction behaviour get
+exercised honestly. Spring's <code>@EmbeddedKafka</code> is faster but not the real broker; keep it
+for narrow listener-wiring tests. Awaitility handles the asynchrony
+(<code>await().untilAsserted(...)</code>) — never <code>Thread.sleep</code>.</p>
+<h2>Examples</h2>
+<pre><code class="language-java">// Spring Kafka
+@KafkaListener(topics = &quot;orders&quot;, groupId = &quot;billing&quot;)
+void on(Order order) { ... }
+
+// Quarkus — SmallRye Reactive Messaging
+@Incoming(&quot;orders&quot;)
+@Outgoing(&quot;invoices&quot;)
+Invoice process(Order order) { ... }
+</code></pre>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../java/protocols/protocols/">Backend protocols in Java — the map</a> — parent overview of the protocol landscape.</li>
+<li><a href="../../../system-design/message-brokers-and-event-streaming/">Message brokers and event streaming</a> — the broker-side concepts (logs vs queues, outbox, CDC) this note implements in Java.</li>
+<li><a href="../../../java/testing/integration-testing/">Integration testing</a> — Testcontainers practice for broker-backed tests.</li>
+<li><a href="../../../java/frameworks/frameworks/">Java frameworks</a> — the Spring/Quarkus/Micronaut context these integrations live in.</li>
+<li><a href="../../../java/protocols/grpc/">gRPC in Java</a> — the synchronous counterpart for service-to-service calls.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

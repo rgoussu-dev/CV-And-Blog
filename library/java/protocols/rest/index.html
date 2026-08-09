@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>REST &amp; HTTP APIs in Java — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/java/protocols</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../java/">java</a><span class="tok-path">/</span><span class="tok-path">protocols</span> <span class="tok-cmd">cat</span> <span class="tok-file">rest</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">REST &amp; HTTP APIs in Java</h1>
+        <p class="lib-lede"><span class="tok-comment"># Jakarta REST (JAX-RS) and its framework equivalents — Spring MVC/WebFlux, Quarkus REST, Micronaut HTTP — plus clients, OpenAPI and error conventions.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#java">#java</a><a class="lib-tag" href="../../../tags/#protocols">#protocols</a><a class="lib-tag" href="../../../tags/#rest">#rest</a><a class="lib-tag" href="../../../tags/#http">#http</a><a class="lib-tag" href="../../../tags/#frameworks">#frameworks</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>REST over HTTP/JSON is the default protocol for Java services, and the ecosystem offers
+two parallel programming models for it: the Jakarta REST standard (still widely called
+JAX-RS) with its pluggable implementations, and Spring's own annotation set, which won by
+adoption rather than standardisation. Quarkus and Micronaut each sit differently in that
+split — Quarkus implements the Jakarta annotations on its own reactive engine, Micronaut
+ships its own annotations with a compile-time twist. The concepts (resources, content
+negotiation, exception mapping) transfer across all four; only the annotations change.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>Jakarta REST (JAX-RS)</strong> is the spec: <code>@Path</code>, <code>@GET</code>/<code>@POST</code>, <code>@Produces</code>/<code>@Consumes</code>,
+<code>@PathParam</code>/<code>@QueryParam</code>; extensibility through <em>providers</em> (<code>MessageBodyReader/Writer</code>,
+<code>ExceptionMapper</code>, filters and interceptors).</li>
+<li><strong>RESTEasy</strong> (Red Hat, WildFly) and <strong>Jersey</strong> (Eclipse, the reference implementation)
+are the two main Jakarta REST implementations.</li>
+<li><strong>Spring MVC</strong> is the servlet-stack equivalent: <code>@RestController</code>, <code>@GetMapping</code>,
+<code>@RequestParam</code>, <code>@RequestBody</code>; <strong>Spring WebFlux</strong> reuses the same annotations on a
+reactive Netty stack returning <code>Mono</code>/<code>Flux</code>.</li>
+<li><strong>Quarkus REST</strong> (formerly RESTEasy Reactive) implements the Jakarta REST annotations
+with build-time processing; endpoints can be blocking, reactive (Mutiny <code>Uni</code>), or run
+on virtual threads with <code>@RunOnVirtualThread</code>.</li>
+<li><strong>Micronaut HTTP</strong> uses its own <code>@Controller</code>/<code>@Get</code> annotations, processed at compile
+time — no runtime reflection — on a Netty server.</li>
+<li><strong>Clients</strong>: JDK <code>java.net.http.HttpClient</code> (no dependencies), Spring <code>RestClient</code>
+(synchronous, fluent) and <code>WebClient</code> (reactive), MicroProfile Rest Client (typed
+interface, used by Quarkus), and the declarative-interface libraries Feign/OpenFeign
+and Retrofit.</li>
+<li><strong>OpenAPI</strong> is generated per stack: springdoc-openapi for Spring Boot, SmallRye OpenAPI
+(MicroProfile OpenAPI) for Quarkus, Micronaut OpenAPI at compile time.</li>
+<li><strong>Errors</strong>: converge on RFC 9457 (formerly 7807) <code>application/problem+json</code> rather than
+ad-hoc error bodies.</li>
+</ul>
+<h2>Details</h2>
+<h3>Server-side models compared</h3>
+<table>
+<thead>
+<tr>
+<th>Concern</th>
+<th>Jakarta REST</th>
+<th>Spring MVC / WebFlux</th>
+<th>Quarkus REST</th>
+<th>Micronaut HTTP</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Resource class</td>
+<td><code>@Path(&quot;/orders&quot;)</code></td>
+<td><code>@RestController</code> + <code>@RequestMapping</code></td>
+<td>Jakarta REST annotations</td>
+<td><code>@Controller(&quot;/orders&quot;)</code></td>
+</tr>
+<tr>
+<td>Method + route</td>
+<td><code>@GET @Path(&quot;{id}&quot;)</code></td>
+<td><code>@GetMapping(&quot;/{id}&quot;)</code></td>
+<td><code>@GET @Path(&quot;{id}&quot;)</code></td>
+<td><code>@Get(&quot;/{id}&quot;)</code></td>
+</tr>
+<tr>
+<td>Parameter binding</td>
+<td><code>@PathParam</code>, <code>@QueryParam</code>, <code>@HeaderParam</code></td>
+<td><code>@PathVariable</code>, <code>@RequestParam</code>, <code>@RequestHeader</code></td>
+<td>Jakarta REST + simplified plain parameters</td>
+<td><code>@PathVariable</code>, <code>@QueryValue</code></td>
+</tr>
+<tr>
+<td>Body mapping</td>
+<td>entity parameter via <code>MessageBodyReader</code></td>
+<td><code>@RequestBody</code> via <code>HttpMessageConverter</code></td>
+<td>entity parameter</td>
+<td><code>@Body</code></td>
+</tr>
+<tr>
+<td>Error mapping</td>
+<td><code>ExceptionMapper&lt;T&gt;</code> provider</td>
+<td><code>@ControllerAdvice</code> + <code>@ExceptionHandler</code></td>
+<td><code>ExceptionMapper</code> or <code>@ServerExceptionMapper</code></td>
+<td><code>@Error</code> handlers</td>
+</tr>
+<tr>
+<td>Async model</td>
+<td><code>CompletionStage</code>, reactive extensions</td>
+<td>WebFlux <code>Mono</code>/<code>Flux</code></td>
+<td>Mutiny <code>Uni</code>/<code>Multi</code>, virtual threads</td>
+<td>Reactor/<code>CompletableFuture</code></td>
+</tr>
+</tbody>
+</table>
+<p>The Jakarta REST provider model is its real substance: readers/writers handle entity
+(de)serialisation, <code>ContainerRequestFilter</code>/<code>ContainerResponseFilter</code> handle cross-cutting
+concerns, and everything is discovered via <code>@Provider</code>. Spring covers the same ground with
+<code>HttpMessageConverter</code>s, <code>HandlerInterceptor</code>s and <code>@ControllerAdvice</code>.</p>
+<h3>Clients</h3>
+<ul>
+<li><strong>JDK HttpClient</strong> (<code>java.net.http</code>, since 11): HTTP/2, async <code>sendAsync</code>, zero
+dependencies — right answer for libraries and simple calls.</li>
+<li><strong>Spring RestClient</strong>: the modern synchronous client (Spring 6.1+), fluent API,
+superseding <code>RestTemplate</code> (maintenance mode); <strong>WebClient</strong> for reactive stacks.</li>
+<li><strong>MicroProfile Rest Client</strong>: annotate a Jakarta REST interface, get a typed client —
+the Quarkus-native option.</li>
+<li><strong>Declarative interfaces</strong>: Spring's HTTP interface clients (<code>@HttpExchange</code>),
+OpenFeign (Spring Cloud), Retrofit (Square) — same idea, different ecosystems.</li>
+<li><strong>Micronaut</strong> <code>@Client</code> generates the implementation at compile time.</li>
+</ul>
+<h3>Content negotiation &amp; JSON binding</h3>
+<p><code>Accept</code>/<code>Content-Type</code> negotiation is handled by all four stacks against the
+<code>@Produces</code>/<code>produces =</code> declarations. For JSON binding, <strong>Jackson</strong> is the de-facto
+standard (Spring, Micronaut, and the Quarkus default via <code>quarkus-rest-jackson</code>);
+<strong>JSON-B</strong> (Jakarta JSON Binding, implemented by Eclipse Yasson) is the standards-track
+alternative, common in Jakarta EE application servers. Jackson's module ecosystem
+(<code>JavaTimeModule</code>, records support, <code>@JsonView</code>) is usually the deciding factor.</p>
+<h3>Error conventions</h3>
+<p>Prefer RFC 9457 problem details (<code>application/problem+json</code>: <code>type</code>, <code>title</code>, <code>status</code>,
+<code>detail</code>, <code>instance</code> + extension members) over invented error envelopes. Spring 6 ships
+<code>ProblemDetail</code> and <code>ErrorResponse</code> natively (opt in via <code>spring.mvc.problemdetails.enabled</code>
+or by returning <code>ProblemDetail</code>); in Jakarta REST stacks an <code>ExceptionMapper</code> builds the
+problem body; Zalando's problem-spring-web predates and inspired the Spring support.
+Whatever the stack: map exceptions centrally, never leak stack traces, keep <code>type</code> URIs
+stable — they are API contract.</p>
+<h2>Examples</h2>
+<p>The same endpoint in the two dominant dialects:</p>
+<pre><code class="language-java">// Jakarta REST (Quarkus, RESTEasy, Jersey)
+@Path(&quot;/orders&quot;)
+public class OrderResource {
+    @GET @Path(&quot;{id}&quot;)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Order get(@PathParam(&quot;id&quot;) long id) { ... }
+}
+
+// Spring MVC / WebFlux
+@RestController
+@RequestMapping(&quot;/orders&quot;)
+class OrderController {
+    @GetMapping(&quot;/{id}&quot;)
+    Order get(@PathVariable long id) { ... }
+}
+</code></pre>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../java/protocols/protocols/">Backend protocols in Java — the map</a> — parent overview of the protocol landscape.</li>
+<li><a href="../../../java/protocols/graphql/">GraphQL on the JVM</a> — the aggregation-friendly alternative when REST endpoints multiply.</li>
+<li><a href="../../../java/protocols/grpc/">gRPC in Java</a> — the binary contract-first alternative for internal calls.</li>
+<li><a href="../../../system-design/api-design/">API design</a> — resource modelling, versioning and pagination principles this note assumes.</li>
+<li><a href="../../../java/frameworks/jakarta-ee-correspondence/">Jakarta EE correspondence</a> — the wider spec-to-Spring mapping this note is one row of.</li>
+<li><a href="../../../java/testing/end-to-end-testing/">End-to-end testing</a> — testing HTTP APIs from the outside (REST Assured and friends).</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

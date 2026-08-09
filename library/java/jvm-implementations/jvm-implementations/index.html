@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>JVM implementations compared — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/java/jvm-implementations</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../java/">java</a><span class="tok-path">/</span><span class="tok-path">jvm-implementations</span> <span class="tok-cmd">cat</span> <span class="tok-file">jvm-implementations</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">JVM implementations compared</h1>
+        <p class="lib-lede"><span class="tok-comment"># The JVM specification versus its implementations — HotSpot, OpenJ9, GraalVM, Azul — and the OpenJDK distribution landscape.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#java">#java</a><a class="lib-tag" href="../../../tags/#jvm">#jvm</a><a class="lib-tag" href="../../../tags/#gc">#gc</a><a class="lib-tag" href="../../../tags/#jit">#jit</a><a class="lib-tag" href="../../../tags/#runtimes">#runtimes</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>&quot;The JVM&quot; is three distinct things: a <em>specification</em> (the JVMS) defining what any
+conforming virtual machine must do, several <em>implementations</em> of it with very different
+engineering trade-offs, and dozens of <em>distributions</em> — vendor builds of the same OpenJDK
+source differing mostly in support terms and packaging. Knowing which layer a claim
+applies to (&quot;Java is slow to start&quot;, &quot;Java has pauseless GC&quot;) is the difference between
+cargo-culting and choosing a runtime deliberately.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>Spec vs implementation vs distribution</strong>: the JVMS fixes behaviour; HotSpot, OpenJ9,
+GraalVM and Azul Zing implement it differently; Temurin, Corretto, Zulu et al. build
+the <em>same</em> HotSpot-based OpenJDK source.</li>
+<li><strong>HotSpot</strong>: the OpenJDK reference implementation and default nearly everywhere —
+tiered JIT (C1/C2), the richest GC roster (G1, ZGC, Shenandoah, Parallel, Serial).</li>
+<li><strong>OpenJ9</strong> (Eclipse, shipped as IBM Semeru): memory footprint and fast start via class
+sharing and a different JIT/AOT design; strong in constrained containers.</li>
+<li><strong>GraalVM</strong> replaces C2 with a JIT written in Java and adds Native Image AOT — see the
+<a href="../../../java/jvm-implementations/graalvm/">deep dive</a>.</li>
+<li><strong>Azul Zing</strong> (Platform Prime) sells pauseless GC (C4) and an LLVM-based JIT (Falcon) for latency-critical, large-heap workloads.</li>
+<li><strong>Conformance is tested, not assumed</strong>: an implementation may call itself Java only
+after passing the TCK/JCK compatibility suite.</li>
+<li><strong>Distribution choice is a support decision, not a performance one</strong>: same source, different build cadence, licensing, vendor backing.</li>
+</ul>
+<h2>Details</h2>
+<h3>The JVM specification</h3>
+<p>The Java Virtual Machine Specification (JVMS) is the contract every implementation signs
+up to: the <code>class</code> file format (constant pool, attributes), the bytecode instruction set
+and its semantics, the verification rules that make untrusted bytecode safe to load,
+classloading/linking, and the run-time data areas (heap, per-thread stacks, method area).
+Crucially, it also defines what it <em>leaves open</em>: GC algorithms, JIT strategy, object
+layout and thread scheduling are implementation detail — exactly the space where HotSpot,
+OpenJ9 and Zing diverge. Any language compiling to conforming class files (Kotlin, Scala,
+Clojure) rides on the same contract. Conformance is enforced by the Technology
+Compatibility Kit (TCK, historically JCK): passing it is what legally permits the &quot;Java
+compatible&quot; claim, and every serious distribution vendor runs it against each build.
+Saved reference: <a href="../../../java/jvm-implementations/references/jvm-specification/">The JVMS</a>.</p>
+<h3>HotSpot</h3>
+<p>HotSpot is the JVM inside OpenJDK and thus what almost every Java process runs. Execution
+is tiered: bytecode starts interpreted, hot methods are compiled by <strong>C1</strong> (fast compiles,
+light optimization, inserts profiling), the hottest graduate to <strong>C2</strong> (aggressive
+inlining, escape analysis, loop optimizations, deoptimization when speculative assumptions
+break). The GC roster is the broadest of any implementation:</p>
+<ul>
+<li><strong>G1</strong> — the default; region-based, pause-target driven, good general balance.</li>
+<li><strong>ZGC</strong> — sub-millisecond pauses on multi-terabyte heaps, generational since 21.</li>
+<li><strong>Shenandoah</strong> — concurrent compacting collector with similar low-pause goals.</li>
+<li><strong>Parallel</strong> — maximum throughput when pauses don't matter (batch).</li>
+<li><strong>Serial</strong> — single-threaded; tiny heaps and single-CPU containers.</li>
+<li><strong>Epsilon</strong> — a no-op collector: allocates, never reclaims; for benchmarking allocation
+cost and short-lived, pre-sized workloads.</li>
+</ul>
+<h3>OpenJ9</h3>
+<p>Eclipse OpenJ9 (originally IBM J9, shipped with an OpenJDK class library as <strong>IBM
+Semeru</strong>) is a from-scratch implementation prioritizing memory footprint and start-up.
+Its signature feature is the <strong>shared classes cache</strong>: verified class metadata and
+AOT-compiled code shared across JVM processes via a memory-mapped cache, cutting both
+start time and per-process footprint. The JIT is its own — with an optional remote
+<strong>JITServer</strong> offloading compilation, useful in memory-capped containers — and AOT has
+been first-class far longer than in HotSpot. GC policies (<code>gencon</code> default, <code>balanced</code>,
+<code>metronome</code>) differ from HotSpot's roster. Sweet spot: dense container deployments where
+dozens of JVMs share a node.</p>
+<h3>GraalVM</h3>
+<p>GraalVM starts from HotSpot but swaps C2 for the <strong>Graal compiler</strong>, a JIT written in
+Java, and layers on the <strong>Truffle</strong> polyglot framework and — its main draw — <strong>Native
+Image</strong> AOT compilation to a standalone binary with near-instant start-up. The trade-offs
+(closed-world assumption, reachability metadata, peak-throughput and build-time costs)
+deserve their own note: <a href="../../../java/jvm-implementations/graalvm/">GraalVM deep dive</a>.</p>
+<h3>Azul</h3>
+<p>Azul ships two distinct things: <strong>Platform Core</strong>, a plain OpenJDK/HotSpot distribution
+(Zulu — see below), and <strong>Platform Prime</strong> (formerly Zing), a different runtime. Prime's
+<strong>C4</strong> collector (Continuously Concurrent Compacting Collector) compacts fully
+concurrently — effectively pauseless GC on heaps into the hundreds of gigabytes — and
+<strong>Falcon</strong>, an LLVM-based JIT, replaces C2 for higher peak code quality; ReadyNow
+persists profiles to warm up fast after restart. Commercial, Linux-only; sweet spot is
+latency-sensitive trading and large-heap services where GC pauses dominate tail latency.</p>
+<h3>Comparison</h3>
+<table>
+<thead>
+<tr>
+<th>Implementation</th>
+<th>JIT</th>
+<th>GC options</th>
+<th>Footprint</th>
+<th>Licensing</th>
+<th>Sweet spot</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HotSpot (OpenJDK)</td>
+<td>Tiered C1/C2</td>
+<td>G1, ZGC, Shenandoah, Parallel, Serial, Epsilon</td>
+<td>Moderate</td>
+<td>GPLv2+CE, free</td>
+<td>Default choice; everything</td>
+</tr>
+<tr>
+<td>OpenJ9 / Semeru</td>
+<td>Own JIT + AOT, shared cache, JITServer</td>
+<td>gencon, balanced, metronome</td>
+<td>Low</td>
+<td>EPL 2.0, free</td>
+<td>Dense containers, low memory</td>
+</tr>
+<tr>
+<td>GraalVM</td>
+<td>Graal (Java-based) JIT; Native Image AOT</td>
+<td>HotSpot GCs on JIT; Serial/G1 in native image</td>
+<td>Very low (native)</td>
+<td>CE: GPLv2; Oracle GraalVM: GFTC</td>
+<td>CLI, serverless, k8s density</td>
+</tr>
+<tr>
+<td>Azul Zing (Prime)</td>
+<td>Falcon (LLVM)</td>
+<td>C4 pauseless</td>
+<td>High (needs headroom)</td>
+<td>Commercial</td>
+<td>Low-latency, large heaps</td>
+</tr>
+</tbody>
+</table>
+<h3>Distributions</h3>
+<p>All of these are the <em>same</em> HotSpot-based OpenJDK source, built, TCK-tested and supported by different vendors:</p>
+<ul>
+<li><strong>Eclipse Temurin</strong> (Adoptium) — the community default; broad platform coverage, no
+strings attached.</li>
+<li><strong>Amazon Corretto</strong> — Amazon's build, free LTS support, default on AWS services.</li>
+<li><strong>Azul Zulu</strong> — Azul's OpenJDK build (distinct from Prime); wide version/platform
+matrix, paid support available.</li>
+<li><strong>BellSoft Liberica</strong> — full/lite/native flavours, strong ARM/Alpine coverage; the JDK
+behind many Spring tooling defaults.</li>
+<li><strong>Microsoft Build of OpenJDK</strong> — Microsoft's build, default on Azure.</li>
+<li><strong>Oracle JDK</strong> — Oracle's binaries; NFTC makes an LTS free only until one year after
+the next LTS ships, then updates need a paid subscription. Oracle's GPL <em>OpenJDK</em>
+builds (<a href="http://jdk.java.net" rel="noopener">jdk.java.net</a>) get just six months of updates. Read the terms before production.</li>
+</ul>
+<p>Pick a distribution on support lifetime, platform coverage and procurement comfort —
+benchmarking Temurin against Corretto is measuring noise.</p>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../java/java-deep-dive/">Deep dive Java</a> — parent theme note; JVM execution and GC in
+the context of the whole platform.</li>
+<li><a href="../../../java/jvm-implementations/graalvm/">GraalVM deep dive</a> — the implementation different
+enough to warrant its own note.</li>
+<li><a href="../../../java/jdk-and-tools/jdk-and-tools/">JDK and tools</a> — the toolchain every distribution ships.</li>
+<li><a href="../../../java/openjdk-and-the-jep-process/">OpenJDK and the JEP process</a> — how features land
+in the reference implementation all distributions build from.</li>
+<li><a href="../../../system-design/performance-engineering/">Performance engineering</a> — GC and JIT choice as one lever among many.</li>
+</ul>
+<h2>Citations</h2>
+<p>[1] <a href="https://docs.oracle.com/javase/specs/" rel="noopener">The Java Virtual Machine Specification</a>
+[2] <a href="https://docs.oracle.com/en/java/javase/21/gctuning/" rel="noopener">HotSpot GC Tuning Guide</a>
+[3] <a href="https://eclipse.dev/openj9/docs/" rel="noopener">Eclipse OpenJ9 documentation</a></p>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

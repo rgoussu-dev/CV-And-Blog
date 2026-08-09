@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>jcmd — the JVM diagnostic command hub — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/java/jdk-and-tools</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../java/">java</a><span class="tok-path">/</span><span class="tok-path">jdk-and-tools</span> <span class="tok-cmd">cat</span> <span class="tok-file">jcmd</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">jcmd — the JVM diagnostic command hub</h1>
+        <p class="lib-lede"><span class="tok-comment"># Sends diagnostic commands to a running JVM — flags, heap info, thread dumps, JFR control — superseding most older j* tools.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#java">#java</a><a class="lib-tag" href="../../../tags/#jvm">#jvm</a><a class="lib-tag" href="../../../tags/#tooling">#tooling</a><a class="lib-tag" href="../../../tags/#diagnostics">#diagnostics</a><a class="lib-tag" href="../../../tags/#observability">#observability</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p><code>jcmd</code> is the one diagnostic front door to a live JVM: it attaches to a local process and sends
+it named <em>diagnostic commands</em>, from printing VM flags to triggering GC, dumping threads or
+heap, and starting Flight Recorder sessions. Oracle's documented position is that jcmd
+supersedes the older single-purpose tools (<code>jstack</code>, <code>jmap</code>, <code>jinfo</code>, and partially <code>jstat</code>) —
+one tool, one attach mechanism, an extensible command set that grows with the JVM.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>Invocation</strong>: <code>jcmd &lt;pid|main-class&gt; &lt;command&gt;</code>; bare <code>jcmd</code> lists running JVMs (like
+<code>jps</code>); <code>jcmd &lt;pid&gt; help</code> lists the commands <em>that</em> JVM supports, <code>help &lt;command&gt;</code> its options.</li>
+<li><strong>Same user, same machine</strong>: it uses the local attach mechanism (a handshake over a UNIX
+socket / named pipe), so it must run as the same OS user as the target JVM — <code>sudo -u appuser jcmd ...</code> in practice; there is no remote jcmd.</li>
+<li><strong>Everyday commands</strong>: <code>VM.flags</code> (effective JVM flags), <code>VM.system_properties</code>,
+<code>VM.command_line</code>, <code>VM.uptime</code>, <code>VM.version</code>.</li>
+<li><strong>Memory</strong>: <code>GC.heap_info</code> (quick generation sizes/usage), <code>GC.class_histogram</code>
+(jmap -histo equivalent), <code>GC.heap_dump &lt;file&gt;</code> (hprof), <code>GC.run</code> (request a full GC),
+<code>VM.native_memory</code> (NMT report, if <code>-XX:NativeMemoryTracking</code> is on).</li>
+<li><strong>Threads</strong>: <code>Thread.print</code> (classic dump, = jstack) and <code>Thread.dump_to_file -format=json</code>
+(Java 21+, includes virtual threads).</li>
+<li><strong>JFR</strong>: <code>JFR.start name=rec settings=profile</code>, <code>JFR.dump filename=...</code>, <code>JFR.check</code>,
+<code>JFR.stop</code> — the standard way to run recordings against an already-running process.</li>
+<li><strong>Set flags live</strong>: <code>VM.set_flag</code> toggles the writable (<code>manageable</code>) flags at runtime, e.g.
+<code>HeapDumpOnOutOfMemoryError</code>.</li>
+</ul>
+<h2>Examples</h2>
+<pre><code class="language-bash">jcmd                                   # list JVMs
+jcmd 4242 help                         # what can this JVM do?
+jcmd 4242 GC.heap_info
+jcmd 4242 Thread.print &gt; td-$(date +%s).txt
+jcmd 4242 JFR.start name=slow settings=profile duration=120s filename=/tmp/slow.jfr
+</code></pre>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../java/jdk-and-tools/jdk-and-tools/">JDK &amp; tools</a> — parent catalogue of the JDK toolchain.</li>
+<li><a href="../../../java/jdk-and-tools/jstack/">jstack</a> — the legacy thread-dump tool jcmd's <code>Thread.print</code> replaces.</li>
+<li><a href="../../../java/jdk-and-tools/jmap/">jmap</a> — legacy heap histogram/dump tool; see <code>GC.*</code> commands.</li>
+<li><a href="../../../java/jdk-and-tools/jstat/">jstat</a> — continuous GC sampling, the one job jcmd does not do well.</li>
+<li><a href="../../../java/jdk-and-tools/jps/">jps</a> — process listing; bare <code>jcmd</code> covers the same ground.</li>
+<li><a href="../../../java/jdk-and-tools/jfr-and-jmc/">JFR &amp; Mission Control</a> — jcmd is the runtime remote-control for JFR.</li>
+<li><a href="../../../system-design/performance-engineering/">Performance engineering</a> — where these diagnostics fit a performance investigation.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>GraalVM deep dive — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/java/jvm-implementations</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../java/">java</a><span class="tok-path">/</span><span class="tok-path">jvm-implementations</span> <span class="tok-cmd">cat</span> <span class="tok-file">graalvm</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">GraalVM deep dive</h1>
+        <p class="lib-lede"><span class="tok-comment"># The Graal JIT, Truffle polyglot layer, and Native Image AOT — closed-world compilation, its wins, costs, and framework support.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#java">#java</a><a class="lib-tag" href="../../../tags/#jvm">#jvm</a><a class="lib-tag" href="../../../tags/#graalvm">#graalvm</a><a class="lib-tag" href="../../../tags/#native-image">#native-image</a><a class="lib-tag" href="../../../tags/#aot">#aot</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>GraalVM is a HotSpot-based JDK whose distinguishing pieces are a JIT compiler written in
+Java (Graal, replacing C2), the Truffle framework for running other languages on the JVM,
+and — the reason most teams reach for it — Native Image: ahead-of-time compilation of a
+Java application into a standalone native binary that starts in milliseconds and runs in a
+fraction of the memory. Native Image buys those wins by giving up the open-world dynamism
+the JVM normally guarantees, which is why it reshapes framework design rather than being a
+drop-in flag.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>Graal compiler</strong>: a JIT written in Java replacing C2 in the tiered pipeline; easier
+to extend than C2's C++, strong partial escape analysis; also compiles Native Image.</li>
+<li><strong>Truffle</strong>: interpreter framework with partial evaluation — write an AST interpreter
+for a language (JS, Python, Ruby…) and Graal derives compiled code; polyglot embedding.</li>
+<li><strong>Native Image = closed world</strong>: all reachable code must be known at build time; a
+points-to analysis walks the call graph from the entry point and strips the rest.</li>
+<li><strong>Build-time initialization</strong>: chosen classes run static initializers during the build,
+state snapshotted into the image heap — faster start, classic stale-state bug source.</li>
+<li><strong>Reachability metadata</strong>: reflection, JNI, resources, proxies and serialization must
+be declared in JSON config (or collected via the tracing agent) — the number-one source
+of &quot;works on JVM, breaks native&quot; issues.</li>
+<li><strong>The trade</strong>: startup in ~tens of milliseconds and a fraction of JVM RSS, against
+lower peak throughput than a warmed-up JIT (narrowed by PGO) and minutes-long,
+memory-hungry builds.</li>
+<li><strong>Fits</strong>: CLIs, serverless/scale-to-zero, high-density Kubernetes. <strong>Doesn't fit</strong>:
+long-lived throughput-critical services, heavy runtime dynamism (agents, bytecode
+generation, dynamic classloading).</li>
+<li><strong>Frameworks</strong>: Quarkus and Micronaut designed around build-time DI/AOT for this;
+Spring Boot 3 via its AOT engine; Mandrel is the Quarkus-aligned distribution.</li>
+</ul>
+<h2>Details</h2>
+<h3>The Graal compiler and Truffle</h3>
+<p>Graal plugs into HotSpot via JVMCI (JEP 243) as the top-tier compiler, taking C2's place
+behind C1. Written in Java, it is easier to modify and reason about than C2, and its
+partial escape analysis is notably stronger — allocations sunk only on the paths needing
+them. As a JIT it is broadly competitive with C2 (ahead on some allocation- and
+abstraction-heavy code, occasionally behind); the strategic payoff is that the same
+compiler serves AOT. Truffle sits on top: implement a language as an AST interpreter with
+rewrite rules and partial evaluation turns interpreter + program into optimized machine
+code, giving polyglot interop (<code>Context.eval(...)</code>) with cross-language inlining.</p>
+<h3>Native Image: how it works</h3>
+<p><code>native-image</code> runs a static <strong>points-to analysis</strong> from the entry points, computing the
+closed set of reachable classes, methods and fields; everything else is stripped. Classes
+marked for <strong>build-time initialization</strong> execute their <code>&lt;clinit&gt;</code> in the builder JVM and
+their static state is serialized into the <strong>image heap</strong>, so the binary starts with
+config parsed and lookup tables built. Runtime-initialized classes initialize on first
+use as usual — mixing the two wrongly (a build-time-initialized class capturing a
+timestamp, a random seed, an open socket) is the classic failure mode. The output is a
+standalone executable embedding a minimal runtime (Substrate VM): no classloading, no
+interpreter, no JIT.</p>
+<p>Dynamic features punch holes in the closed world and must be declared as <strong>reachability
+metadata</strong> — JSON descriptors for reflection, resources, JNI, proxies and serialization,
+conventionally under <code>META-INF/native-image/</code>. The <strong>tracing agent</strong>
+(<code>-agentlib:native-image-agent</code>) records what a real run touches and emits the config;
+libraries increasingly ship theirs in the shared
+<a href="https://github.com/oracle/graalvm-reachability-metadata" rel="noopener">graalvm-reachability-metadata</a>
+repository, which build plugins consume automatically.</p>
+<h3>Performance profile</h3>
+<ul>
+<li><strong>Startup</strong>: milliseconds to first request — no classloading, no warm-up; state
+pre-built in the image heap.</li>
+<li><strong>Memory</strong>: substantially lower RSS — no JIT, no profiling data, no metadata for
+unreachable code.</li>
+<li><strong>Peak throughput</strong>: below a warmed-up HotSpot C2/Graal JIT by default, because AOT
+cannot speculate on runtime profiles. <strong>Profile-guided optimization</strong> (build an
+instrumented image, run a representative workload, rebuild with the profile) claws much
+of it back — Oracle GraalVM only.</li>
+<li><strong>GC</strong>: Serial GC by default; <strong>G1 is available in native images</strong> (Oracle GraalVM,
+Linux) for larger heaps and throughput; Epsilon for run-once processes.</li>
+<li><strong>Build cost</strong>: minutes of wall time and gigabytes of RAM per image — it moves work from
+every start-up to each build. CI needs sizing accordingly.</li>
+</ul>
+<h3>When it fits — and when not</h3>
+<p>Fits: CLIs (instant start, single-file distribution), serverless and scale-to-zero
+(cold-start dominated), Kubernetes at density (RSS per pod is the bill), short-lived
+jobs. Doesn't fit: long-lived services whose cost is peak throughput on a warm JVM;
+anything relying on runtime bytecode generation, dynamic agents, or hot-swap dynamism;
+codebases on libraries without reachability metadata (audit first — that is where
+projects stall).</p>
+<h3>Framework support and distributions</h3>
+<p><strong>Quarkus</strong> and <strong>Micronaut</strong> were architected for this: DI, configuration and proxies
+are resolved at build time with little or no reflection, so images are small and metadata
+mostly automatic. <strong>Spring Boot</strong> (3.x) arrives via its AOT engine — bean definitions
+pre-computed into generated code, reflection hints emitted — with the caveat that
+runtime-conditional configuration is frozen at build time. <strong>Mandrel</strong> is Red Hat's
+downstream Native Image distribution on standard OpenJDK: no polyglot pieces, tracked to
+Quarkus support streams. <strong>Oracle GraalVM</strong> (GFTC licence, free to use on Oracle's terms)
+carries the premium bits — PGO, G1 in native image; <strong>GraalVM Community</strong> is GPL, without them.</p>
+<h2>Examples</h2>
+<pre><code class="language-bash"># Build a native image from an application jar
+native-image -jar app.jar \
+  -o app \
+  --no-fallback \                       # fail the build rather than emit a JVM-dependent binary
+  --initialize-at-build-time=com.example.config \
+  -H:+ReportExceptionStackTraces
+
+# Collect reachability metadata from a representative run on the JVM first
+java -agentlib:native-image-agent=config-output-dir=META-INF/native-image -jar app.jar
+</code></pre>
+<p>Build plugins (<code>org.graalvm.buildtools</code> for Maven and Gradle: <code>mvn -Pnative package</code>,
+<code>gradle nativeCompile</code>) drive the same builder and pull shared reachability metadata.</p>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../java/jvm-implementations/jvm-implementations/">JVM implementations compared</a> —
+parent comparison; where GraalVM sits against HotSpot, OpenJ9 and Zing.</li>
+<li><a href="../../../java/frameworks/quarkus/">Quarkus</a> — the framework built around build-time AOT and native-first deployment.</li>
+<li><a href="../../../java/frameworks/micronaut/">Micronaut</a> — reflection-free DI designed for exactly these constraints.</li>
+<li><a href="../../../java/frameworks/spring/">Spring</a> — the retrofit case: Spring Boot AOT and its build-time freezing caveats.</li>
+<li><a href="../../../java/java-deep-dive/">Deep dive Java</a> — JIT vs AOT in the wider JVM execution story.</li>
+</ul>
+<h2>Citations</h2>
+<p>[1] <a href="https://www.graalvm.org/latest/reference-manual/native-image/" rel="noopener">GraalVM Native Image documentation</a>
+[2] <a href="https://www.graalvm.org/latest/reference-manual/native-image/metadata/" rel="noopener">Reachability metadata</a>
+[3] <a href="https://docs.spring.io/spring-boot/reference/packaging/native-image/index.html" rel="noopener">Spring Boot — GraalVM Native Image support</a></p>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Relational databases from Java — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/java/storage</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../java/">java</a><span class="tok-path">/</span><span class="tok-path">storage</span> <span class="tok-cmd">cat</span> <span class="tok-file">relational-databases</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Relational databases from Java</h1>
+        <p class="lib-lede"><span class="tok-comment"># The JDBC-to-ORM stack — HikariCP, JPA/Hibernate and its pitfalls, jOOQ/MyBatis alternatives, framework data layers, R2DBC, migrations, and transactions.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#java">#java</a><a class="lib-tag" href="../../../tags/#storage">#storage</a><a class="lib-tag" href="../../../tags/#databases">#databases</a><a class="lib-tag" href="../../../tags/#jpa">#jpa</a><a class="lib-tag" href="../../../tags/#hibernate">#hibernate</a><a class="lib-tag" href="../../../tags/#spring">#spring</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>Everything relational in Java sits on JDBC: a blocking, standardized driver API that every
+abstraction above it — JPA/Hibernate, jOOQ, MyBatis, Spring Data — ultimately compiles down to.
+The interesting decisions are which abstraction level to buy into (full ORM vs. typesafe SQL vs.
+raw templates), how to avoid the classic ORM traps (N+1, lazy loading outside a session), and
+how the frameworks package it all: Spring Data JPA, Quarkus Panache, Micronaut Data. Migrations
+and transaction demarcation round out the production picture.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>JDBC is the substrate</strong>: <code>DataSource</code> → <code>Connection</code> → <code>PreparedStatement</code> → <code>ResultSet</code>.
+Nobody hand-rolls this in application code any more, but every leak, timeout, and pool
+exhaustion is diagnosed at this layer.</li>
+<li><strong>Pooling is non-negotiable</strong>: HikariCP is the default pool in Spring Boot and the de-facto
+standard; size it from measured concurrency (pool size ≈ cores × small factor), not gut feel.</li>
+<li><strong>JPA/Jakarta Persistence + Hibernate</strong> is the dominant ORM: managed entity lifecycle,
+dirty checking, first-level cache per <code>EntityManager</code>/session, optional second-level cache.</li>
+<li><strong>The ORM traps are lifecycle traps</strong>: N+1 selects from lazy collections iterated in a loop;
+<code>LazyInitializationException</code> from touching proxies after the session closes; fixes are fetch
+joins, <code>@EntityGraph</code>, or DTO projections — not <code>FetchType.EAGER</code> everywhere.</li>
+<li><strong>Alternatives by abstraction</strong>: jOOQ (SQL as a typesafe DSL generated from the schema, you
+keep full SQL power), MyBatis (SQL in XML/annotations mapped to objects), Spring
+<code>JdbcTemplate</code>/<code>JdbcClient</code> (thin, explicit, no magic).</li>
+<li><strong>Spring Data JPA</strong> derives queries from method names (<code>findByEmailAndActiveTrue</code>),
+generates repository implementations at runtime, adds paging/sorting/specifications.</li>
+<li><strong>Quarkus</strong> ships Hibernate ORM with Panache: active-record (<code>entity.persist()</code>) or
+repository style, with build-time enhancement. <strong>Micronaut Data</strong> precomputes queries at
+compile time — no runtime proxies, minimal reflection, natural fit for GraalVM native image.</li>
+<li><strong>R2DBC</strong> is the reactive relational lane (separate SPI, not JDBC); use it only when the
+whole call chain is reactive.</li>
+<li><strong>Migrations belong in code</strong>: Flyway (versioned SQL scripts) or Liquibase (changelogs);
+never let Hibernate <code>ddl-auto</code> touch production schemas.</li>
+</ul>
+<h2>Details</h2>
+<h3>Abstraction ladder</h3>
+<table>
+<thead>
+<tr>
+<th>Level</th>
+<th>Library</th>
+<th>You write</th>
+<th>It gives you</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Driver</td>
+<td>JDBC + HikariCP</td>
+<td>connection handling</td>
+<td>portability, pooling</td>
+</tr>
+<tr>
+<td>Thin helper</td>
+<td><code>JdbcTemplate</code> / <code>JdbcClient</code> (Spring), <code>@JdbcRepository</code> (Micronaut Data JDBC)</td>
+<td>SQL + row mappers</td>
+<td>resource handling, exception translation</td>
+</tr>
+<tr>
+<td>SQL DSL</td>
+<td>jOOQ</td>
+<td>typesafe SQL against generated schema classes</td>
+<td>compile-time-checked SQL, vendor dialects</td>
+</tr>
+<tr>
+<td>SQL mapper</td>
+<td>MyBatis</td>
+<td>SQL + mapping config</td>
+<td>object mapping without entity lifecycle</td>
+</tr>
+<tr>
+<td>Full ORM</td>
+<td>JPA/Hibernate</td>
+<td>entities + JPQL/Criteria</td>
+<td>lifecycle, dirty checking, caching, cascades</td>
+</tr>
+</tbody>
+</table>
+<p>Rule of thumb: CRUD-heavy domain model → JPA; report/query-heavy or SQL-centric team → jOOQ;
+a few hot queries inside a JPA app → drop to <code>JdbcClient</code> for just those.</p>
+<h3>Hibernate lifecycle and caches</h3>
+<ul>
+<li>Entity states: <em>transient</em> → <em>managed</em> (persist/find) → <em>detached</em> (session closed) →
+<em>removed</em>. Dirty checking flushes managed changes at commit — no explicit <code>update()</code> needed.</li>
+<li>First-level cache is the persistence context itself, per transaction. Second-level cache
+(Ehcache/Infinispan/Caffeine via provider) is opt-in per entity — worth it only for
+read-mostly reference data, and it complicates clustering.</li>
+<li>Long transactions holding many managed entities balloon memory and flush cost; prefer short
+transactions and DTO projections for reads.</li>
+</ul>
+<h3>Framework data layers</h3>
+<ul>
+<li><strong>Spring Data JPA</strong>: <code>interface OrderRepository extends JpaRepository&lt;Order, Long&gt;</code> +
+derived queries, <code>@Query</code> for JPQL/native, <code>@Transactional</code> on service layer by convention.</li>
+<li><strong>Quarkus Panache</strong>: <code>PanacheEntity</code> active record (<code>Order.findById(id)</code>,
+<code>order.persist()</code>) or <code>PanacheRepository</code>; simplified query strings (<code>find(&quot;status&quot;, s)</code>).</li>
+<li><strong>Micronaut Data</strong>: same repository idiom, but query generation and validation happen at
+compile time; choose Micronaut Data JDBC (maps rows directly, no lifecycle) or Micronaut
+Data JPA (delegates to Hibernate).</li>
+</ul>
+<h3>Transactions</h3>
+<ul>
+<li>Resource-local (one <code>DataSource</code>, default in Boot/Quarkus/Micronaut apps) vs. JTA
+(distributed, multiple resources — Quarkus ships Narayana). Two-phase commit is rarely worth
+it; prefer outbox patterns across services.</li>
+<li><code>@Transactional</code> (Spring's or <code>jakarta.transaction.Transactional</code>) is proxy/interceptor
+based: self-invocation bypasses it, and only runtime exceptions roll back by default in
+Spring — a perennial audit item.</li>
+</ul>
+<h2>Examples</h2>
+<pre><code class="language-java">// Spring Data JPA: derived query + fetch-join escape hatch against N+1
+public interface OrderRepository extends JpaRepository&lt;Order, Long&gt; {
+    List&lt;Order&gt; findByCustomerIdAndStatus(Long customerId, Status status);
+
+    @Query(&quot;select o from Order o join fetch o.lines where o.id = :id&quot;)
+    Optional&lt;Order&gt; findWithLines(@Param(&quot;id&quot;) Long id);
+}
+
+// Quarkus Panache active record
+@Entity
+public class Order extends PanacheEntity {
+    public Status status;
+    public static List&lt;Order&gt; open() { return list(&quot;status&quot;, Status.OPEN); }
+}
+</code></pre>
+<pre><code class="language-properties"># HikariCP essentials (Spring Boot)
+spring.datasource.hikari.maximum-pool-size=10
+spring.datasource.hikari.connection-timeout=3000
+spring.jpa.open-in-view=false   # disable OSIV; surface lazy-loading issues early
+</code></pre>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../java/storage/storage/">Storage access from Java — the map</a> — parent overview by storage kind.</li>
+<li><a href="../../../data-storage/databases-and-storage-systems/">Databases and other storage systems</a> — engine internals, indexing, and isolation behind the driver.</li>
+<li><a href="../../../java/testing/integration-testing/">Integration testing</a> — Testcontainers is how this whole stack gets tested against a real database.</li>
+<li><a href="../../../java/frameworks/jakarta-ee-correspondence/">Jakarta EE correspondence</a> — where JPA and JTA sit in the Jakarta spec landscape.</li>
+<li><a href="../../../java/storage/document-and-nosql/">Document and NoSQL stores from Java</a> — where JPA instincts stop applying.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

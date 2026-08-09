@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Performance &amp; load testing — JMH and Gatling — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/java/testing</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../java/">java</a><span class="tok-path">/</span><span class="tok-path">testing</span> <span class="tok-cmd">cat</span> <span class="tok-file">performance-and-load-testing</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Performance &amp; load testing — JMH and Gatling</h1>
+        <p class="lib-lede"><span class="tok-comment"># Microbenchmarking with JMH and system load testing with Gatling/k6/JMeter, plus latency methodology and profiling with JFR.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#java">#java</a><a class="lib-tag" href="../../../tags/#testing">#testing</a><a class="lib-tag" href="../../../tags/#performance">#performance</a><a class="lib-tag" href="../../../tags/#jmh">#jmh</a><a class="lib-tag" href="../../../tags/#gatling">#gatling</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>Performance testing splits into two families that answer different questions:
+<em>microbenchmarks</em> (JMH) measure the cost of a code path in isolation, while <em>load tests</em>
+(Gatling, k6, JMeter) measure a running system under concurrent traffic. Both are easy to
+get numerically wrong — the JVM's JIT invalidates naive timing loops, and naive load-test
+maths invalidates latency percentiles — so methodology matters more than tooling.
+Profiling (JFR, async-profiler) runs alongside both to explain <em>why</em> the numbers are what
+they are.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>Never hand-roll <code>System.nanoTime()</code> loops</strong>: dead-code elimination, constant folding,
+on-stack replacement and warmup effects make naive benchmarks measure the JIT, not the
+code. JMH exists because of this.</li>
+<li><strong>JMH</strong> (OpenJDK's harness): annotation-driven benchmarks, forked JVMs, controlled
+warmup/measurement iterations, <code>Blackhole</code> to defeat dead-code elimination,
+<code>@State</code> for fixtures, modes for throughput/average time/sample percentiles.</li>
+<li><strong>Gatling</strong>: code-as-scenario load tool with a Java DSL (Scala originally); simulations
+express injection profiles (ramps, constant rates), assertions gate CI, HTML reports
+include response-time percentile distributions.</li>
+<li><strong>k6</strong> (JS scenarios, Go engine) and <strong>JMeter</strong> (GUI/XML, huge plugin base) are the
+common alternatives; pick per team — the methodology transfers.</li>
+<li><strong>Coordinated omission</strong>: closed-model tools that wait for each response before sending
+the next silently drop the samples that would have occurred during stalls, flattening
+tail latency. Use open-model injection (arrival rate, as in Gatling's
+<code>constantUsersPerSec</code> / k6 arrival-rate executors) and percentile-safe recording (HdrHistogram).</li>
+<li><strong>Report percentiles, never averages</strong>: p50/p95/p99/p99.9 — the tail is the user
+experience; averages hide it entirely.</li>
+<li><strong>Profile alongside</strong>: JFR is always-on-capable in production (<code>-XX:StartFlightRecording</code>),
+analysed in JMC; async-profiler gives low-overhead CPU/alloc/lock flame graphs and
+plugs into JMH via <code>-prof async</code>.</li>
+<li><strong>Framework note</strong>: measure Spring/Quarkus/Micronaut services at the system level
+(load test the HTTP surface); use JMH only for hot library code — benchmarking through
+a DI container mostly measures the container.</li>
+</ul>
+<h2>Details</h2>
+<h3>JMH pitfalls checklist</h3>
+<table>
+<thead>
+<tr>
+<th>Pitfall</th>
+<th>Symptom</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Dead-code elimination</td>
+<td>Impossibly fast result</td>
+<td>Return the value or sink into <code>Blackhole</code></td>
+</tr>
+<tr>
+<td>Constant folding</td>
+<td>Input treated as compile-time constant</td>
+<td>Read inputs from non-final <code>@State</code> fields</td>
+</tr>
+<tr>
+<td>No warmup</td>
+<td>Measuring interpreter/C1, not steady state</td>
+<td><code>@Warmup</code> iterations before <code>@Measurement</code></td>
+</tr>
+<tr>
+<td>Single fork</td>
+<td>Run-to-run JIT/layout luck baked in</td>
+<td><code>@Fork(2+)</code>; forks isolate profile pollution</td>
+</tr>
+<tr>
+<td>Loop hoisting</td>
+<td>Manual inner loops optimised away</td>
+<td>Let JMH own the loop; one operation per method</td>
+</tr>
+<tr>
+<td>Wrong scope</td>
+<td>Benchmarking allocation you meant to exclude</td>
+<td>Move setup to <code>@Setup</code>, pick <code>@State</code> scope</td>
+</tr>
+</tbody>
+</table>
+<h3>Load-test methodology</h3>
+<ol>
+<li>Define the question: capacity (max sustainable rate), latency under expected load, or
+soak (degradation over hours).</li>
+<li>Model traffic as an <strong>open system</strong>: specify arrival rate, not virtual-user count;
+ramp to target and hold.</li>
+<li>Assert on percentiles and error rate (Gatling <code>assertions</code>), fail CI on regression.</li>
+<li>Watch the <em>system under test</em> (GC logs, JFR recording, saturation metrics) during the
+run — a load test without server-side observation only tells you <em>that</em> it is slow.</li>
+<li>Load generators saturate too: monitor the injector, scale it out before believing bad numbers.</li>
+</ol>
+<h2>Examples</h2>
+<pre><code class="language-java">@BenchmarkMode(Mode.AverageTime)
+@OutputTimeUnit(TimeUnit.NANOSECONDS)
+@Warmup(iterations = 5, time = 1)
+@Measurement(iterations = 5, time = 1)
+@Fork(2)
+@State(Scope.Benchmark)
+public class CsvParseBench {
+
+    private String line;
+
+    @Setup
+    public void setup() { line = &quot;2026-08-09;42.50;EUR;order-123&quot;; }
+
+    @Benchmark
+    public Order parse() {          // returned =&gt; not dead code
+        return Order.parseCsv(line);
+    }
+}
+</code></pre>
+<pre><code class="language-java">// Gatling Java DSL — open-model injection
+setUp(
+  scenario(&quot;checkout&quot;)
+      .exec(http(&quot;create&quot;).post(&quot;/orders&quot;).body(StringBody(payload)))
+      .injectOpen(rampUsersPerSec(10).to(200).during(120), constantUsersPerSec(200).during(600))
+).assertions(
+  global().responseTime().percentile(99.0).lt(500),
+  global().failedRequests().percent().lt(1.0)
+);
+</code></pre>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../java/testing/testing/">Testing in Java — strategies &amp; tooling map</a> — parent map of the strategy portfolio.</li>
+<li><a href="../../../java/jdk-and-tools/jfr-and-jmc/">JFR &amp; JMC</a> — the profiling pair to run alongside every load test.</li>
+<li><a href="../../../system-design/performance-engineering/">Performance engineering</a> — the system-level methodology these tools implement.</li>
+<li><a href="../../../java/exercises/one-billion-row-challenge/">One Billion Row Challenge</a> — measurement discipline applied to a concrete optimisation exercise.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

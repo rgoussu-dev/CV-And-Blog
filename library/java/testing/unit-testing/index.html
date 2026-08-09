@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Unit testing — JUnit 5, Mockito, AssertJ — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/java/testing</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../java/">java</a><span class="tok-path">/</span><span class="tok-path">testing</span> <span class="tok-cmd">cat</span> <span class="tok-file">unit-testing</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Unit testing — JUnit 5, Mockito, AssertJ</h1>
+        <p class="lib-lede"><span class="tok-comment"># The Java unit-testing stack — JUnit 5's Jupiter model, Mockito's disciplined use, AssertJ assertions, and test-double taxonomy.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#java">#java</a><a class="lib-tag" href="../../../tags/#testing">#testing</a><a class="lib-tag" href="../../../tags/#junit">#junit</a><a class="lib-tag" href="../../../tags/#mockito">#mockito</a><a class="lib-tag" href="../../../tags/#tooling">#tooling</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>Unit tests exercise one behaviour in isolation and run in milliseconds; they are the fast
+inner loop of TDD and the bulk of most suites. The de-facto Java stack is JUnit 5 (the
+Jupiter programming model) for structure and lifecycle, Mockito for test doubles where a
+collaborator genuinely cannot be real, and AssertJ for readable, fluent assertions. Plain
+units need no framework at all — and since Spring, Quarkus and Micronaut all run their
+tests on Jupiter, the same skills and tooling carry straight into framework tests.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>JUnit 5 = Platform + Jupiter + Vintage</strong>: the Platform launches test engines (build/IDE
+integration), Jupiter is the modern API and extension model, Vintage runs legacy JUnit 4.</li>
+<li><strong>Extensions replace runners/rules</strong>: JUnit 4 allowed one <code>@RunWith</code> runner per class and
+composed awkwardly via <code>@Rule</code>; Jupiter's <code>@ExtendWith</code> composes any number of extensions
+hooking into well-defined lifecycle points.</li>
+<li><strong>Parameterized tests are first-class</strong>: <code>@ParameterizedTest</code> with <code>@ValueSource</code>,
+<code>@CsvSource</code>, <code>@MethodSource</code>, <code>@EnumSource</code> — one test method, many cases, each reported
+individually.</li>
+<li><strong>Mock roles, not types</strong>: mock ports/collaborators you own at an architectural boundary;
+don't mock value objects, data holders, JDK types, or types you don't own (wrap them).</li>
+<li><strong>Over-mocking is the classic failure mode</strong>: a test that mirrors the implementation's
+call sequence verifies wiring, not behaviour, and shatters on refactor.</li>
+<li><strong>AssertJ over Hamcrest/JUnit asserts</strong>: discoverable fluent API, rich collection/
+exception/optional support, and failure messages that show actual vs expected usefully.</li>
+<li><strong>Structure</strong>: given/when/then (or arrange/act/assert) per test; one behaviour per test;
+name tests after the behaviour (<code>rejectsExpiredToken</code>), not the method under test.</li>
+<li><strong>No framework for plain units</strong>: domain logic should construct its objects with <code>new</code>;
+needing a DI container in a unit test is a design smell.</li>
+</ul>
+<h2>Details</h2>
+<h3>JUnit 5 essentials</h3>
+<ul>
+<li>Lifecycle: <code>@BeforeEach</code>/<code>@AfterEach</code>, <code>@BeforeAll</code>/<code>@AfterAll</code>; a fresh test instance
+per method by default (<code>@TestInstance(PER_CLASS)</code> to opt out).</li>
+<li><code>@Nested</code> inner classes group behaviours and share setup — good for given-context blocks.</li>
+<li><code>@DisplayName</code> for human-readable reporting; <code>@Tag</code> for suite slicing (<code>fast</code>, <code>slow</code>).</li>
+<li><code>assertThrows</code>/<code>assertAll</code> in the core API; dynamic tests via <code>@TestFactory</code>;
+<code>@Timeout</code>, <code>@Disabled</code>, conditional execution (<code>@EnabledOnOs</code>, <code>@EnabledIfEnvironmentVariable</code>).</li>
+<li>Extension points: <code>BeforeEachCallback</code>, <code>ParameterResolver</code>, <code>TestExecutionExceptionHandler</code>
+etc. — this is exactly how <code>MockitoExtension</code>, <code>SpringExtension</code>, <code>@QuarkusTest</code> and
+<code>@MicronautTest</code> plug in. One model, everywhere.</li>
+</ul>
+<h3>Mockito discipline</h3>
+<ul>
+<li><code>@ExtendWith(MockitoExtension.class)</code> + <code>@Mock</code>/<code>@InjectMocks</code>, or plain
+<code>Mockito.mock(...)</code> — the extension adds automatic validation and cleanup.</li>
+<li>Stub with <code>when(x.f(...)).thenReturn(...)</code>; prefer state verification via the result over
+<code>verify(...)</code> interaction checks; reserve <code>verify</code> for genuine outgoing commands
+(side effects) where the interaction <em>is</em> the behaviour.</li>
+<li><code>ArgumentCaptor</code> inspects what was passed to a collaborator when the argument itself is
+the interesting output — clearer than complex argument matchers.</li>
+<li>Strictness: <code>MockitoExtension</code> defaults to <code>STRICT_STUBS</code> — unused or mismatched stubs
+fail the test. Keep it; lenient mocks hide dead setup and drifting tests.</li>
+<li>Mockito can mock final classes and statics (<code>mockStatic</code>) — the capability existing does
+not make it a good idea; statics that need mocking usually want to be instances.</li>
+</ul>
+<h3>Fakes vs mocks vs stubs</h3>
+<table>
+<thead>
+<tr>
+<th>Double</th>
+<th>What it is</th>
+<th>Use when</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Stub</td>
+<td>Canned answers, no verification</td>
+<td>You only need input data from a collaborator</td>
+</tr>
+<tr>
+<td>Mock</td>
+<td>Records interactions for verification</td>
+<td>The outgoing call is the observable behaviour</td>
+</tr>
+<tr>
+<td>Fake</td>
+<td>Real, simplified implementation (in-memory repo)</td>
+<td>Many tests need a working collaborator; behaviour matters</td>
+</tr>
+<tr>
+<td>Spy</td>
+<td>Real object, partially stubbed</td>
+<td>Legacy seams — treat as a smell</td>
+</tr>
+</tbody>
+</table>
+<p>Fakes scale best: one well-tested in-memory implementation serves the whole suite and
+keeps tests black-box. Mock-heavy suites couple to interaction detail.</p>
+<h2>Examples</h2>
+<pre><code class="language-java">@ExtendWith(MockitoExtension.class)
+class InvoiceServiceTest {
+
+    @Mock PaymentGateway gateway;
+    @InjectMocks InvoiceService service;
+
+    @Test
+    void chargesGatewayOncePerInvoice() {
+        service.settle(new Invoice(&quot;inv-1&quot;, Money.eur(100)));
+
+        var captor = ArgumentCaptor.forClass(Charge.class);
+        verify(gateway).charge(captor.capture());
+        assertThat(captor.getValue().amount()).isEqualTo(Money.eur(100));
+    }
+
+    @ParameterizedTest
+    @CsvSource({&quot;0, ZERO_AMOUNT&quot;, &quot;-5, NEGATIVE_AMOUNT&quot;})
+    void rejectsNonPositiveAmounts(long cents, String reason) {
+        assertThatThrownBy(() -&gt; service.settle(invoiceOf(cents)))
+            .isInstanceOf(InvalidInvoiceException.class)
+            .hasMessageContaining(reason);
+    }
+}
+</code></pre>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../java/testing/testing/">Testing in Java — strategies &amp; tooling map</a> — parent map of the strategy portfolio.</li>
+<li><a href="../../../java/testing/mutation-testing/">Mutation testing</a> — PIT measures whether these unit tests actually assert anything.</li>
+<li><a href="../../../java/testing/property-based-testing/">Property-based testing</a> — generated inputs where example-based unit tests run out.</li>
+<li><a href="../../../applicative-architecture/tdd/">TDD</a> — the red/green/refactor discipline these tools serve.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>jps — listing JVM processes — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/java/jdk-and-tools</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../java/">java</a><span class="tok-path">/</span><span class="tok-path">jdk-and-tools</span> <span class="tok-cmd">cat</span> <span class="tok-file">jps</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">jps — listing JVM processes</h1>
+        <p class="lib-lede"><span class="tok-comment"># Lists running JVMs with pids, main classes and arguments, backed by the JVM's shared-memory perfdata files.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#java">#java</a><a class="lib-tag" href="../../../tags/#jvm">#jvm</a><a class="lib-tag" href="../../../tags/#tooling">#tooling</a><a class="lib-tag" href="../../../tags/#diagnostics">#diagnostics</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p><code>jps</code> is <code>ps</code> for JVMs: it lists the Java processes visible to the current user with their pids
+and main class, and is usually the first command in any JVM diagnostic session — you need a pid
+before <code>jcmd</code>, <code>jstack</code> or <code>jstat</code> can do anything. Bare <code>jcmd</code> now does the same listing, but
+<code>jps</code> flags give more control over what is shown.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>Default output</strong>: pid + short main class name (or jar name for <code>java -jar</code> launches).</li>
+<li><strong><code>-l</code></strong>: full package name of the main class, or full path to the jar.</li>
+<li><strong><code>-m</code></strong>: arguments passed to <code>main()</code>.</li>
+<li><strong><code>-v</code></strong>: JVM arguments (<code>-Xmx</code>, <code>-D...</code> flags) — quick way to check what heap a process was
+really given.</li>
+<li><strong><code>-q</code></strong>: pids only, handy for scripting.</li>
+<li><strong>Perfdata mechanism</strong>: each HotSpot JVM exports instrumentation counters into a
+memory-mapped file <code>/tmp/hsperfdata_&lt;user&gt;/&lt;pid&gt;</code> (unless <code>-XX:-UsePerfData</code>). jps discovers
+JVMs by scanning these files and reads its data from them — no attach needed.</li>
+<li><strong>Consequences</strong>: you only see JVMs of users whose perfdata dirs you can read (in practice:
+your own, or all as root); wiping <code>/tmp</code> or setting <code>-XX:PerfDisableSharedMem</code> makes processes
+invisible to jps/jstat; containers isolate <code>/tmp</code>, so jps inside the container or <code>nsenter</code> is
+needed for containerised JVMs.</li>
+<li><strong>Remote mode is dead</strong>: the old <code>jps &lt;host&gt;</code> via <code>jstatd</code> is effectively obsolete; use proper
+observability for remote hosts.</li>
+</ul>
+<h2>Examples</h2>
+<pre><code class="language-bash">jps -lv
+# 4242 com.example.app.Main -Xmx2g -Dspring.profiles.active=prod
+# 5150 org.gradle.launcher.daemon.bootstrap.GradleDaemon -Xmx1g
+</code></pre>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../java/jdk-and-tools/jdk-and-tools/">JDK &amp; tools</a> — parent catalogue of the JDK toolchain.</li>
+<li><a href="../../../java/jdk-and-tools/jcmd/">jcmd</a> — bare <code>jcmd</code> lists JVMs too, then takes the pid you found.</li>
+<li><a href="../../../java/jdk-and-tools/jstat/">jstat</a> — reads the same perfdata counters, continuously.</li>
+<li><a href="../../../java/jdk-and-tools/jstack/">jstack</a> — typical next step once you have the pid.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

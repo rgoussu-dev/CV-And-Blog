@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Security testing — SCA, SAST, DAST &amp; fuzzing on the JVM — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/java/testing</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../java/">java</a><span class="tok-path">/</span><span class="tok-path">testing</span> <span class="tok-cmd">cat</span> <span class="tok-file">security-testing</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Security testing — SCA, SAST, DAST &amp; fuzzing on the JVM</h1>
+        <p class="lib-lede"><span class="tok-comment"># Security testing for Java builds — dependency scanning, static and dynamic analysis, JVM fuzzing, secrets scanning, and CI wiring.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#java">#java</a><a class="lib-tag" href="../../../tags/#testing">#testing</a><a class="lib-tag" href="../../../tags/#security">#security</a><a class="lib-tag" href="../../../tags/#ci">#ci</a><a class="lib-tag" href="../../../tags/#build">#build</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>Most Java vulnerabilities ship in dependencies, not first-party code — Log4Shell made
+that permanent institutional memory — so security testing starts with the dependency tree
+and works inward: SCA for known CVEs, SAST for insecure code patterns, DAST against the
+running app, fuzzing for the parsers, and secrets scanning over the repo. None of it
+matters unless it runs in the build; the tooling below all has Maven/Gradle or CI-native
+integration.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>SCA (software composition analysis)</strong>: OWASP dependency-check matches the full
+transitive tree against the NVD and other CVE sources (free; needs an NVD API key for
+sane update speed); Snyk adds a commercial curated DB, fix PRs and reachability hints.
+Transitive dependencies are the point — your directs are the minority of the tree.</li>
+<li><strong>SAST</strong>: SpotBugs + the FindSecBugs plugin covers the classic JVM sinks (injection,
+XXE, weak crypto, deserialisation); Semgrep runs fast, writable pattern rules well-suited
+to PR diffs; SonarQube folds security rules and hotspot review into the quality gate.</li>
+<li><strong>DAST</strong>: OWASP ZAP probes the <em>running</em> application (baseline passive scan vs full
+active scan) — catches misconfiguration and behaviour static tools cannot see; automate
+via the ZAP GitHub Actions / container against an ephemeral deployment.</li>
+<li><strong>Fuzzing on the JVM</strong>: Jazzer (libFuzzer-based) does coverage-guided fuzzing of Java
+targets and powers Java in OSS-Fuzz; point it at anything parsing untrusted bytes.</li>
+<li><strong>Secrets scanning</strong>: gitleaks/trufflehog in pre-commit and CI, GitHub secret scanning
+with push protection on the platform side; scan <em>history</em>, not just HEAD.</li>
+<li><strong>SBOM</strong>: generate CycloneDX from Maven/Gradle so consumers and later audits can answer
+&quot;are we affected?&quot; without re-resolving the tree.</li>
+<li><strong>Framework note</strong>: exercise DAST against real framework config — Spring Security filter
+chains, Quarkus and Micronaut security annotations are exactly the layer ZAP validates
+and SAST mostly cannot; unit-test authorisation rules too (e.g. Spring Security's
+<code>@WithMockUser</code>/MockMvc support).</li>
+</ul>
+<h2>Details</h2>
+<h3>Layer by layer</h3>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Question answered</th>
+<th>Tools</th>
+<th>When it runs</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SCA</td>
+<td>Known-vulnerable dependencies?</td>
+<td>dependency-check, Snyk, <code>gradle dependencies</code>-based audit</td>
+<td>Every build + scheduled (new CVEs hit old code)</td>
+</tr>
+<tr>
+<td>SAST</td>
+<td>Insecure first-party patterns?</td>
+<td>SpotBugs+FindSecBugs, Semgrep, SonarQube</td>
+<td>PR / merge</td>
+</tr>
+<tr>
+<td>DAST</td>
+<td>Is the running app exploitable?</td>
+<td>OWASP ZAP (baseline in PR, full scan nightly)</td>
+<td>Against ephemeral/staging deploys</td>
+</tr>
+<tr>
+<td>Fuzzing</td>
+<td>Do parsers crash on hostile input?</td>
+<td>Jazzer, OSS-Fuzz for OSS projects</td>
+<td>Continuous or nightly jobs</td>
+</tr>
+<tr>
+<td>Secrets</td>
+<td>Credentials in the repo?</td>
+<td>gitleaks, trufflehog, GitHub push protection</td>
+<td>Pre-commit + CI + history audits</td>
+</tr>
+</tbody>
+</table>
+<h3>Build &amp; CI wiring</h3>
+<ul>
+<li><strong>Maven</strong>: <code>org.owasp:dependency-check-maven</code> bound to <code>verify</code> with
+<code>failBuildOnCVSS</code> (e.g. 7.0); <code>com.github.spotbugs:spotbugs-maven-plugin</code> with the
+<code>findsecbugs-plugin</code> dependency; <code>cyclonedx-maven-plugin</code> for the SBOM.</li>
+<li><strong>Gradle</strong>: <code>org.owasp.dependencycheck</code>, <code>com.github.spotbugs</code>, <code>org.cyclonedx.bom</code>
+plugins — same knobs.</li>
+<li>Use a <strong>suppression file</strong> (<code>dependency-check-suppressions.xml</code>, reviewed in PRs) for
+false positives; an unsuppressed red build that everyone ignores trains the team to
+ignore red builds.</li>
+<li>Split fast checks (SCA cache-hit, Semgrep, gitleaks) into the PR gate; slow ones (full
+ZAP active scan, long fuzz runs, full NVD refresh) into scheduled pipelines.</li>
+<li>Rescan on a schedule, not only on change: yesterday's clean build is vulnerable the day
+a new CVE lands on an unchanged dependency.</li>
+</ul>
+<h2>Examples</h2>
+<pre><code class="language-xml">&lt;plugin&gt;
+  &lt;groupId&gt;org.owasp&lt;/groupId&gt;
+  &lt;artifactId&gt;dependency-check-maven&lt;/artifactId&gt;
+  &lt;version&gt;${depcheck.version}&lt;/version&gt;
+  &lt;configuration&gt;
+    &lt;failBuildOnCVSS&gt;7.0&lt;/failBuildOnCVSS&gt;
+    &lt;suppressionFiles&gt;
+      &lt;suppressionFile&gt;dependency-check-suppressions.xml&lt;/suppressionFile&gt;
+    &lt;/suppressionFiles&gt;
+    &lt;nvdApiKeyEnvironmentVariable&gt;NVD_API_KEY&lt;/nvdApiKeyEnvironmentVariable&gt;
+  &lt;/configuration&gt;
+  &lt;executions&gt;
+    &lt;execution&gt;&lt;goals&gt;&lt;goal&gt;check&lt;/goal&gt;&lt;/goals&gt;&lt;/execution&gt;
+  &lt;/executions&gt;
+&lt;/plugin&gt;
+</code></pre>
+<pre><code class="language-java">// Jazzer fuzz target — feed hostile bytes to a parser
+public class InvoiceParserFuzzTest {
+    @FuzzTest
+    void parseNeverThrowsUnexpected(FuzzedDataProvider data) {
+        try {
+            InvoiceParser.parse(data.consumeRemainingAsBytes());
+        } catch (InvalidInvoiceException expected) {
+            // declared failure mode is fine; anything else is a finding
+        }
+    }
+}
+</code></pre>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../java/testing/testing/">Testing in Java — strategies &amp; tooling map</a> — parent map of the strategy portfolio.</li>
+<li><a href="../../../security/appsec-fundamentals/">AppSec fundamentals</a> — the vulnerability classes these tools hunt.</li>
+<li><a href="../../../java/java-security/java-security/">Java security</a> — the platform's security model and libraries under test.</li>
+<li><a href="../../../java/build-ecosystem/build-ecosystem/">Build ecosystem</a> — the Maven/Gradle machinery this all bolts onto.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

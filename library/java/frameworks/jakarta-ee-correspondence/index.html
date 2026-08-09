@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Frameworks × Jakarta EE — who implements what — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/java/frameworks</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../java/">java</a><span class="tok-path">/</span><span class="tok-path">frameworks</span> <span class="tok-cmd">cat</span> <span class="tok-file">jakarta-ee-correspondence</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Frameworks × Jakarta EE — who implements what</h1>
+        <p class="lib-lede"><span class="tok-comment"># Spec-by-spec correspondence of Jakarta EE and MicroProfile APIs to their Spring, Quarkus and Micronaut implementations or equivalents.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#java">#java</a><a class="lib-tag" href="../../../tags/#frameworks">#frameworks</a><a class="lib-tag" href="../../../tags/#jakarta-ee">#jakarta-ee</a><a class="lib-tag" href="../../../tags/#microprofile">#microprofile</a><a class="lib-tag" href="../../../tags/#spring">#spring</a><a class="lib-tag" href="../../../tags/#quarkus">#quarkus</a><a class="lib-tag" href="../../../tags/#micronaut">#micronaut</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>Jakarta EE (Java EE after the Eclipse handover, with the <code>javax.*</code> → <code>jakarta.*</code> namespace
+move as of EE 9) and MicroProfile are <strong>contract layers</strong>: specifications with independent
+implementations, not frameworks themselves. The three big frameworks relate to them very
+differently — Quarkus largely <em>implements</em> the specs, Spring largely <em>shadows</em> them with
+its own equivalent APIs while consuming a few implementations, and Micronaut ships its own
+APIs on a JSR-330 lineage. Knowing the correspondence lets you translate skills and
+libraries between stacks instantly.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>Jakarta EE</strong> defines the enterprise contracts (CDI, REST, Persistence, Servlet,
+Validation, Messaging, Transactions, Security…); application servers implement the
+platform, Quarkus implements the smaller <em>core profile</em>.</li>
+<li><strong>MicroProfile</strong> layers microservice concerns (Config, Health, Metrics, OpenAPI, Rest
+Client, Fault Tolerance) on top of a CDI/JAX-RS base; <strong>SmallRye</strong> is the implementation
+family Quarkus ships.</li>
+<li><strong>Spring</strong> implements few specs directly but consumes reference-grade implementations:
+Hibernate ORM for JPA, Hibernate Validator for Bean Validation, Tomcat/Jetty for
+Servlet.</li>
+<li><strong>Micronaut</strong> is mostly equivalents: own DI (JSR-330 annotations), own HTTP layer, own
+Data — with opt-in bridges to Hibernate/JPA and Jakarta Validation.</li>
+<li><strong>Portability consequence</strong>: JPA entities and Bean Validation annotations move between
+all three nearly unchanged; controller/DI layers always need rewriting to or from
+Spring/Micronaut idioms.</li>
+</ul>
+<h2>Details</h2>
+<p>Legend: <strong>✔</strong> implements the spec (a certified/spec-tracking implementation is on the
+classpath) · <strong>≈</strong> own equivalent API covering the same ground · <strong>—</strong> not applicable /
+no first-party story.</p>
+<h3>Jakarta EE specs</h3>
+<table>
+<thead>
+<tr>
+<th>Spec / API</th>
+<th>Spring (Boot 3.x)</th>
+<th>Quarkus</th>
+<th>Micronaut</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CDI (Jakarta Contexts &amp; DI)</td>
+<td>≈ Spring DI (<code>spring-context</code>); different model, similar reach</td>
+<td>✔ ArC (CDI-lite, build-time)</td>
+<td>≈ Micronaut Inject — JSR-330 (<code>jakarta.inject</code>) annotations, own container</td>
+</tr>
+<tr>
+<td>JAX-RS (Jakarta REST)</td>
+<td>≈ Spring MVC / WebFlux annotations</td>
+<td>✔ RESTEasy Reactive</td>
+<td>≈ Micronaut HTTP (<code>@Controller</code>/<code>@Get</code>)</td>
+</tr>
+<tr>
+<td>JPA (Jakarta Persistence)</td>
+<td>✔ consumed via Hibernate ORM (Spring Data JPA on top)</td>
+<td>✔ Hibernate ORM (+ Panache)</td>
+<td>≈ Micronaut Data (compile-time) or ✔ via <code>micronaut-data-hibernate-jpa</code></td>
+</tr>
+<tr>
+<td>Servlet</td>
+<td>✔ consumed via embedded Tomcat/Jetty/Undertow (MVC stack)</td>
+<td>✔ optional (<code>quarkus-undertow</code>); default is Vert.x HTTP, not servlet</td>
+<td>— Netty-based server, no servlet container (WAR deployment aside)</td>
+</tr>
+<tr>
+<td>Bean Validation (Jakarta Validation)</td>
+<td>✔ consumed via Hibernate Validator</td>
+<td>✔ Hibernate Validator</td>
+<td>✔/≈ honors <code>jakarta.validation</code> annotations via reflection-free <code>micronaut-validation</code></td>
+</tr>
+<tr>
+<td>JSON-B / JSON-P</td>
+<td>≈ Jackson by default (JSON-B optional)</td>
+<td>✔ Yasson (JSON-B) or Jackson</td>
+<td>≈ Micronaut Serialization (<code>micronaut-serde</code>, Jackson-compatible)</td>
+</tr>
+<tr>
+<td>JMS (Jakarta Messaging)</td>
+<td>✔ consumed via <code>spring-jms</code> + a broker client (Artemis)</td>
+<td>≈ prefers Reactive Messaging; <code>quarkus-artemis-jms</code> extension exists</td>
+<td>— no first-party JMS; own Kafka/RabbitMQ modules</td>
+</tr>
+<tr>
+<td>JTA (Jakarta Transactions)</td>
+<td>≈ Spring <code>@Transactional</code> / <code>PlatformTransactionManager</code> (JTA optional)</td>
+<td>✔ Narayana transaction manager</td>
+<td>≈ Micronaut's own <code>@Transactional</code> management (JTA-compatible annotations)</td>
+</tr>
+<tr>
+<td>Jakarta Security</td>
+<td>≈ Spring Security (filter chain, own API)</td>
+<td>✔/≈ Quarkus Security + Elytron lineage; <code>quarkus-oidc</code> for OIDC</td>
+<td>≈ Micronaut Security (own module)</td>
+</tr>
+<tr>
+<td>WebSocket (Jakarta WebSocket)</td>
+<td>≈ <code>spring-websocket</code> (+ STOMP)</td>
+<td>✔ <code>quarkus-websockets</code> (Jakarta WebSocket) and own WebSockets Next</td>
+<td>≈ Micronaut's own <code>@ServerWebSocket</code></td>
+</tr>
+</tbody>
+</table>
+<h3>MicroProfile specs</h3>
+<table>
+<thead>
+<tr>
+<th>Spec</th>
+<th>Spring (Boot 3.x)</th>
+<th>Quarkus</th>
+<th>Micronaut</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MP Config</td>
+<td>≈ Boot externalized config / <code>@ConfigurationProperties</code></td>
+<td>✔ SmallRye Config</td>
+<td>≈ Micronaut configuration (<code>@ConfigurationProperties</code>)</td>
+</tr>
+<tr>
+<td>MP Health</td>
+<td>≈ Actuator health endpoints</td>
+<td>✔ SmallRye Health</td>
+<td>≈ Micronaut Management health endpoints</td>
+</tr>
+<tr>
+<td>MP Metrics</td>
+<td>≈ Actuator + Micrometer (de-facto standard; Quarkus uses it too)</td>
+<td>✔/≈ SmallRye Metrics, Micrometer now preferred</td>
+<td>≈ Micronaut Micrometer module</td>
+</tr>
+<tr>
+<td>MP OpenAPI</td>
+<td>≈ springdoc-openapi (third-party de-facto)</td>
+<td>✔ SmallRye OpenAPI</td>
+<td>≈ <code>micronaut-openapi</code> (compile-time generation)</td>
+</tr>
+<tr>
+<td>MP Rest Client</td>
+<td>≈ declarative HTTP interfaces (<code>@HttpExchange</code>) / OpenFeign</td>
+<td>✔ RESTEasy Reactive Rest Client</td>
+<td>≈ Micronaut declarative <code>@Client</code></td>
+</tr>
+</tbody>
+</table>
+<h3>Reading the table</h3>
+<p>The pattern: <strong>Quarkus</strong> is the standards citizen (ArC, RESTEasy, Hibernate, Narayana,
+SmallRye — mostly ✔); <strong>Spring</strong> is a parallel universe with two big spec imports (JPA,
+Bean Validation) and the Servlet container underneath; <strong>Micronaut</strong> re-implements the
+ideas compile-time-first and keeps only the annotation vocabularies (<code>jakarta.inject</code>,
+<code>jakarta.validation</code>) plus optional Hibernate. Note also what the table implies for
+migrations: entities, validation constraints and (mostly) persistence code carry over;
+anything touching DI wiring, security or the web layer is a rewrite.</p>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../java/frameworks/frameworks/">Java application frameworks — the landscape</a> — parent overview; positioning of the three stacks.</li>
+<li><a href="../../../java/frameworks/spring/">Spring deep dive</a> — the shadow-API column in detail.</li>
+<li><a href="../../../java/frameworks/quarkus/">Quarkus deep dive</a> — the spec-implementing column in detail.</li>
+<li><a href="../../../java/frameworks/micronaut/">Micronaut deep dive</a> — the equivalent-API column in detail.</li>
+<li><a href="../../../java/protocols/rest/">REST</a> — JAX-RS vs Spring MVC annotations in practice.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>

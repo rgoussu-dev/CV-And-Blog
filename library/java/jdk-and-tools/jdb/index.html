@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>jdb — the CLI debugger and JDWP — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/java/jdk-and-tools</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../java/">java</a><span class="tok-path">/</span><span class="tok-path">jdk-and-tools</span> <span class="tok-cmd">cat</span> <span class="tok-file">jdb</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">jdb — the CLI debugger and JDWP</h1>
+        <p class="lib-lede"><span class="tok-comment"># The JDK's command-line debugger and the JDWP/JDI machinery behind it — the same wire protocol every IDE debugger speaks.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#java">#java</a><a class="lib-tag" href="../../../tags/#jvm">#jvm</a><a class="lib-tag" href="../../../tags/#tooling">#tooling</a><a class="lib-tag" href="../../../tags/#debugging">#debugging</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p><code>jdb</code> is the JDK's command-line debugger: breakpoints, stepping, stack and variable inspection
+over a text prompt. Almost nobody debugs in jdb daily — IDEs are the front-end of choice — but
+it matters as the reference client of the Java debugging architecture (JPDA): the <strong>JDWP</strong> wire
+protocol the JVM exposes, and the <strong>JDI</strong> client API that jdb, IntelliJ and VS Code all use.
+Knowing the JDWP flags is what makes <em>remote</em> debugging of a containerised or server JVM work,
+whatever the front-end.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>Architecture (JPDA)</strong>: JVMTI (in-VM native interface) → JDWP (wire protocol, exposed by
+<code>-agentlib:jdwp</code>) → JDI (<code>com.sun.jdi</code>, the Java client API). Any JDI client can attach to any
+JDWP-speaking JVM — IDE vs jdb is purely a front-end choice.</li>
+<li><strong>The canonical server flag</strong>:
+<code>-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005</code> — target JVM listens on
+5005; <code>suspend=y</code> instead blocks the JVM before <code>main</code> until a debugger attaches (essential
+for debugging startup). <code>address=*:5005</code> binds all interfaces (Java 9+ defaults to localhost
+only — deliberate; JDWP is unauthenticated remote code execution, never expose it publicly,
+tunnel over SSH/port-forward instead).</li>
+<li><strong>Attach vs listen</strong>: <em>attach</em> — the debugger connects to a JVM that is listening
+(<code>server=y</code>, the common case): <code>jdb -attach host:5005</code>. <em>Listen</em> — the debugger waits
+(<code>jdb -listen 5005</code>) and the JVM dials out with <code>server=n,address=debughost:5005</code>; useful when
+the JVM is behind NAT or short-lived.</li>
+<li><strong>Launch mode</strong>: <code>jdb -sourcepath src Main</code> starts the program under the debugger directly.</li>
+<li><strong>Session commands</strong>: <code>stop at com.example.Foo:42</code> / <code>stop in com.example.Foo.bar</code>, <code>run</code>,
+<code>step</code>/<code>next</code>/<code>cont</code>, <code>print expr</code>, <code>locals</code>, <code>where</code> (stack), <code>threads</code>, <code>catch java.io.IOException</code> (break on exception).</li>
+<li><strong>When jdb is actually the right tool</strong>: a bare server/container with no IDE reachable, quick
+scripted checks, or verifying that the JDWP port itself works before blaming the IDE.</li>
+<li><strong>IDE remote debugging</strong> is the same flag: paste the <code>-agentlib:jdwp=...</code> into the JVM,
+create a &quot;Remote JVM Debug&quot; run config pointing at host:5005 — Kubernetes usage is a
+<code>kubectl port-forward</code> in front of exactly this.</li>
+</ul>
+<h2>Examples</h2>
+<pre><code class="language-bash">java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005 -jar app.jar
+jdb -attach localhost:5005
+&gt; stop in com.example.OrderService.place
+&gt; cont
+&gt; where
+&gt; print order.total()
+</code></pre>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../java/jdk-and-tools/jdk-and-tools/">JDK &amp; tools</a> — parent catalogue of the JDK toolchain.</li>
+<li><a href="../../../java/jdk-and-tools/java-launcher/">Java launcher</a> — where the <code>-agentlib:jdwp</code> flag lives.</li>
+<li><a href="../../../java/jdk-and-tools/jstack/">jstack</a> — when you only need stacks, not interactive control.</li>
+<li><a href="../../../java/jdk-and-tools/jcmd/">jcmd</a> — non-interactive diagnostics for JVMs you cannot restart with JDWP on.</li>
+<li><a href="../../../security/appsec-fundamentals/">AppSec fundamentals</a> — an exposed JDWP port is a textbook remote-execution hole.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>
