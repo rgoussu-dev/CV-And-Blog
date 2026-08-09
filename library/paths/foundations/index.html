@@ -39,7 +39,7 @@
       <div class="term-out">
         <h1 class="lib-title">Foundations — the machine and the toolkit</h1>
         <p class="lib-lede"><span class="tok-comment"># The layer under everything — text, time, algorithms, the OS, the network, and version control — learned by building the tools instead of trusting them.</span></p>
-        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="path">Path</span><span class="lib-meta-date">saved 2026-08-08</span></cluster-pk>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="path">Path</span><span class="lib-meta-date">saved 2026-08-08</span><span class="lib-meta-date">updated 2026-08-09</span></cluster-pk>
         <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../tags/#path">#path</a><a class="lib-tag" href="../../tags/#fundamentals">#fundamentals</a><a class="lib-tag" href="../../tags/#algorithms">#algorithms</a><a class="lib-tag" href="../../tags/#linux">#linux</a><a class="lib-tag" href="../../tags/#networking">#networking</a><a class="lib-tag" href="../../tags/#git">#git</a></cluster-pk>
       </div>
     </div>
@@ -61,10 +61,10 @@ explain why &quot;length&quot; has three answers without notes.</li>
 <h3>2. Time, honestly</h3>
 <ul>
 <li><strong>Read</strong>: <a href="../../fundamentals/time-timezones-and-datetime/">Time, timezones &amp; datetime</a>.</li>
-<li><strong>Do</strong>: the concept note's practice drills — instant-vs-civil modeling on a real
-schedule feature, a DST-crossing test suite.</li>
-<li><strong>Proof</strong>: a written answer to &quot;how do we store a future meeting time?&quot; that survives
-a tzdb update.</li>
+<li><strong>Do</strong>: <a href="../../fundamentals/exercises/dst-safe-scheduler/">DST-safe scheduler</a>.</li>
+<li><strong>Proof</strong>: the scheduler's acceptance suite passes — Kiritimati, the half-hour zone,
+both DST edges, a year of &quot;daily at 02:30&quot; without a double-fire; &quot;how do we store a
+future meeting time?&quot; is answered by the passing tzdb-update test, not a paragraph.</li>
 </ul>
 <h3>3. Algorithms &amp; data structures</h3>
 <ul>
@@ -85,10 +85,11 @@ checks; <code>strace</code> on your own shell holds no surprises.</li>
 <h3>5. The network</h3>
 <ul>
 <li><strong>Read</strong>: <a href="../../system-administration/networking-fundamentals/">Networking fundamentals</a>.</li>
-<li><strong>Do</strong>: the note's wire-level drills — capture and annotate a full TCP handshake +
-TLS negotiation + HTTP exchange for a real site.</li>
-<li><strong>Proof</strong>: the annotated capture, plus a whiteboard walk of what happens between
-typing a URL and pixels (the network half; the browser half comes in
+<li><strong>Do</strong>: <a href="../../system-administration/exercises/build-a-dns-resolver/">Build a DNS resolver</a>.</li>
+<li><strong>Proof</strong>: the resolver walks from a root server to an authoritative answer, checked
+against <code>dig</code>; its two annotated captures (the resolver's own walk, and a full TCP +
+TLS + HTTP exchange), plus a whiteboard walk of what happens between typing a URL and
+pixels (the network half; the browser half comes in
 <a href="../../paths/full-stack-web/">the full-stack path</a>).</li>
 </ul>
 <h3>6. Version control, beneath the porcelain</h3>

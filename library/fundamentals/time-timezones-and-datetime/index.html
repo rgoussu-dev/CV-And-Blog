@@ -95,9 +95,7 @@ currently paged.</li>
 <h2>Practice</h2>
 <ul>
 <li><strong>&quot;UTC is enough for everyone… right?&quot;</strong> (<a href="https://zachholman.com/talk/utc-is-enough-for-everyone-right" rel="noopener">source</a>) — a guided tour of the traps; read it first, then go break something on purpose.</li>
-<li><strong>RFC 3339 timestamp parser</strong> (<a href="https://www.rfc-editor.org/rfc/rfc3339" rel="noopener">source</a>) — hand-write a parser for ISO 8601 / RFC 3339, then show an offset round-trip loses the zone (<code>+02:00</code> is a moment, not <code>Europe/Paris</code>).</li>
-<li><strong>tzdb explorer</strong> (<a href="https://www.iana.org/time-zones" rel="noopener">source</a>) — test your conversions against <code>Pacific/Kiritimati</code> (UTC+14), India's half-hour offset, and a DST edge, checking against the raw tz data.</li>
-<li><strong>DST-safe recurrence expander</strong> (<a href="https://www.rfc-editor.org/rfc/rfc5545" rel="noopener">source</a>) — expand an RRULE like &quot;daily at 2:30 local&quot; across the spring-forward gap (2:30 doesn't exist) and the fall-back overlap (2:30 twice) — the kata that teaches period ≠ duration.</li>
+<li><strong>DST-safe scheduler</strong> (<a href="../../fundamentals/exercises/dst-safe-scheduler/">exercise</a>) — hand-parse RFC 3339, store a future meeting that survives a tzdb update, and expand &quot;daily at 2:30&quot; across both DST edges — this note's drills consolidated into one build with acceptance checks.</li>
 </ul>
 <h2>Related</h2>
 <ul>

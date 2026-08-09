@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>DST-safe scheduler — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/fundamentals/exercises</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../fundamentals/">fundamentals</a><span class="tok-path">/</span><span class="tok-path">exercises</span> <span class="tok-cmd">cat</span> <span class="tok-file">dst-safe-scheduler</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">DST-safe scheduler</h1>
+        <p class="lib-lede"><span class="tok-comment"># Hand-parse RFC 3339, model instant vs. civil time with explicit gap/overlap handling, store a future meeting that survives a tzdb update, and expand &quot;daily at 2:30&quot; across both DST edges.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="exercise">Exercise</span><span class="lib-meta-date">saved 2026-08-09</span><a class="lib-chip lib-chip-src" href="https://www.rfc-editor.org/rfc/rfc5545" rel="noopener"><svg class="lib-ico" viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 11.5a3 3 0 0 0 4.2 0l2-2a3 3 0 0 0-4.2-4.2l-1 1"/><path d="M11.5 8.5a3 3 0 0 0-4.2 0l-2 2a3 3 0 0 0 4.2 4.2l1-1"/></svg>source</a></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#time">#time</a><a class="lib-tag" href="../../../tags/#timezones">#timezones</a><a class="lib-tag" href="../../../tags/#datetime">#datetime</a><a class="lib-tag" href="../../../tags/#tzdb">#tzdb</a><a class="lib-tag" href="../../../tags/#rrule">#rrule</a><a class="lib-tag" href="../../../tags/#fundamentals">#fundamentals</a><a class="lib-tag" href="../../../tags/#exercise">#exercise</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Goal</h2>
+<p>Build a small scheduling core — timestamp parser, instant/civil-time model, future-event
+store, and recurrence expander — where every classic time bug is forced into the open and
+killed by a test. Time's type system (instant vs. civil vs. zoned, duration vs. period)
+stops being advice and becomes compiler-checked, test-proven muscle memory.</p>
+<p><em>Subject: <a href="../../../fundamentals/exercises/dst-safe-scheduler-subject/">full brief &amp; instructions</a> · Mentor: AI-mentor brief</em></p>
+<h2>Practices</h2>
+<ul>
+<li><a href="../../../fundamentals/time-timezones-and-datetime/">Time, timezones &amp; datetime</a> — the type
+system of time, the future-civil-event storage rule, DST gaps and overlaps, clock
+injection; this exercise is that note's drills consolidated into one build.</li>
+<li><a href="../../../applicative-architecture/testing-strategies/">Testing strategies</a> — the injected
+<code>Clock</code> and deterministic fixtures are the testability discipline applied to time.</li>
+</ul>
+<h2>Milestones</h2>
+<ol>
+<li><strong>RFC 3339 parser.</strong> Hand-parse <code>2026-08-08T10:00:00+02:00</code> (and friends) into civil
+components + offset without the language's datetime parser; reject the invalid. Show
+an offset round-trip loses the zone — <code>+02:00</code> is a moment's offset, not <code>Europe/Paris</code>.</li>
+<li><strong>The type system, as types.</strong> Distinct <code>Instant</code>, <code>LocalDateTime</code>, and
+<code>ZonedDateTime</code> types, plus <code>Duration</code> (physical seconds) vs. <code>Period</code> (calendar
+units). Conversion <code>local + zone → instant</code> runs against injectable zone rules and
+<em>forces</em> a resolution strategy where the mapping is a gap (0 candidates) or an overlap
+(2 candidates) — no silent default.</li>
+<li><strong>The future meeting.</strong> Store &quot;09:00 in Paris, next June&quot; as local time + IANA zone,
+never a baked UTC instant. Drill: swap in a changed rule set (a government abolishes
+DST) and show your stored meeting still fires at 09:00 wall time — while a UTC-baked
+copy is now an hour wrong.</li>
+<li><strong>DST-safe recurrence expander.</strong> Expand an RRULE subset (&quot;daily/weekly at HH:MM
+local&quot;) across the spring-forward gap (2:30 doesn't exist) and the fall-back overlap
+(2:30 happens twice), under explicit, named policies for each. Demonstrate period ≠
+duration: &quot;+24 hours&quot; drifts across a transition; &quot;+1 day&quot; doesn't.</li>
+<li><strong>The hostile-zone suite.</strong> Inject the clock, then run the acceptance fixtures:
+<code>Pacific/Kiritimati</code> (UTC+14), <code>Asia/Kolkata</code> (+05:30), both US and EU DST edges, and
+a year of &quot;daily digest at 02:30&quot; with zero drift and no double-fires.</li>
+</ol>
+<h2>Stretch goals</h2>
+<ul>
+<li><code>Australia/Lord_Howe</code> — the 30-minute DST shift that breaks &quot;DST is always one hour&quot;.</li>
+<li>Calendar arithmetic edges: Jan 31 + 1 month, leap-day birthdays on recurring events.</li>
+<li>Emit RFC 9557 (<code>2026-06-12T09:00:00+02:00[Europe/Paris]</code>) so serialization stops
+losing the zone.</li>
+</ul>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../fundamentals/exercises/dst-safe-scheduler-subject/">DST-safe scheduler — subject</a> — the full work
+statement, gap/overlap semantics, and acceptance checks for this exercise.</li>
+<li>DST-safe scheduler — mentor — the AI-mentor brief for
+running this exercise as a guided session (spoilers; for the mentor, not the learner).</li>
+<li><a href="../../../fundamentals/time-timezones-and-datetime/">Time, timezones &amp; datetime</a> — cites
+this exercise in its <code># Practice</code> section.</li>
+<li><a href="../../../fundamentals/exercises/utf8-codec-and-text-cli/">UTF-8 codec + text-processing CLI</a> — the sibling
+fundamentals build: same &quot;implement the spec by hand&quot; method, applied to text.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+</body>
+</html>
