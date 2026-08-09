@@ -66,6 +66,42 @@ services, pays off when the domain has real logic.</li>
 <li>To explore: where transaction boundaries live, mapping strategies at the ports,
 hexagonal + <a href="../../applicative-architecture/ddd/">DDD</a> tactical patterns as the interior.</li>
 </ul>
+<h2>Details</h2>
+<h3>The house reference principles</h3>
+<p>Three reference implementations —
+<a href="../../java/hexagonal-reference-implementation/hexagonal-reference-implementation/">Java</a>,
+<a href="../../go/hexagonal-reference-implementation/">Go</a>,
+<a href="../../rust/hexagonal-reference-implementation/">Rust</a> — realize one shared set of
+principles, each with its own enforcement mechanism (Maven module graph, nested
+<code>internal/</code> + linter, Cargo crate graph). Each implementation stands on its own; the
+principles live here:</p>
+<ul>
+<li><strong>Trisection</strong>: <code>application/</code> (primary adapters), <code>domain/</code> (the hexagon),
+<code>infrastructure/</code> (secondary adapters), plus a <code>deployment/</code> home for IaC.</li>
+<li><strong>One primary adapter = one deployment unit = one container</strong>; its containerisation
+definition (Dockerfile and the likes) lives beside it, never centralised.</li>
+<li><strong>The domain has a contract face and an implementation face</strong> — ports in both
+directions, command DTOs and events on the contract side; entities and services on
+the implementation side. Everything depends on the contract; almost nothing on the
+implementation.</li>
+<li><strong>An adapter's API artifact exists only where the contract is real and consumable</strong>
+(REST DTOs/OpenAPI, protos, message schemas) — the pair is earned, never imposed for
+symmetry; a cron unit is a single module.</li>
+<li><strong>Infrastructure granularity is decided ad-hoc per context</strong> — single module or one
+per (port × technology); the forcing question is which deployment units need which
+driven adapters. Ubiquitous ports (clock, id generation) sit together in a commons
+module. A deployment unit's dependency list reads like its ops runbook.</li>
+<li><strong>One assembly point per deployment unit</strong> wires domain and infrastructure — a
+configurator module in Java, each binary's <code>main</code> in Go and Rust. Dependency
+injection is a pattern (explicit construction), never a reflection container.</li>
+<li><strong>No contract testing between infrastructure and the domain contract</strong>: adapters are
+integration-tested against their real technology on their own terms; the domain owns
+its in-memory fakes.</li>
+<li><strong>Duplication between deployment units is accepted</strong> over cross-unit coupling — by
+design there is scarcely any overlap between units.</li>
+<li><strong>Every directory/module carries a <code>README.md</code> and an <code>AGENTS.md</code></strong> stating its
+purpose and local conventions.</li>
+</ul>
 <h2>Practice</h2>
 <ul>
 <li><strong>Trip Service Kata</strong> (<a href="https://github.com/sandromancuso/trip-service-kata" rel="noopener">source</a>) —
@@ -85,9 +121,11 @@ Postgres at the ports, judged by an external test suite.</li>
 </ul>
 <h2>Related</h2>
 <ul>
-<li><a href="../../java/hexagonal-reference-implementation/hexagonal-reference-implementation/">Hexagonal reference implementation — the layout (Java)</a>
-— the house reference realizing these principles: layout, module graph, per-layer
-guidelines; derived for <a href="../../go/hexagonal-reference-implementation/">Go</a> and
+<li>Reference implementations — the house principles above realized per language, each
+standing on its own:
+<a href="../../java/hexagonal-reference-implementation/hexagonal-reference-implementation/">Java</a>
+(a concept group with per-layer guideline notes),
+<a href="../../go/hexagonal-reference-implementation/">Go</a>, and
 <a href="../../rust/hexagonal-reference-implementation/">Rust</a>.</li>
 <li><a href="../../applicative-architecture/ddd/">DDD</a> — supplies the domain model the hexagon protects.</li>
 <li><a href="../../applicative-architecture/clean-code/">Clean code</a> — dependency inversion is SOLID's &quot;D&quot;.</li>

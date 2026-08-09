@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="color-scheme" content="dark light" />
-  <title>Hexagonal reference implementation — the layout — Library — rgoussu.dev</title>
+  <title>Hexagonal architecture reference implementation — Java — Library — rgoussu.dev</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
@@ -37,19 +37,19 @@
 <div class="sess-block">
       <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../java/">java</a><span class="tok-path">/</span><span class="tok-path">hexagonal-reference-implementation</span> <span class="tok-cmd">cat</span> <span class="tok-file">hexagonal-reference-implementation</span><span class="tok-ext">.md</span></div>
       <div class="term-out">
-        <h1 class="lib-title">Hexagonal reference implementation — the layout</h1>
+        <h1 class="lib-title">Hexagonal architecture reference implementation — Java</h1>
         <p class="lib-lede"><span class="tok-comment"># The house layout for a hexagonal monolith/microservice in Java — Maven multi-module, application/domain/infrastructure trisection, one deployment unit per primary adapter.</span></p>
         <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
         <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#hexagonal-architecture">#hexagonal-architecture</a><a class="lib-tag" href="../../../tags/#architecture">#architecture</a><a class="lib-tag" href="../../../tags/#java">#java</a><a class="lib-tag" href="../../../tags/#maven">#maven</a><a class="lib-tag" href="../../../tags/#modules">#modules</a><a class="lib-tag" href="../../../tags/#reference-implementation">#reference-implementation</a></cluster-pk>
       </div>
     </div>
     <article class="lib-doc"><h2>Overview</h2>
-<p>The house reference for structuring a hexagonal monolith or microservice — an opinionated
-layout, not a survey of what the internet does. The principles are language-agnostic; this
-note realizes them in Java with Maven multi-module as the enforcement mechanism, and the
-sibling notes (<a href="../../../go/hexagonal-reference-implementation/">Go</a>,
-<a href="../../../rust/hexagonal-reference-implementation/">Rust</a>) derive the same shape for their
-ecosystems. The per-layer implementation guidelines live in the notes of this group:
+<p>The house reference implementation of
+<a href="../../../applicative-architecture/hexagonal-architecture/">hexagonal architecture</a> for Java —
+an opinionated layout, not a survey of what the internet does. The shared,
+language-agnostic principles live in that note; this group realizes them for Java with
+Maven multi-module as the enforcement mechanism.
+The per-layer implementation guidelines live in the notes of this group:
 <a href="../../../java/hexagonal-reference-implementation/application-layer/">application</a>, <a href="../../../java/hexagonal-reference-implementation/domain-layer/">domain</a>,
 <a href="../../../java/hexagonal-reference-implementation/infrastructure-layer/">infrastructure</a>, <a href="../../../java/hexagonal-reference-implementation/deployment-and-iac/">deployment &amp; IaC</a>.</p>
 <h2>Key points</h2>
@@ -235,10 +235,8 @@ debate and the recommended shape.</li>
 <li><a href="../../../java/hexagonal-reference-implementation/deployment-and-iac/">Deployment &amp; IaC</a> — Dockerfiles beside their unit, the
 <code>deployment/</code> folder.</li>
 <li><a href="../../../applicative-architecture/hexagonal-architecture/">Hexagonal architecture</a> — the
-principles this layout realizes.</li>
-<li><a href="../../../go/hexagonal-reference-implementation/">Hexagonal reference implementation — Go derivation</a>
-and <a href="../../../rust/hexagonal-reference-implementation/">Rust derivation</a> — the same shape in
-the other house languages.</li>
+shared house principles this group realizes; the hub for all three reference
+implementations.</li>
 <li><a href="../../../java/build-ecosystem/maven/">Maven</a> — the build tool doing the enforcement here.</li>
 </ul>
 </article>

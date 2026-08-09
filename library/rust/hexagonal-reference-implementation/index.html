@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="color-scheme" content="dark light" />
-  <title>Hexagonal reference implementation — Rust derivation — Library — rgoussu.dev</title>
+  <title>Hexagonal architecture reference implementation — Rust — Library — rgoussu.dev</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
@@ -37,44 +37,45 @@
 <div class="sess-block">
       <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../">~/library</a><span class="tok-path">/</span><span class="tok-path">rust</span> <span class="tok-cmd">cat</span> <span class="tok-file">hexagonal-reference-implementation</span><span class="tok-ext">.md</span></div>
       <div class="term-out">
-        <h1 class="lib-title">Hexagonal reference implementation — Rust derivation</h1>
-        <p class="lib-lede"><span class="tok-comment"># Deriving the house hexagonal reference for Rust — a Cargo workspace maps almost one-to-one onto the Maven layout, with traits as ports, binary crates as deployment units, and the dyn-vs-generics wiring choice.</span></p>
+        <h1 class="lib-title">Hexagonal architecture reference implementation — Rust</h1>
+        <p class="lib-lede"><span class="tok-comment"># The house hexagonal reference realized for Rust — a Cargo workspace with crates as compile-enforced walls, traits as ports, binary crates as deployment units, and dyn-by-default wiring with generics as the measured escape hatch.</span></p>
         <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
         <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../tags/#hexagonal-architecture">#hexagonal-architecture</a><a class="lib-tag" href="../../tags/#architecture">#architecture</a><a class="lib-tag" href="../../tags/#rust">#rust</a><a class="lib-tag" href="../../tags/#cargo">#cargo</a><a class="lib-tag" href="../../tags/#workspace">#workspace</a><a class="lib-tag" href="../../tags/#reference-implementation">#reference-implementation</a></cluster-pk>
       </div>
     </div>
     <article class="lib-doc"><h2>Overview</h2>
-<p>Of the three house languages, Rust derives the
-<a href="../../java/hexagonal-reference-implementation/hexagonal-reference-implementation/">Java reference</a>
-most faithfully: a <strong>Cargo workspace maps almost one-to-one onto the Maven multi-module
-layout</strong> — crates are real compilation units with an enforced dependency graph, so every
-wall the Java reference builds with Maven exists here with no linter needed. The
-derivation keeps the trisection, the domain contract/implementation split, one binary
-crate per deployment unit with its Dockerfile beside it, and per-crate
-<code>README.md</code>/<code>AGENTS.md</code>. The genuinely new decision Rust forces is <em>how ports are wired</em>:
-trait objects vs generics — settled below (2026-08-09 discussion).</p>
+<p>The house reference implementation of
+<a href="../../applicative-architecture/hexagonal-architecture/">hexagonal architecture</a> for Rust,
+standing on its own terms. The shared principles live in that note — trisection, one
+deployment unit per primary adapter, a contract face and an implementation face for the
+domain, containerisation beside its unit, per-crate <code>README.md</code>/<code>AGENTS.md</code>. Rust's
+realization is a <strong>Cargo workspace whose crate graph is the architecture</strong>: crates are
+real compilation units with an enforced dependency graph, so every boundary rule is held
+by the compiler, no linter needed. The decision the language itself forces is <em>how ports
+are wired</em>: trait objects vs generics — settled below (2026-08-09 discussion).</p>
 <h2>Key points</h2>
 <ul>
-<li><strong>Workspace = parent POM.</strong> The root <code>Cargo.toml</code> declares members and centralises
-versions via <code>[workspace.dependencies]</code>; <code>cargo build -p rest-public-app</code> builds one
-deployment unit exactly like <code>mvn -pl … -am</code>.</li>
-<li><strong>Ports are traits; the domain pair survives intact</strong>: <code>domain-api</code> (traits for driving
+<li><strong>The workspace is the backbone.</strong> The root <code>Cargo.toml</code> declares members and
+centralises versions via <code>[workspace.dependencies]</code>; <code>cargo build -p rest-public-app</code>
+builds exactly one deployment unit.</li>
+<li><strong>Ports are traits; the domain is two crates</strong>: <code>domain-api</code> (traits for driving
 and driven ports, command/result types, domain events — zero dependencies) and
 <code>domain-core</code> (entities, services implementing driving ports — depends only on
-<code>domain-api</code>). The crate graph makes <code>infra → domain-core</code> a compile error, exactly the
-Java rule.</li>
+<code>domain-api</code>). The crate graph makes <code>infra → domain-core</code> a compile error — the
+dependency rule, enforced by rustc.</li>
 <li><strong>One binary crate per primary adapter</strong> under <code>application/</code>, each a deployment unit
 with its Dockerfile beside it. The <code>*-api</code>/<code>*-app</code> pair exists where the contract is
 real (proto crate for gRPC, generated OpenAPI types crate for REST); cron-style units
-are a single binary crate. This is now the reference rule in <strong>all three languages</strong>:
-the pair is earned by a consumable contract, never imposed for symmetry.</li>
-<li><strong>Infrastructure: one crate per (port × technology)</strong> — <code>persistence-postgres</code>,
-<code>messaging-kafka</code>, <code>client-billing</code> — same granularity rule and the same house
-position as Java; cargo features may additionally gate optional adapters, but prefer
-crate selection (the unit's <code>[dependencies]</code>) over feature flags: features are for
-variants of one adapter, not for choosing adapters.</li>
+are a single binary crate — the pair is earned by a consumable contract, never
+imposed for symmetry.</li>
+<li><strong>Infrastructure granularity is decided ad-hoc per context</strong> — a single crate or one
+per (port × technology) (<code>persistence-postgres</code>, <code>messaging-kafka</code>,
+<code>client-billing</code>), the forcing question being which deployment units need which
+driven adapters; ubiquitous ports (clock, id generation) sit together in a <code>commons</code>
+crate. Cargo features gate <em>variants of one adapter</em>, never adapter selection — the
+unit's <code>[dependencies]</code> does that.</li>
 <li><strong>The wiring rule — <code>Arc&lt;dyn Port&gt;</code> at the seams by default, generics as the measured
-escape hatch.</strong> Trait objects give Java-like late binding and a readable <code>main.rs</code>;
+escape hatch.</strong> Trait objects give late binding and a readable <code>main.rs</code>;
 the cost is that async trait methods aren't natively object-safe, so dyn ports mean
 boxed futures — one heap allocation per port call. Generics
 (<code>PlaceOrderService&lt;R: OrderRepository&gt;</code>) are zero-cost but monomorphize the assembly
@@ -107,65 +108,65 @@ on an executor.</li>
 │   ├── domain-api/                # port traits, commands, events — no deps
 │   └── domain-core/               # entities, services — depends on domain-api only
 ├── infrastructure/
+│   ├── commons/                   # ubiquitous ports: clock, id generation
 │   ├── persistence-postgres/      # sqlx; implements repository traits
 │   ├── messaging-kafka/
 │   └── client-billing/
 ├── compose.yaml
-└── deployment/                    # OpenTofu, same shape as the Java reference
+└── deployment/                    # IaC: OpenTofu modules + per-environment stacks
 </code></pre>
-<p>No configurator crate: <code>main.rs</code> per binary is the assembly point, as in Go — the
-configurator <em>module</em> is a Java-ism that earns its keep only there. If several binaries
+<p>No configurator crate: <code>main.rs</code> per binary is the assembly point. If several binaries
 wire identical subsets, extract a small lib crate of assembly constructors; that is a
 deduplication move, not a layer of the architecture.</p>
-<h3>Mapping table</h3>
+<h3>The layout elements and their enforcement</h3>
 <table>
 <thead>
 <tr>
-<th>Java reference</th>
-<th>Rust derivation</th>
-<th>Fidelity</th>
+<th>Element</th>
+<th>Realization</th>
+<th>Held by</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Maven module graph</td>
-<td>Cargo workspace crate graph</td>
-<td>equal or better — enforced by rustc</td>
+<td>the dependency rule</td>
+<td>the workspace crate graph</td>
+<td>rustc — a wrong edge is a compile error</td>
 </tr>
 <tr>
-<td><code>domain-api</code> / <code>domain-core</code></td>
+<td>domain contract vs implementation</td>
 <td><code>domain-api</code> / <code>domain-core</code> crates</td>
-<td>1:1</td>
+<td>crate dependencies</td>
 </tr>
 <tr>
-<td>port interfaces</td>
-<td>traits (<code>async</code> where needed)</td>
-<td>1:1; object-safety needed for <code>dyn</code></td>
+<td>ports</td>
+<td>object-safe traits, <code>Send + Sync</code>, boxed-async accepted</td>
+<td>the house port-design rule</td>
 </tr>
 <tr>
-<td><code>*-api</code> + <code>*-app</code> module pair</td>
-<td>lib + bin crate pair where the contract is real</td>
-<td>1:1 — the same rule now holds in Java</td>
+<td>adapter contract</td>
+<td>lib + bin crate pair where the contract is real; lone bin otherwise</td>
+<td>convention</td>
 </tr>
 <tr>
-<td>infra module per adapter</td>
-<td>infra crate per adapter</td>
-<td>1:1; features for variants only</td>
+<td>infra granularity</td>
+<td>per-context: single crate or one per (port × technology); <code>commons</code> for ubiquitous ports</td>
+<td>the unit's <code>[dependencies]</code></td>
 </tr>
 <tr>
-<td>configurator module</td>
+<td>assembly point</td>
 <td><code>main.rs</code> per binary</td>
-<td>the module is a Java-ism; here <code>main</code> is the assembly point</td>
+<td>convention</td>
 </tr>
 <tr>
-<td>Spring DI</td>
-<td>explicit construction, <code>Arc&lt;dyn Port&gt;</code></td>
-<td>simpler; no framework</td>
+<td>wiring</td>
+<td>explicit construction, <code>Arc&lt;dyn Port&gt;</code> by default; generics on measured hot paths</td>
+<td>house rule</td>
 </tr>
 <tr>
-<td>enforcer + ArchUnit</td>
-<td>the compiler; <code>cargo-deny</code> for licences/dupes</td>
-<td>mostly free</td>
+<td>supply-chain hygiene</td>
+<td><code>cargo-deny</code> for licences and duplicates</td>
+<td>CI</td>
 </tr>
 </tbody>
 </table>
@@ -202,14 +203,11 @@ let app = rest_public::router(Arc::new(place_order));
 </code></pre>
 <h2>Related</h2>
 <ul>
-<li><a href="../../java/hexagonal-reference-implementation/hexagonal-reference-implementation/">Hexagonal reference implementation — the layout (Java)</a>
-— the reference this derives from.</li>
-<li><a href="../../go/hexagonal-reference-implementation/">Hexagonal reference implementation — Go derivation</a>
-— the sibling derivation, where convention replaces the crate graph.</li>
 <li><a href="../../applicative-architecture/hexagonal-architecture/">Hexagonal architecture</a> — the
-principles behind the layout.</li>
+shared house principles this note realizes; the hub for all three reference
+implementations.</li>
 <li><a href="../../rust/rust-deep-dive/">Deep dive Rust</a> — traits, ownership and async, the machinery
-the derivation leans on.</li>
+this realization leans on.</li>
 <li><a href="../../rust/build-ecosystem/cargo-in-depth/">Cargo in depth — workspaces, features, profiles &amp; publishing</a>
 — the workspace model and dependency inheritance this layout is built on, and why
 features are for variants, not adapter selection.</li>
