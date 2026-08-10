@@ -41,7 +41,16 @@
         <p class="lib-lede"><span class="tok-comment"># What arrived on the shelves, newest first.</span></p>
       </div>
     </div>
-    <article class="lib-doc lib-log"><h3>2026-08-09</h3>
+    <article class="lib-doc lib-log"><h3>2026-08-10</h3>
+<ul>
+<li><strong>Creation</strong>: Added concept <a href="../frontend/build-ecosystem/build-ecosystem/">The TypeScript build ecosystem</a> — the layered TypeScript toolchain — runtimes, package managers, compilers, bundlers — across the frontend and backend worlds, and the artifact formats they produce.</li>
+<li><strong>Creation</strong>: Added concept <a href="../frontend/build-ecosystem/backend-builds/">Building TypeScript for the backend</a> — the spectrum from tsc-as-the-whole-build to type-stripping runtimes to bundled lambdas, with ESM vs CJS as the central pain and orchestrators caching monorepo task graphs.</li>
+<li><strong>Creation</strong>: Added concept <a href="../frontend/build-ecosystem/bundlers/">The bundler world</a> — why bundling exists, the generational story from webpack through esbuild to the Rust rewrites converging on Rolldown, and how apps and libraries bundle differently.</li>
+<li><strong>Creation</strong>: Added concept <a href="../frontend/build-ecosystem/package-managers/">Package managers: npm, pnpm, yarn, bun</a> — one registry, four clients — semver ranges and lockfiles, node_modules layouts from hoisted flat trees to pnpm's symlinked store, workspaces, Corepack pinning, and the lifecycle-script supply chain.</li>
+<li><strong>Creation</strong>: Added concept <a href="../frontend/build-ecosystem/vite/">Vite deep dive</a> — Vite's dev/prod split — a native-ESM dev server with esbuild pre-bundling, Rollup/Rolldown production builds — plus the plugin API, the framework ecosystem built on it, and Vitest.</li>
+<li><strong>Update</strong>: Cross-linked the new group both ways with <a href="../java/build-ecosystem/build-ecosystem/">The Java build ecosystem</a>, <a href="../rust/build-ecosystem/build-ecosystem/">The Rust build ecosystem</a>, <a href="../go/modules-and-build/modules-and-build/">Modules &amp; the Go build ecosystem</a>, and <a href="../frontend/typescript-deep-dive/">TypeScript deep dive</a> — the cross-language build-set contrast now spans all four ecosystems.</li>
+</ul>
+<h3>2026-08-09</h3>
 <ul>
 <li><strong>Update</strong>: <a href="../applicative-architecture/hexagonal-architecture/">Hexagonal architecture</a> — settled the command-dispatch stance across the references: business logic enters the hexagon as command/query data through one explicit dispatch seam; the mechanism is per-language (Java: registry Mediator; Rust: per-use-case traits, enum + exhaustive match when a unified seam is justified; Go and frontend: no mediator object — per-use-case ports + decorators).</li>
 <li><strong>Update</strong>: <a href="../java/hexagonal-reference-implementation/domain-layer/">Domain layer — contract &amp; implementation</a> — Command/Query + Mediator ruled the Java default: Mediator driving port + sealed command records in domain-api, self-declaring handlers + RegistryMediator in domain-core; per-use-case driving interfaces demoted to rejected-as-default. <a href="../java/hexagonal-reference-implementation/application-layer/">Application layer</a> adapters now dispatch through the Mediator seam.</li>

@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>The bundler world — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/structural.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/frontend/build-ecosystem</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../frontend/">frontend</a><span class="tok-path">/</span><span class="tok-path">build-ecosystem</span> <span class="tok-cmd">cat</span> <span class="tok-file">bundlers</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">The bundler world</h1>
+        <p class="lib-lede"><span class="tok-comment"># Why bundling exists, the generational story from webpack through esbuild to the Rust rewrites converging on Rolldown, and how apps and libraries bundle differently.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-10</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#typescript">#typescript</a><a class="lib-tag" href="../../../tags/#javascript">#javascript</a><a class="lib-tag" href="../../../tags/#build">#build</a><a class="lib-tag" href="../../../tags/#tooling">#tooling</a><a class="lib-tag" href="../../../tags/#bundlers">#bundlers</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>The browser is the one deployment target with no package manager and no filesystem:
+it cannot resolve <code>node_modules</code>, and loading a real app's thousands of modules over
+HTTP one by one is untenable. A bundler resolves the whole module graph ahead of time
+and emits a few optimized files — and once it holds the graph, it can tree-shake dead
+exports, split code along routes, minify, and pull CSS and images into the same
+dependency story. The tool generations since 2012 retell one plot twice: first
+JavaScript bundlers competing on features, now native rewrites competing on speed —
+converging on a small Rust core everything else wraps.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>What a bundler actually does</strong>: resolve every <code>import</code> from the entry to a closed
+module graph, transform each module (TS → JS, JSX, CSS modules), then link — tree-shake
+unused exports, split shared chunks, hash filenames for caching, minify. The asset
+graph (CSS, images, workers) rides the same mechanism.</li>
+<li><strong>webpack</strong> — the configurable incumbent: loaders and plugins made <em>everything</em>
+bundleable and its ecosystem unmatched; the cost is configuration sprawl and JS-speed
+builds. Still everywhere in the installed base, rarely chosen fresh.</li>
+<li><strong>Rollup</strong> — ESM-first and the library standard: clean, readable output, proper
+tree-shaking before anyone else, and a plugin API so good it became the lingua franca
+(Vite's plugin system is Rollup-compatible by design).</li>
+<li><strong>esbuild</strong> — the shock: written in Go, parallel, 10-100x faster, transpiles <em>and</em>
+bundles. Deliberately limited extensibility — it declines to be a platform, which is
+why others embed it rather than extend it.</li>
+<li><strong>swc</strong> — the Rust transpiler, not a full bundler: powers Next.js's compiler,
+<code>ts-node --swc</code>, Jest transforms — the fast-emit half of the check/emit split.</li>
+<li><strong>Parcel</strong> — the zero-config stance, one line: everything automatic, beloved for
+small apps, never the ecosystem centre.</li>
+<li><strong>The Rust convergence</strong>: Turbopack (Next.js's bundler), <strong>Rolldown</strong> — the Rust
+Rollup successor, production-ready and becoming Vite's core — and <strong>Oxc</strong>, the
+parser/resolver/minifier toolkit under it. The endgame: one native core, many faces.</li>
+<li><strong>Library bundlers ride on top</strong>: tsup (esbuild-based), tsdown (Rolldown-based),
+unbuild — thin CLIs that turn &quot;entry in, ESM + <code>.d.ts</code> out&quot; into one command.</li>
+<li><strong>Apps and libraries bundle differently</strong>: an app bundles <em>everything</em> — deps
+included, minified, hashed. A library emits clean unminified ESM plus declarations and
+leaves dependencies <strong>external</strong> — bundling them in would defeat the consumer's
+dedupe and tree-shaking.</li>
+</ul>
+<p>Who wraps whom — the dependency direction of the current toolscape:</p>
+<pre class="mermaid">flowchart LR
+    TSUP[&quot;tsup (library CLI)&quot;] --&gt; ESBUILD[&quot;esbuild (Go)&quot;]
+    TSDOWN[&quot;tsdown (library CLI)&quot;] --&gt; ROLLDOWN[&quot;Rolldown (Rust)&quot;]
+    VITE[&quot;Vite&quot;] --&gt;|&quot;dev: dependency pre-bundle&quot;| ESBUILD
+    VITE --&gt;|&quot;prod: build&quot;| ROLLUP[&quot;Rollup (JS)&quot;]
+    VITE --&gt;|&quot;rolldown-vite: both roles&quot;| ROLLDOWN
+    ROLLDOWN --&gt; OXC[&quot;Oxc (parser, resolver, minifier)&quot;]
+    NEXT[&quot;Next.js&quot;] --&gt; TURBOPACK[&quot;Turbopack (Rust)&quot;]
+    NEXT --&gt; SWC[&quot;swc (Rust transpiler)&quot;]
+</pre>
+<h2>Details</h2>
+<h3>The bundlers compared</h3>
+<table>
+<thead>
+<tr>
+<th>Bundler</th>
+<th>Written in</th>
+<th>Niche</th>
+<th>One-line stance</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>webpack</strong></td>
+<td>JavaScript</td>
+<td>Legacy apps, deep customization</td>
+<td>Everything is possible, nothing is fast</td>
+</tr>
+<tr>
+<td><strong>Rollup</strong></td>
+<td>JavaScript</td>
+<td>Libraries; Vite's prod engine</td>
+<td>Clean ESM output; the plugin API everyone speaks</td>
+</tr>
+<tr>
+<td><strong>esbuild</strong></td>
+<td>Go</td>
+<td>Transpile + bundle inside other tools</td>
+<td>Speed via refusing to be extensible</td>
+</tr>
+<tr>
+<td><strong>swc</strong></td>
+<td>Rust</td>
+<td>Transpiler embedded in frameworks</td>
+<td>The emit half only; no linking</td>
+</tr>
+<tr>
+<td><strong>Parcel</strong></td>
+<td>JS/Rust</td>
+<td>Zero-config small apps</td>
+<td>Convention so total there is no config</td>
+</tr>
+<tr>
+<td><strong>Turbopack</strong></td>
+<td>Rust</td>
+<td>Next.js</td>
+<td>Vertical integration; not a general tool</td>
+</tr>
+<tr>
+<td><strong>Rolldown</strong></td>
+<td>Rust</td>
+<td>Rollup successor, Vite's new core</td>
+<td>Rollup's API at esbuild's speed — the convergence point</td>
+</tr>
+<tr>
+<td><strong>tsup / tsdown / unbuild</strong></td>
+<td>wrappers</td>
+<td>Library builds</td>
+<td>One command from entry to publishable package</td>
+</tr>
+</tbody>
+</table>
+<h3>Why tree-shaking needs ESM</h3>
+<p>Static <code>import</code>/<code>export</code> makes the dependency graph analysable without executing
+anything — a bundler can prove an export unused and drop it. CJS <code>require()</code> is a
+runtime call that can be conditional, computed, or wrapped, so CJS dependencies
+largely defeat tree-shaking; one CJS package deep in the graph can drag its whole
+bulk into the bundle. This, more than aesthetics, is why &quot;ship ESM&quot; became the
+library-publishing rule.</p>
+<h2>Examples</h2>
+<p>A complete library build — clean ESM, types, deps external by default:</p>
+<pre><code class="language-ts">// tsup.config.ts
+import { defineConfig } from 'tsup';
+
+export default defineConfig({
+  entry: ['src/index.ts'],
+  format: ['esm'],
+  dts: true,        // emit .d.ts alongside
+  sourcemap: true,
+  clean: true,      // wipe dist/ first
+});
+</code></pre>
+<p><code>tsup</code> externalizes everything in <code>dependencies</code> automatically; the consumer's bundler
+sees clean per-module ESM it can tree-shake.</p>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../frontend/build-ecosystem/build-ecosystem/">The TypeScript build ecosystem</a> —
+parent summary: where the bundler layer sits in the stack.</li>
+<li><a href="../../../frontend/build-ecosystem/vite/">Vite deep dive</a> — the tool that assembled this
+world's pieces into the frontend default.</li>
+<li><a href="../../../frontend/build-ecosystem/package-managers/">Package managers: npm, pnpm, yarn, bun</a> —
+the layer below: the <code>node_modules</code> tree bundlers resolve from.</li>
+<li><a href="../../../frontend/build-ecosystem/backend-builds/">Building TypeScript for the backend</a> —
+where bundling is optional but increasingly chosen anyway.</li>
+<li><a href="../../../frontend/web-performance/">Web performance</a> — code-splitting, tree-shaking and
+caching budgets are what the linking step exists to serve.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+  <script src="../../../assets/mermaid.js" defer></script>
+</body>
+</html>

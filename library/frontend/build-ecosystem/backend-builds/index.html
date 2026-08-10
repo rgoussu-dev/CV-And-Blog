@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Building TypeScript for the backend — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/structural.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/frontend/build-ecosystem</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../frontend/">frontend</a><span class="tok-path">/</span><span class="tok-path">build-ecosystem</span> <span class="tok-cmd">cat</span> <span class="tok-file">backend-builds</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Building TypeScript for the backend</h1>
+        <p class="lib-lede"><span class="tok-comment"># The spectrum from tsc-as-the-whole-build to type-stripping runtimes to bundled lambdas, with ESM vs CJS as the central pain and orchestrators caching monorepo task graphs.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-10</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#typescript">#typescript</a><a class="lib-tag" href="../../../tags/#javascript">#javascript</a><a class="lib-tag" href="../../../tags/#build">#build</a><a class="lib-tag" href="../../../tags/#tooling">#tooling</a><a class="lib-tag" href="../../../tags/#node">#node</a><a class="lib-tag" href="../../../tags/#backend">#backend</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>Node never required a build step — JavaScript just runs — and TypeScript reintroduced
+one, which the ecosystem has spent a decade shrinking back toward zero. Unlike the
+frontend, where bundling is forced by the browser, a backend service gets to choose its
+position on a spectrum: from <code>tsc</code> emitting plain JavaScript, through transpile-only dev
+runners, to runtimes that execute TypeScript source directly, to deliberately bundling
+anyway for deployment. The genuinely hard part is none of these — it is the ESM/CJS
+module split, which remains the sharpest operational edge in the whole ecosystem.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>(a) <code>tsc</code> as the whole build</strong>: emit JS + <code>.d.ts</code> + source maps to <code>dist/</code>, run
+<code>node dist/main.js</code>. Boring, dependency-free, and mandatory anyway for published
+libraries (declarations only come from <code>tsc</code>). The default until proven insufficient.</li>
+<li><strong>(b) Transpile-only runners for dev</strong>: <code>tsx</code> (esbuild-based) and <code>ts-node --swc</code>
+strip types in memory with watch mode — instant restarts, no <code>dist/</code> during
+development. Types are checked separately (<code>tsc --noEmit</code> in CI), per the standard
+check/emit split.</li>
+<li><strong>(c) Node's native type stripping</strong>: <code>--experimental-strip-types</code> graduated to
+<strong>stable in Node 22.18+ / 23.6+</strong> — <code>node main.ts</code> just works. The constraint is
+<em>erasable syntax only</em>: enums, namespaces with runtime meaning and constructor
+parameter properties are rejected, quietly steering style toward types-as-annotations
+TypeScript.</li>
+<li><strong>(d) Deno and Bun run TypeScript directly</strong> and always have — no flag, no step;
+type checking is a separate explicit command in both.</li>
+<li><strong>(e) Bundle the backend anyway</strong>: tsup/esbuild collapse a service and its
+dependencies into one file — smaller lambda cold starts, <code>node_modules</code>-free container
+images, single-artifact deploys. The frontend's technique, borrowed for ops reasons
+rather than platform ones.</li>
+<li><strong>ESM vs CJS is the central pain</strong>: <code>&quot;type&quot;: &quot;module&quot;</code> flips a package's <code>.js</code> files
+to ESM; <code>exports</code> maps declare the public entry points (and wall off deep imports);
+dual packages ship both formats and risk the two-copies hazard. Interop has softened —
+modern Node supports <code>require()</code> of ESM — but mismatched default exports and
+mis-configured <code>exports</code> maps remain the ecosystem's top bug reports.</li>
+<li><strong><code>module</code>/<code>moduleResolution</code> must match the world the code runs in</strong>: <code>nodenext</code> for
+anything Node executes (honours <code>exports</code> maps, requires explicit <code>.js</code> extensions in
+relative imports), <code>bundler</code> for code a bundler will consume. Wrong dial, wrong
+resolution — most &quot;works locally, breaks published&quot; stories start here.</li>
+<li><strong>Monorepo backends</strong>: TS <strong>project references</strong> give per-package incremental builds
+with enforced dependency direction (<code>tsc --build</code> walks the graph); orchestrators
+(Turborepo, Nx) hash each package task's inputs and cache outputs — the same idea as
+the Gradle build cache, at coarser, package-level granularity instead of per-task
+file tracking.</li>
+</ul>
+<h2>Details</h2>
+<h3>The tsconfig dials for a Node service</h3>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Value</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>module</code></td>
+<td><code>nodenext</code></td>
+<td>Emit and check against Node's actual ESM/CJS semantics; implies matching <code>moduleResolution</code></td>
+</tr>
+<tr>
+<td><code>target</code></td>
+<td>Match the Node LTS you run</td>
+<td>No down-levelling for features the runtime has natively</td>
+</tr>
+<tr>
+<td><code>strict</code></td>
+<td><code>true</code></td>
+<td>The floor, per the <a href="../../../frontend/typescript-deep-dive/">deep dive</a></td>
+</tr>
+<tr>
+<td><code>verbatimModuleSyntax</code></td>
+<td><code>true</code></td>
+<td>Forces type-only imports to be marked — exactly what erasable-syntax runtimes need</td>
+</tr>
+<tr>
+<td><code>declaration</code> + <code>declarationMap</code></td>
+<td><code>true</code> for libraries</td>
+<td><code>.d.ts</code> output; go-to-definition lands in source, not declarations</td>
+</tr>
+<tr>
+<td><code>outDir</code> / <code>rootDir</code></td>
+<td><code>dist</code> / <code>src</code></td>
+<td>Keep emitted output out of the source tree</td>
+</tr>
+</tbody>
+</table>
+<h3>Choosing a spectrum position</h3>
+<ul>
+<li><strong>A service in a container</strong>: (a) — <code>tsc</code> build in the image, run the JS. Add (b) for
+the local dev loop.</li>
+<li><strong>Scripts and small tools</strong>: (c) — <code>node script.ts</code> with no project ceremony; or (d)
+if Deno/Bun are already in the stack.</li>
+<li><strong>Serverless / cold-start-sensitive</strong>: (e) — one bundled file, dependencies included,
+nothing to resolve at boot.</li>
+<li><strong>A published library</strong>: always (a) for the emit — clean ESM + <code>.d.ts</code> — whatever
+runs in development.</li>
+</ul>
+<h2>Examples</h2>
+<p>A minimal Node 22+ ESM service:</p>
+<pre><code class="language-jsonc">// tsconfig.json
+{
+  &quot;compilerOptions&quot;: {
+    &quot;module&quot;: &quot;nodenext&quot;,
+    &quot;target&quot;: &quot;es2023&quot;,
+    &quot;strict&quot;: true,
+    &quot;verbatimModuleSyntax&quot;: true,
+    &quot;sourceMap&quot;: true,
+    &quot;outDir&quot;: &quot;dist&quot;,
+    &quot;rootDir&quot;: &quot;src&quot;
+  },
+  &quot;include&quot;: [&quot;src&quot;]
+}
+</code></pre>
+<pre><code class="language-jsonc">// package.json
+{
+  &quot;type&quot;: &quot;module&quot;,
+  &quot;scripts&quot;: {
+    &quot;dev&quot;: &quot;tsx watch src/main.ts&quot;,
+    &quot;typecheck&quot;: &quot;tsc --noEmit&quot;,
+    &quot;build&quot;: &quot;tsc&quot;,
+    &quot;start&quot;: &quot;node dist/main.js&quot;
+  }
+}
+</code></pre>
+<p>The dev loop never emits; CI runs <code>typecheck</code> and <code>build</code>; production runs plain
+JavaScript.</p>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../frontend/build-ecosystem/build-ecosystem/">The TypeScript build ecosystem</a> —
+parent summary: the backend as the &quot;increasingly no-build&quot; half of the fault line.</li>
+<li><a href="../../../frontend/build-ecosystem/package-managers/">Package managers: npm, pnpm, yarn, bun</a> —
+workspaces and the <code>exports</code>-map machinery the module split runs through.</li>
+<li><a href="../../../frontend/build-ecosystem/bundlers/">The bundler world</a> — the tools behind
+position (e), bundling the backend on purpose.</li>
+<li><a href="../../../frontend/typescript-deep-dive/">TypeScript deep dive</a> — the language-side view:
+erased types, strictness dials, and ESM/CJS flagged as the operational edge.</li>
+<li><a href="../../../java/build-ecosystem/gradle/">Gradle deep dive</a> — the input-hashing build cache
+the monorepo orchestrators borrow, at finer granularity than they attempt.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+  <script src="../../../assets/mermaid.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>The TypeScript build ecosystem — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/structural.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/frontend/build-ecosystem</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../frontend/">frontend</a><span class="tok-path">/</span><span class="tok-path">build-ecosystem</span> <span class="tok-cmd">cat</span> <span class="tok-file">build-ecosystem</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">The TypeScript build ecosystem</h1>
+        <p class="lib-lede"><span class="tok-comment"># The layered TypeScript toolchain — runtimes, package managers, compilers, bundlers — across the frontend and backend worlds, and the artifact formats they produce.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-10</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#typescript">#typescript</a><a class="lib-tag" href="../../../tags/#javascript">#javascript</a><a class="lib-tag" href="../../../tags/#build">#build</a><a class="lib-tag" href="../../../tags/#tooling">#tooling</a><a class="lib-tag" href="../../../tags/#packaging">#packaging</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>Where Java offers three build tiers
+(<a href="../../../java/build-ecosystem/build-ecosystem/">bare JDK tools, Maven, Gradle</a>), Go ships
+<a href="../../../go/modules-and-build/modules-and-build/">one first-party path</a> and Rust folds
+everything into <a href="../../../rust/build-ecosystem/build-ecosystem/">cargo</a>, TypeScript sits at
+the opposite extreme: <strong>there is no first-party build tool at all</strong>. <code>tsc</code> checks types
+and can emit JavaScript, but the &quot;build system&quot; is a stack of independently chosen
+layers — runtime, package manager, transpiler, bundler, orchestrator — each with several
+competing implementations and real churn. From the JVM this looks chaotic, and partly
+is; the compensation is that every layer is swappable, and the same layering serves two
+quite different worlds: the frontend, which <em>must</em> bundle because the browser is the
+target, and the backend, which increasingly needn't build at all.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>The runtime layer</strong>: Node is the default; Deno and Bun are batteries-included
+challengers that run TypeScript directly and ship their own package manager, test
+runner and bundler — cargo-shaped ambitions on a JavaScript substrate.</li>
+<li><strong>The package-manager layer</strong>: npm, pnpm, yarn and bun all resolve against the same
+npm registry — the substrate is settled the way Maven Central is; only the client is
+contested — see <a href="../../../frontend/build-ecosystem/package-managers/">Package managers</a>.</li>
+<li><strong>The type-check/transpile split</strong>: <code>tsc</code> is the only full type-checker, but a slow
+emitter — so swc, esbuild and babel strip types and transpile 10-100x faster <em>without
+checking anything</em>. The standard arrangement: a fast transpiler in the hot path,
+<code>tsc --noEmit</code> as a parallel gate in CI.</li>
+<li><strong>The bundler / dev-server layer</strong>: webpack, Rollup, esbuild and the Rust rewrites —
+see <a href="../../../frontend/build-ecosystem/bundlers/">The bundler world</a> — with
+<a href="../../../frontend/build-ecosystem/vite/">Vite</a> as the assembled default most teams
+actually touch.</li>
+<li><strong>The orchestrator layer</strong> (monorepos only): Turborepo, Nx and wireit hash inputs,
+cache outputs and order package-level tasks — Gradle's incremental-build ideas at
+coarser granularity.</li>
+<li><strong>Frontend vs backend is the fault line</strong>: the browser cannot resolve <code>node_modules</code>,
+so frontend code is always bundled; a Node service can run <code>tsc</code> output as-is — or,
+with type-stripping runtimes, the TypeScript source itself — see
+<a href="../../../frontend/build-ecosystem/backend-builds/">Building TypeScript for the backend</a>.</li>
+</ul>
+<p>The stack, bottom to top — each layer chosen independently of the others (an arrow
+reads &quot;runs on top of&quot;):</p>
+<pre class="mermaid">flowchart TB
+    O[&quot;orchestrator — Turborepo / Nx / wireit (monorepos only)&quot;]
+    B[&quot;bundler &amp; dev server — Vite / webpack / Rollup / esbuild&quot;]
+    C[&quot;type-checker &amp; transpiler — tsc / swc / esbuild&quot;]
+    P[&quot;package manager — npm / pnpm / yarn / bun&quot;]
+    R[&quot;runtime — Node / Deno / Bun&quot;]
+    O --&gt; B --&gt; C --&gt; P --&gt; R
+</pre>
+<h2>Details</h2>
+<h3>Artifact formats</h3>
+<table>
+<thead>
+<tr>
+<th>Format</th>
+<th>Contains</th>
+<th>Consumed by</th>
+<th>Relevance today</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>ESM</strong> (<code>.js</code>/<code>.mjs</code>, <code>import</code>/<code>export</code>)</td>
+<td>Standard modules</td>
+<td>Browsers natively, Node, every bundler</td>
+<td>The convergence target; new code should emit only this</td>
+</tr>
+<tr>
+<td><strong>CJS</strong> (<code>.cjs</code>, <code>require</code>)</td>
+<td>Legacy Node modules</td>
+<td>Node, older tooling</td>
+<td>The compatibility floor libraries still drag; fading</td>
+</tr>
+<tr>
+<td><strong>Dual package</strong> (<code>exports</code> map)</td>
+<td>ESM + CJS + conditions in one package</td>
+<td>Package managers &amp; bundlers at resolution time</td>
+<td>The library-publishing norm; source of the dual-package hazard</td>
+</tr>
+<tr>
+<td><strong><code>.d.ts</code> declarations</strong></td>
+<td>Types only, no code</td>
+<td><code>tsc</code>, editors</td>
+<td>How typed libraries ship; generated by <code>tsc --declaration</code></td>
+</tr>
+<tr>
+<td><strong>Source maps</strong> (<code>.map</code>)</td>
+<td>Emitted-JS → source mapping</td>
+<td>Debuggers, error reporting</td>
+<td>Ship them for backends; frontend prod is a policy choice</td>
+</tr>
+<tr>
+<td><strong>Single-file bundle</strong></td>
+<td>App + dependencies in one file</td>
+<td>Browsers, lambdas, containers</td>
+<td>The frontend norm; increasingly the serverless-backend norm</td>
+</tr>
+<tr>
+<td><strong>Standalone binary</strong></td>
+<td>Bundle + embedded runtime (<code>bun build --compile</code>, <code>deno compile</code>)</td>
+<td>OS directly — no runtime install</td>
+<td>The Go/Rust deployment story, borrowed; niche but real</td>
+</tr>
+</tbody>
+</table>
+<h3>Choosing</h3>
+<ul>
+<li><strong>App vs library</strong>: an app bundles everything and answers to no one downstream —
+pick Vite (frontend) or a thin <code>tsc</code>/tsup build (backend) and move on. A library is
+consumed by other builds: emit clean ESM plus <code>.d.ts</code>, leave dependencies external,
+and let the consumer's bundler do the bundling.</li>
+<li><strong>Frontend vs backend</strong>: frontend has no choice about bundling, so the choice is
+which bundler — and Vite is the boring default. Backend's real choice is whether to
+build at all: <code>tsc</code> output for services, type stripping for scripts and dev loops,
+a deliberate bundle for lambdas and containers.</li>
+<li><strong>Layers over frameworks</strong>: the churn is real but localized — a layer swap (npm →
+pnpm, webpack → Vite) doesn't cascade, which is precisely what the no-first-party-
+tool trade buys.</li>
+</ul>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../frontend/build-ecosystem/package-managers/">Package managers: npm, pnpm, yarn, bun</a> —
+the registry substrate and the client layer in detail.</li>
+<li><a href="../../../frontend/build-ecosystem/bundlers/">The bundler world</a> — the bundler generations
+and the Rust convergence.</li>
+<li><a href="../../../frontend/build-ecosystem/vite/">Vite deep dive</a> — the assembled frontend default.</li>
+<li><a href="../../../frontend/build-ecosystem/backend-builds/">Building TypeScript for the backend</a> —
+the no-build spectrum and the ESM/CJS pain.</li>
+<li><a href="../../../frontend/typescript-deep-dive/">TypeScript deep dive</a> — the language this
+toolchain exists to erase; the check/emit split starts there.</li>
+<li><a href="../../../java/build-ecosystem/build-ecosystem/">The Java build ecosystem</a> — the contrast:
+three integrated build tools where TypeScript has none.</li>
+<li><a href="../../../go/modules-and-build/modules-and-build/">Modules &amp; the Go build ecosystem</a> — the
+one-first-party-path contrast.</li>
+<li><a href="../../../rust/build-ecosystem/build-ecosystem/">The Rust build ecosystem</a> — the everything-
+in-cargo contrast; Deno and Bun chase exactly that posture.</li>
+<li><a href="../../../frontend/hexagonal-reference-implementation/">Hexagonal reference implementation — Frontend</a> —
+this toolchain put to architectural work: workspace graph, project references and
+<code>exports</code> maps as the walls.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+  <script src="../../../assets/mermaid.js" defer></script>
+</body>
+</html>
