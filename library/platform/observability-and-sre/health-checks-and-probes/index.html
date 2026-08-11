@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Health checks: liveness, readiness, startup — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/structural.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/platform/observability-and-sre</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../platform/">platform</a><span class="tok-path">/</span><span class="tok-path">observability-and-sre</span> <span class="tok-cmd">cat</span> <span class="tok-file">health-checks-and-probes</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Health checks: liveness, readiness, startup</h1>
+        <p class="lib-lede"><span class="tok-comment"># Designing probe endpoints from the probed side — liveness without dependency checks, readiness as the traffic gate, startup probes for slow boots — and the endpoint catalogue across Actuator, SmallRye, Micronaut, and hand-rolled stacks.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-11</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#observability">#observability</a><a class="lib-tag" href="../../../tags/#health-checks">#health-checks</a><a class="lib-tag" href="../../../tags/#liveness">#liveness</a><a class="lib-tag" href="../../../tags/#readiness">#readiness</a><a class="lib-tag" href="../../../tags/#kubernetes">#kubernetes</a><a class="lib-tag" href="../../../tags/#probes">#probes</a><a class="lib-tag" href="../../../tags/#actuator">#actuator</a><a class="lib-tag" href="../../../tags/#microprofile">#microprofile</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>Health endpoints are the contract between a service and the platform that runs it — and
+the design question is best asked from the probed side: <em>what should the orchestrator do
+when this check fails?</em> If the answer is &quot;restart me&quot;, that's <strong>liveness</strong>; if it's &quot;stop
+sending me traffic&quot;, that's <strong>readiness</strong>; if it's &quot;give me more time to boot&quot;, that's a
+<strong>startup</strong> probe. Most production probe incidents come from conflating the first two —
+putting dependency checks into liveness turns any database blip into a fleet-wide restart
+storm.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>Liveness</strong> = &quot;the process is alive and not deadlocked; restart me if this fails.&quot;
+It must be cheap, in-process, and <strong>must NOT check dependencies</strong>: a dead database
+would fail liveness on every pod at once and Kubernetes would restart-storm the whole
+deployment without fixing anything — restarts don't resurrect databases. A bare 200
+from the running event loop / a trivial in-process check is correct.</li>
+<li><strong>Readiness</strong> = &quot;route traffic to me.&quot; It <em>does</em> include critical downstream checks
+(the database this service cannot serve without, an unfinished cache warmup, a
+not-yet-completed boot) — failing readiness removes the pod from Service endpoints
+(load balancing) <strong>without restarting it</strong>, and it re-enters rotation when the check
+recovers. Readiness is also how graceful shutdown drains: fail readiness first, keep
+serving in-flight requests, then exit.</li>
+<li><strong>Startup</strong> probe covers slow boots (JVM warmup, migrations, large caches): until it
+succeeds, liveness/readiness are not evaluated, so liveness can stay tight
+(<code>failureThreshold × periodSeconds</code> on the startup probe is the boot budget). Without
+it, teams inflate <code>initialDelaySeconds</code> on liveness and lose fast deadlock detection.</li>
+<li><strong>Readiness on shared dependencies cascades</strong>: if every service in a chain checks a
+shared broker in readiness, one broker incident marks the whole estate unready and
+takes down even the endpoints that could still serve. Check only dependencies that are
+<em>hard</em> prerequisites for this service's own traffic; degrade instead of failing where
+partial service is possible.</li>
+<li><strong>Check design</strong>: per-dependency checkers with an overall AND for readiness; strict
+timeouts on each check (well under <code>timeoutSeconds</code>, or a slow dependency makes the
+probe itself time out — indistinguishable from a dead process); cache results a few
+seconds so aggressive <code>periodSeconds</code> doesn't hammer dependencies.</li>
+<li><strong>Exposure</strong>: health endpoints are unauthenticated by design — serve them on a
+separate management port (Actuator <code>management.server.port</code>, Micronaut's management
+port, a second listener in stdlib stacks) and never route them through the public
+ingress; the detail payload (dependency names, versions) is reconnaissance material.</li>
+<li><strong>The wiring lives at the assembly point</strong>: readiness state is flipped after the object
+graph is built and adapters are connected — the composition root owns &quot;ready&quot;, per
+<a href="../../../platform/observability-and-sre/observability-and-sre/">the hexagonal placement</a>.</li>
+</ul>
+<h2>Details</h2>
+<h3>The three probes at a glance</h3>
+<table>
+<thead>
+<tr>
+<th>Probe</th>
+<th>Question</th>
+<th>On failure</th>
+<th>Checks dependencies?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Liveness</td>
+<td>Alive and not deadlocked?</td>
+<td>Container restarted</td>
+<td><strong>Never</strong></td>
+</tr>
+<tr>
+<td>Readiness</td>
+<td>Should traffic arrive?</td>
+<td>Removed from endpoints; no restart</td>
+<td>Critical ones only</td>
+</tr>
+<tr>
+<td>Startup</td>
+<td>Finished booting?</td>
+<td>Keeps waiting (until threshold, then restart)</td>
+<td>Boot completion only</td>
+</tr>
+</tbody>
+</table>
+<h3>Endpoint catalogue per stack</h3>
+<table>
+<thead>
+<tr>
+<th>Stack</th>
+<th>Liveness</th>
+<th>Readiness</th>
+<th>Custom check API</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Quarkus (SmallRye Health / MicroProfile Health)</td>
+<td><code>/q/health/live</code></td>
+<td><code>/q/health/ready</code></td>
+<td><code>@Liveness</code> / <code>@Readiness</code> CDI beans implementing <code>HealthCheck</code> (<code>/q/health/started</code> for <code>@Startup</code>)</td>
+</tr>
+<tr>
+<td>Spring Boot Actuator</td>
+<td><code>/actuator/health/liveness</code></td>
+<td><code>/actuator/health/readiness</code></td>
+<td>availability states (<code>LivenessState</code>, <code>ReadinessState</code>), health groups; probes auto-enabled on k8s or via <code>management.endpoint.health.probes.enabled=true</code>; custom <code>HealthIndicator</code> added to the readiness group (<code>management.endpoint.health.group.readiness.include=readinessState,db</code>)</td>
+</tr>
+<tr>
+<td>Micronaut Management</td>
+<td><code>/health/liveness</code></td>
+<td><code>/health/readiness</code></td>
+<td><code>HealthIndicator</code> beans; <code>micronaut-management</code> module</td>
+</tr>
+<tr>
+<td>Go net/http, Rust axum, Node http (hand-rolled)</td>
+<td><code>/health/live</code> → static 200</td>
+<td><code>/health/ready</code> → atomic ready flag flipped after wiring, AND over per-dependency checkers</td>
+<td>your own <code>Checker</code> interface/trait/function per dependency</td>
+</tr>
+</tbody>
+</table>
+<p>Convention for hand-rolled stacks: return 200 with a small JSON body
+(<code>{&quot;status&quot;:&quot;UP&quot;,&quot;checks&quot;:[…]}</code> mirrors MicroProfile's schema) and 503 when down —
+Kubernetes only reads the status code, humans read the body.</p>
+<h3>Kubernetes wiring</h3>
+<pre><code class="language-yaml">livenessProbe:
+  httpGet: { path: /health/live, port: 8081 }
+  periodSeconds: 10
+  timeoutSeconds: 1
+  failureThreshold: 3
+readinessProbe:
+  httpGet: { path: /health/ready, port: 8081 }
+  periodSeconds: 5
+  failureThreshold: 3
+startupProbe:
+  httpGet: { path: /health/live, port: 8081 }
+  periodSeconds: 5
+  failureThreshold: 60   # 5 min boot budget
+</code></pre>
+<p><code>httpGet</code> treats any 2xx–3xx as success. Probe handlers must not allocate per-request
+state worth tracing — exclude them from access logs,
+<a href="../../../platform/observability-and-sre/correlation-and-context-propagation/">correlation</a> middleware, and
+<a href="../../../platform/observability-and-sre/opentelemetry/">trace sampling</a>, or they dominate your telemetry volume.</p>
+<h3>Pitfalls checklist</h3>
+<ul>
+<li>Dependency check in liveness → restart storm on dependency outage.</li>
+<li>Shared-dependency check in every readiness → cascading estate-wide unreadiness.</li>
+<li>Probe <code>timeoutSeconds</code> shorter than the slowest included check → false deaths under load.</li>
+<li>No startup probe + slow boot → inflated <code>initialDelaySeconds</code>, slow deadlock detection.</li>
+<li>Health on the public port → information disclosure and probe traffic through the ingress.</li>
+<li>Ready flag flipped before adapters actually connected → 503s/errors during rollout.</li>
+</ul>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../platform/observability-and-sre/observability-and-sre/">Observability &amp; SRE practice</a> — the strategic map; probes are
+the operational contract at its most binary.</li>
+<li><a href="../../../platform/kubernetes-and-containers/">Kubernetes &amp; containers deep dive</a> — the
+prober's side: probe config, restart storms, and the reconciliation loop acting on
+probe results.</li>
+<li><a href="../../../platform/observability-and-sre/correlation-and-context-propagation/">Correlation IDs &amp; context propagation</a> and
+<a href="../../../platform/observability-and-sre/structured-logging/">Structured logging &amp; MDC</a> — sibling middleware concerns; probes
+are the traffic they should skip.</li>
+<li><a href="../../../platform/observability-and-sre/opentelemetry/">OpenTelemetry</a> — keep probe traffic out of traces and metrics
+cardinality.</li>
+<li><a href="../../../java/frameworks/jakarta-ee-correspondence/">Frameworks × Jakarta EE — who implements what</a> —
+MicroProfile Health is the spec behind SmallRye's endpoints; Actuator and Micronaut
+Management are the equivalent-API column.</li>
+</ul>
+<h2>Citations</h2>
+<p>[1] <a href="https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/" rel="noopener">Kubernetes — Liveness, Readiness and Startup Probes</a>
+[2] <a href="https://docs.spring.io/spring-boot/reference/actuator/endpoints.html#actuator.endpoints.kubernetes-probes" rel="noopener">Spring Boot — Kubernetes probes (availability &amp; health groups)</a>
+[3] <a href="https://quarkus.io/guides/smallrye-health" rel="noopener">SmallRye Health / MicroProfile Health</a></p>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+  <script src="../../../assets/mermaid.js" defer></script>
+</body>
+</html>

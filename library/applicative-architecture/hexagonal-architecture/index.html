@@ -40,7 +40,7 @@
       <div class="term-out">
         <h1 class="lib-title">Hexagonal architecture</h1>
         <p class="lib-lede"><span class="tok-comment"># Ports &amp; adapters — isolating the domain from infrastructure so the application is testable and technology-agnostic at its edges.</span></p>
-        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-08</span><span class="lib-meta-date">updated 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-08</span><span class="lib-meta-date">updated 2026-08-11</span></cluster-pk>
         <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../tags/#hexagonal-architecture">#hexagonal-architecture</a><a class="lib-tag" href="../../tags/#architecture">#architecture</a><a class="lib-tag" href="../../tags/#ddd">#ddd</a><a class="lib-tag" href="../../tags/#design">#design</a></cluster-pk>
       </div>
     </div>
@@ -173,6 +173,9 @@ standing on its own:
 internal structure for each service.</li>
 <li><a href="../../applicative-architecture/coupling-and-cohesion/">Coupling &amp; cohesion</a> — the forces ports &amp; adapters manage:
 narrow, inward-directed coupling around a cohesive domain.</li>
+<li><a href="../../platform/observability-and-sre/observability-and-sre/">Observability &amp; SRE practice</a> —
+where telemetry attaches to the hexagon: filters/middleware in the driving adapters,
+wiring at the assembly point, at most a logging facade in the domain.</li>
 </ul>
 </article>
         </div>

@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Correlation IDs &amp; context propagation — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/structural.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/platform/observability-and-sre</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../platform/">platform</a><span class="tok-path">/</span><span class="tok-path">observability-and-sre</span> <span class="tok-cmd">cat</span> <span class="tok-file">correlation-and-context-propagation</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Correlation IDs &amp; context propagation</h1>
+        <p class="lib-lede"><span class="tok-comment"># Extract-or-generate an id at the edge, carry it in a request context, stamp it on logs, responses, and outgoing calls — and where business correlation ids end and W3C traceparent/baggage begin.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-11</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#observability">#observability</a><a class="lib-tag" href="../../../tags/#correlation-id">#correlation-id</a><a class="lib-tag" href="../../../tags/#context-propagation">#context-propagation</a><a class="lib-tag" href="../../../tags/#trace-context">#trace-context</a><a class="lib-tag" href="../../../tags/#distributed-tracing">#distributed-tracing</a><a class="lib-tag" href="../../../tags/#middleware">#middleware</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>No single log line tells the story of a request that crossed three services and a queue —
+correlation is what makes the pile of per-process logs navigable. The mechanic is small:
+at the edge of every service, one filter/middleware <strong>extracts or generates</strong> a request
+id, stores it in a request-scoped context, and from there it is stamped on every log line,
+echoed on the response, and forwarded on every outgoing call. The design questions worth
+getting right are the carrier (per platform), the header contract, and the boundary
+between hand-rolled business correlation ids and the W3C Trace Context / baggage standards
+that OpenTelemetry propagates automatically.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>The edge algorithm</strong>: accept an inbound <code>X-Correlation-Id</code> header if present (trust
+boundary permitting), otherwise generate one (UUIDv4 is fine); store it in the request
+context; stamp it into the logging context (<a href="../../../platform/observability-and-sre/structured-logging/">MDC</a>); set it on the
+response so clients can quote it in bug reports; inject it into headers of every
+outgoing HTTP call and message published. One middleware does all of this — the id
+logic is never scattered through handlers.</li>
+<li><strong>Echo on the response</strong> is the underrated half: a client-visible id turns &quot;it failed
+around noon&quot; into a single log query.</li>
+<li><strong>Business correlation id ≠ trace id.</strong> W3C <strong>Trace Context</strong> defines <code>traceparent</code>
+(<code>version-traceid-parentspanid-flags</code>: a 16-byte trace-id, the caller's 8-byte span-id,
+sampling flags) and <code>tracestate</code> (vendor key-values). OTel propagators inject/extract it
+automatically on instrumented clients/servers — you get cross-service causality without
+writing propagation code. A business correlation id is different: user-meaningful,
+quotable, survives systems that have no tracing, and stable across a whole business
+transaction even where the trace is sampled away or split. Mature setups carry both and
+log both.</li>
+<li><strong><code>baggage</code></strong> (its own W3C header, <code>key=value</code> pairs) is the standards-track home for
+arbitrary cross-service context — tenant-id, channel, experiment flags. OTel propagates
+it alongside <code>traceparent</code>; entries must be explicitly copied onto spans/logs if you
+want them recorded (and they travel to <em>every</em> downstream service — never put secrets
+or PII in baggage).</li>
+<li><strong>Design an extensible request-context type</strong>, not a bare string: <code>correlationId</code> at
+minimum, extended with e.g. <code>tenantId</code> for multi-tenant scenarios — each parsed from
+its custom header by the same single filter/middleware at the edge, never re-parsed
+downstream. The context object is application-layer vocabulary; handlers receive it,
+the domain at most sees values it needs as ordinary parameters.</li>
+<li><strong>Carriers per stack</strong>: JVM — <code>ThreadLocal</code> + MDC set by a filter (Jakarta/JAX-RS
+<code>ContainerRequestFilter</code>, Spring <code>OncePerRequestFilter</code>, Micronaut <code>HttpServerFilter</code>);
+Go — <code>context.Context</code> values threaded explicitly; Rust — a <code>tower</code>/axum middleware
+(<code>Layer</code>) inserting a request extension and opening a <code>tracing</code> span with the id as a
+field; Node — <code>AsyncLocalStorage</code> entered by the first middleware.</li>
+<li><strong>Propagation is edge-to-edge</strong>: extract at the server edge, inject at the client edge.
+Every outgoing channel counts — HTTP clients, gRPC metadata, message headers (Kafka
+headers, AMQP properties); a queue that drops the id breaks the chain silently.</li>
+</ul>
+<h2>Details</h2>
+<h3>The header contract</h3>
+<table>
+<thead>
+<tr>
+<th>Header</th>
+<th>Standard</th>
+<th>Content</th>
+<th>Who propagates</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>traceparent</code></td>
+<td>W3C Trace Context</td>
+<td>trace-id, parent-span-id, flags</td>
+<td>OTel propagators, automatically</td>
+</tr>
+<tr>
+<td><code>tracestate</code></td>
+<td>W3C Trace Context</td>
+<td>vendor-scoped key-values</td>
+<td>OTel propagators</td>
+</tr>
+<tr>
+<td><code>baggage</code></td>
+<td>W3C Baggage</td>
+<td>arbitrary key-values (tenant-id, …)</td>
+<td>OTel propagators; opt-in to record</td>
+</tr>
+<tr>
+<td><code>X-Correlation-Id</code> (or <code>X-Request-Id</code>)</td>
+<td>convention</td>
+<td>one opaque business id</td>
+<td>your middleware, explicitly</td>
+</tr>
+</tbody>
+</table>
+<p>Older conventions (<code>X-B3-TraceId</code> from Zipkin) still appear; OTel's composite propagator
+can speak several at once during migrations
+(<code>OTEL_PROPAGATORS=tracecontext,baggage,b3multi</code>).</p>
+<h3>Per-stack wiring</h3>
+<table>
+<thead>
+<tr>
+<th>Stack</th>
+<th>Edge filter</th>
+<th>Context carrier</th>
+<th>Outgoing injection</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Quarkus / Jakarta</td>
+<td><code>@Provider ContainerRequestFilter</code> + <code>ContainerResponseFilter</code></td>
+<td>MDC / <code>ThreadLocal</code> (mind <a href="../../../platform/observability-and-sre/structured-logging/">async hops</a>)</td>
+<td><code>ClientRequestFilter</code> on the REST client</td>
+</tr>
+<tr>
+<td>Spring Boot</td>
+<td><code>OncePerRequestFilter</code> (register early, e.g. highest precedence)</td>
+<td>MDC</td>
+<td><code>ClientHttpRequestInterceptor</code> / WebClient filter</td>
+</tr>
+<tr>
+<td>Micronaut</td>
+<td><code>@Filter HttpServerFilter</code></td>
+<td>MDC (<code>ServerRequestContext</code> for reactive)</td>
+<td><code>HttpClientFilter</code></td>
+</tr>
+<tr>
+<td>Go net/http</td>
+<td><code>func(http.Handler) http.Handler</code> wrapper</td>
+<td><code>context.WithValue</code> with unexported key type</td>
+<td><code>http.RoundTripper</code> decorator</td>
+</tr>
+<tr>
+<td>Rust axum</td>
+<td><code>tower::Layer</code> middleware</td>
+<td>request extension + <code>tracing</code> span field</td>
+<td><code>reqwest</code> middleware / manual header</td>
+</tr>
+<tr>
+<td>Node http</td>
+<td>first middleware, <code>als.run(store, next)</code></td>
+<td><code>AsyncLocalStorage</code></td>
+<td>fetch/undici wrapper reading the store</td>
+</tr>
+</tbody>
+</table>
+<p>Two invariants across all six: the filter is registered at the <strong>application layer's
+driving adapter</strong>, and the wiring choice is made once at the <strong>assembly point</strong> — the
+hexagonal placement from <a href="../../../platform/observability-and-sre/observability-and-sre/">the parent note</a>.</p>
+<h3>Trust and validation</h3>
+<p>Accepting inbound ids is a trust decision: at a public edge, validate shape (length,
+charset) or replace outright — an attacker-controlled id lands verbatim in your logs
+(log-injection) and dashboards. Internal edges behind a gateway usually accept freely;
+the gateway generates.</p>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../platform/observability-and-sre/observability-and-sre/">Observability &amp; SRE practice</a> — the strategic map; &quot;correlation
+IDs tie the signals together&quot; is this note, expanded.</li>
+<li><a href="../../../platform/observability-and-sre/structured-logging/">Structured logging &amp; MDC</a> — where the id lands on every log
+line, and the per-platform context carriers in depth.</li>
+<li><a href="../../../platform/observability-and-sre/opentelemetry/">OpenTelemetry</a> — the propagators that move <code>traceparent</code>/<code>baggage</code>
+automatically; business ids ride your own middleware.</li>
+<li><a href="../../../platform/observability-and-sre/health-checks-and-probes/">Health checks: liveness, readiness, startup</a> — sibling
+concern in the same middleware stack (probes typically bypass correlation).</li>
+<li><a href="../../../go/web-frameworks/stdlib-correspondence/">Frameworks × the stdlib contracts</a> —
+<code>context.Context</code> as Go's propagation contract; middleware interop is what makes the
+wrapper composable.</li>
+<li><a href="../../../java/frameworks/jakarta-ee-correspondence/">Frameworks × Jakarta EE — who implements what</a> —
+the filter contracts (<code>ContainerRequestFilter</code> et al.) each JVM stack offers.</li>
+<li><a href="../../../system-design/microservice-architecture/">Microservice architecture</a> — the setting
+that makes propagation mandatory rather than nice-to-have.</li>
+</ul>
+<h2>Citations</h2>
+<p>[1] <a href="https://www.w3.org/TR/trace-context/" rel="noopener">W3C Trace Context</a>
+[2] <a href="https://www.w3.org/TR/baggage/" rel="noopener">W3C Baggage</a>
+[3] <a href="https://opentelemetry.io/docs/concepts/context-propagation/" rel="noopener">OpenTelemetry — context propagation</a></p>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+  <script src="../../../assets/mermaid.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Structured logging &amp; MDC — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/structural.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/platform/observability-and-sre</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../platform/">platform</a><span class="tok-path">/</span><span class="tok-path">observability-and-sre</span> <span class="tok-cmd">cat</span> <span class="tok-file">structured-logging</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Structured logging &amp; MDC</h1>
+        <p class="lib-lede"><span class="tok-comment"># Logs as machine-parseable events with per-request context — JSON output, level discipline, what belongs in a log vs a metric vs a span, and the MDC idiom across SLF4J, slog, tracing, and AsyncLocalStorage.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-11</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#observability">#observability</a><a class="lib-tag" href="../../../tags/#logging">#logging</a><a class="lib-tag" href="../../../tags/#structured-logging">#structured-logging</a><a class="lib-tag" href="../../../tags/#mdc">#mdc</a><a class="lib-tag" href="../../../tags/#slf4j">#slf4j</a><a class="lib-tag" href="../../../tags/#slog">#slog</a><a class="lib-tag" href="../../../tags/#tracing">#tracing</a><a class="lib-tag" href="../../../tags/#pino">#pino</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>Structured logging treats every log call as an <strong>event with fields</strong>, not a formatted
+sentence: a stable message plus typed key-value attributes, emitted as JSON (or logfmt) so
+the log pipeline can filter, group, and join without regexes. The second half of the
+practice is <strong>MDC</strong> (Mapped Diagnostic Context): a per-request key-value context that the
+logging backend stamps onto <em>every</em> line emitted while the request is in flight, so a
+single <code>correlation_id=…</code> filter reconstructs one request's story. Each platform has a
+different carrier for that context — thread-bound maps on the JVM, <code>context.Context</code> in
+Go, span fields in Rust, <code>AsyncLocalStorage</code> in Node — and knowing the carrier is knowing
+where the idiom breaks.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>Events, not strings</strong>: keep the message template constant (<code>&quot;order rejected&quot;</code>) and put
+the variability in attributes (<code>order_id</code>, <code>reason</code>). String-interpolated messages
+destroy grouping; attributes make logs queryable like rows.</li>
+<li><strong>Format</strong>: JSON Lines in production, pretty/colored rendering in dev — an encoder
+configuration, never a code change. logfmt (<code>key=value …</code>) is the lighter alternative
+where humans still tail raw output.</li>
+<li><strong>Level discipline</strong>: <code>ERROR</code> = someone should act (failed request, broken invariant);
+<code>WARN</code> = degraded or surprising but handled; <code>INFO</code> = state changes that narrate the
+system's life (startup, config, request outcomes); <code>DEBUG</code>/<code>TRACE</code> = diagnostic flow,
+off by default. Log a failure <strong>once</strong>, at the boundary where it's handled — never
+log-and-rethrow at every layer.</li>
+<li><strong>Log vs metric vs span</strong>: a <em>metric</em> answers &quot;how many / how fast, in aggregate&quot; —
+cheap, pre-aggregated, no per-request detail; a <em>span</em> answers &quot;where did this request
+spend its time, across services&quot; — causality and timing; a <em>log</em> answers &quot;what exactly
+happened here&quot; — discrete events with rich detail. Don't log request latencies (that's
+a histogram), don't log call trees (that's a trace); do log the one-off event with the
+payload-level context neither of the others carries.</li>
+<li><strong>MDC on the JVM</strong>: <code>org.slf4j.MDC.put(&quot;correlationId&quot;, id)</code> in a filter, <code>MDC.clear()</code>
+in a <code>finally</code>; Logback renders it with <code>%X{correlationId}</code> or includes the whole map
+via JSON encoders (logstash-logback-encoder does by default). It is a
+<strong>thread-bound</strong> <code>ThreadLocal</code> map — it silently evaporates on async hops
+(<code>CompletableFuture</code>, thread pools). Reactor needs the <code>context-propagation</code> library
+(<code>Hooks.enableAutomaticContextPropagation()</code>), Kotlin coroutines need
+<code>kotlinx-coroutines-slf4j</code>'s <code>MDCContext</code>; Java 21+ <code>ScopedValue</code> is the
+structured-concurrency-friendly direction the platform is moving toward.</li>
+<li><strong>Go</strong>: <code>log/slog</code> is the standard — <code>slog.Info(&quot;msg&quot;, &quot;key&quot;, v)</code> or typed
+<code>slog.String(...)</code> attrs. There is no global MDC; the idiom is to carry request-scoped
+attrs in <code>context.Context</code> and either derive a pre-bound logger
+(<code>logger.With(&quot;correlation_id&quot;, id)</code> stored in the context) or write a <code>slog.Handler</code>
+whose <code>Handle(ctx, r)</code> extracts known context keys and appends them to every record.</li>
+<li><strong>Rust</strong>: the <code>tracing</code> crate — spans carry <strong>fields</strong>
+(<code>info_span!(&quot;request&quot;, correlation_id = %id)</code>), and every event inside an entered span
+inherits them: the span context <em>is</em> the MDC. <code>#[instrument]</code> wraps a function in a
+span; <code>tracing-subscriber</code>'s <code>fmt</code> layer with <code>.json()</code> emits structured output.</li>
+<li><strong>Node</strong>: <code>AsyncLocalStorage</code> gives request-scoped storage that survives <code>await</code>;
+middleware runs the request inside <code>als.run(store, …)</code> and the logger pulls from it —
+pino's <code>mixin()</code> hook merges the store into every line.</li>
+<li><strong>Cost model</strong>: logs are the most expensive signal per byte. Bound volume (sample or
+rate-limit DEBUG, drop health-check access logs), bound attribute cardinality, and
+redact PII at the encoder (masking rules in logstash-encoder, <code>redact: [paths]</code> in
+pino) — not by hoping call sites remember.</li>
+</ul>
+<h2>Details</h2>
+<h3>What goes where</h3>
+<table>
+<thead>
+<tr>
+<th>Question</th>
+<th>Signal</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Error rate, p99 latency, queue depth</td>
+<td>Metric</td>
+<td>Aggregable, cheap, alertable — no per-request identity</td>
+</tr>
+<tr>
+<td>Where did <em>this</em> request spend 800 ms?</td>
+<td>Span/trace</td>
+<td>Causality across services, timed tree</td>
+</tr>
+<tr>
+<td>Why was order 4711 rejected?</td>
+<td>Log</td>
+<td>Discrete event, full detail, payload context</td>
+</tr>
+<tr>
+<td>Which requests hit the slow path?</td>
+<td>Trace (+ exemplars)</td>
+<td>Per-request question at aggregate scale</td>
+</tr>
+</tbody>
+</table>
+<p>The three meet through shared identifiers: the <a href="../../../platform/observability-and-sre/correlation-and-context-propagation/">correlation id /
+trace id</a> stamped in MDC ties a log line to its
+trace; <a href="../../../platform/observability-and-sre/opentelemetry/">exemplars</a> tie a histogram bucket to a sample trace.</p>
+<h3>The MDC carrier per platform</h3>
+<table>
+<thead>
+<tr>
+<th>Platform</th>
+<th>Carrier</th>
+<th>Enrichment point</th>
+<th>Async caveat</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>JVM (SLF4J/Logback)</td>
+<td><code>ThreadLocal</code> map (<code>MDC</code>)</td>
+<td>Servlet/JAX-RS filter sets &amp; clears</td>
+<td>Lost on executor hops; Reactor/coroutines need propagation libs; <code>ScopedValue</code> (Java 21+) is the future carrier</td>
+</tr>
+<tr>
+<td>Go</td>
+<td><code>context.Context</code></td>
+<td>Middleware wraps ctx; custom <code>slog.Handler</code> extracts</td>
+<td>None — ctx is explicit; the discipline is <em>passing</em> ctx</td>
+</tr>
+<tr>
+<td>Rust</td>
+<td><code>tracing</code> span fields</td>
+<td>Middleware opens a span with fields</td>
+<td>Futures must be <code>.instrument(span)</code>-ed (Tower/axum layers do it)</td>
+</tr>
+<tr>
+<td>Node</td>
+<td><code>AsyncLocalStorage</code></td>
+<td>Middleware <code>als.run()</code>; pino <code>mixin()</code> reads</td>
+<td>Survives <code>await</code>; lost only in queueing libs that break async context</td>
+</tr>
+</tbody>
+</table>
+<p>In a hexagonal service all of these are enriched in one place — the driving adapter's
+filter/middleware — per the placement stated in
+<a href="../../../platform/observability-and-sre/observability-and-sre/">the parent note</a>; the domain logs through the facade
+(SLF4J, <code>slog</code>, <code>tracing</code>) and never sets context itself.</p>
+<h2>Examples</h2>
+<p>Logback pattern with MDC, and the JSON encoder that includes the whole map:</p>
+<pre><code class="language-xml">&lt;pattern&gt;%d %-5level [%X{correlationId}] %logger - %msg%n&lt;/pattern&gt;
+&lt;!-- or: --&gt; &lt;encoder class=&quot;net.logstash.logback.encoder.LogstashEncoder&quot;/&gt;
+</code></pre>
+<p>A <code>slog.Handler</code> pulling request attrs from context:</p>
+<pre><code class="language-go">func (h ctxHandler) Handle(ctx context.Context, r slog.Record) error {
+    if id, ok := ctx.Value(correlationKey).(string); ok {
+        r.AddAttrs(slog.String(&quot;correlation_id&quot;, id))
+    }
+    return h.inner.Handle(ctx, r)
+}
+</code></pre>
+<p>pino fed by <code>AsyncLocalStorage</code>:</p>
+<pre><code class="language-js">const logger = pino({ mixin: () =&gt; als.getStore() ?? {} });
+// middleware: als.run({ correlation_id: id }, () =&gt; next());
+</code></pre>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../platform/observability-and-sre/observability-and-sre/">Observability &amp; SRE practice</a> — the strategic map this group
+details; logs are one of its three signals.</li>
+<li><a href="../../../platform/observability-and-sre/correlation-and-context-propagation/">Correlation IDs &amp; context propagation</a> — where
+the MDC values come from: the edge filter that extracts or generates them.</li>
+<li><a href="../../../platform/observability-and-sre/opentelemetry/">OpenTelemetry</a> — the logs signal bridges existing frameworks into
+OTLP; <code>trace_id</code> in MDC is the join key.</li>
+<li><a href="../../../platform/observability-and-sre/health-checks-and-probes/">Health checks: liveness, readiness, startup</a> — sibling
+concern; probe endpoints are the one traffic worth <em>excluding</em> from access logs.</li>
+<li><a href="../../../go/web-frameworks/stdlib-correspondence/">Frameworks × the stdlib contracts</a> —
+<code>log/slog</code> as the logging contract all Go web stacks converge on.</li>
+</ul>
+<h2>Citations</h2>
+<p>[1] <a href="https://www.slf4j.org/manual.html#mdc" rel="noopener">SLF4J manual — MDC</a>
+[2] <a href="https://go.dev/blog/slog" rel="noopener">Go blog — Structured Logging with slog</a>
+[3] <a href="https://docs.rs/tracing/latest/tracing/" rel="noopener">tracing — spans and fields</a>
+[4] <a href="https://nodejs.org/api/async_context.html" rel="noopener">Node.js docs — AsyncLocalStorage</a></p>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+  <script src="../../../assets/mermaid.js" defer></script>
+</body>
+</html>

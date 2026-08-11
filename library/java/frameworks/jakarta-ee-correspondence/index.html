@@ -40,7 +40,7 @@
       <div class="term-out">
         <h1 class="lib-title">Frameworks × Jakarta EE — who implements what</h1>
         <p class="lib-lede"><span class="tok-comment"># Spec-by-spec correspondence of Jakarta EE and MicroProfile APIs to their Spring, Quarkus and Micronaut implementations or equivalents.</span></p>
-        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span><span class="lib-meta-date">updated 2026-08-11</span></cluster-pk>
         <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#java">#java</a><a class="lib-tag" href="../../../tags/#frameworks">#frameworks</a><a class="lib-tag" href="../../../tags/#jakarta-ee">#jakarta-ee</a><a class="lib-tag" href="../../../tags/#microprofile">#microprofile</a><a class="lib-tag" href="../../../tags/#spring">#spring</a><a class="lib-tag" href="../../../tags/#quarkus">#quarkus</a><a class="lib-tag" href="../../../tags/#micronaut">#micronaut</a></cluster-pk>
       </div>
     </div>
@@ -207,6 +207,12 @@ anything touching DI wiring, security or the web layer is a rewrite.</p>
 <li><a href="../../../go/web-frameworks/stdlib-correspondence/">Frameworks × the stdlib contracts</a> and
 <a href="../../../rust/web-frameworks/tower-hyper-correspondence/">Frameworks × tower/hyper</a> — the same
 who-honors-what question against Go's stdlib interfaces and Rust's community crates.</li>
+<li><a href="../../../platform/observability-and-sre/health-checks-and-probes/">Health checks: liveness, readiness, startup</a> —
+MicroProfile Health is the spec column behind the probe endpoints; Actuator and
+Micronaut Management are the equivalents.</li>
+<li><a href="../../../platform/observability-and-sre/correlation-and-context-propagation/">Correlation IDs &amp; context propagation</a> —
+the per-stack filter contracts (<code>ContainerRequestFilter</code> et al.) where request context
+is parsed.</li>
 </ul>
 </article>
         </div>

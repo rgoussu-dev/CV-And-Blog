@@ -41,7 +41,16 @@
         <p class="lib-lede"><span class="tok-comment"># What arrived on the shelves, newest first.</span></p>
       </div>
     </div>
-    <article class="lib-doc lib-log"><h3>2026-08-10</h3>
+    <article class="lib-doc lib-log"><h3>2026-08-11</h3>
+<ul>
+<li><strong>Update</strong>: Promoted <a href="../platform/observability-and-sre/observability-and-sre/">Observability &amp; SRE practice</a> to a concept group — moved the note into <code>platform/observability-and-sre/</code>, fixed every inbound link, and added the hexagonal placement ruling: telemetry attaches in the driving adapters and at the assembly point, never in the domain (a logging facade at most).</li>
+<li><strong>Creation</strong>: Added concept <a href="../platform/observability-and-sre/structured-logging/">Structured logging &amp; MDC</a> — logs as events with per-request context; SLF4J MDC and its async caveats, slog handlers, tracing span fields, AsyncLocalStorage.</li>
+<li><strong>Creation</strong>: Added concept <a href="../platform/observability-and-sre/correlation-and-context-propagation/">Correlation IDs &amp; context propagation</a> — the extract-or-generate edge algorithm, the extensible request-context type, and business ids vs W3C traceparent/baggage, with per-stack carriers.</li>
+<li><strong>Creation</strong>: Added concept <a href="../platform/observability-and-sre/opentelemetry/">OpenTelemetry</a> — API/SDK/Collector, the three signals, semantic conventions, OTLP and OTEL_* env vars, auto-vs-manual instrumentation per platform.</li>
+<li><strong>Creation</strong>: Added concept <a href="../platform/observability-and-sre/health-checks-and-probes/">Health checks: liveness, readiness, startup</a> — probe design from the probed side (no dependency checks in liveness), the per-stack endpoint catalogue, Kubernetes wiring, and the pitfalls checklist.</li>
+<li><strong>Update</strong>: Cross-linked the new group both ways with <a href="../applicative-architecture/hexagonal-architecture/">Hexagonal architecture</a>, <a href="../platform/kubernetes-and-containers/">Kubernetes &amp; containers</a>, <a href="../system-design/microservice-architecture/">Microservice architecture</a>, the <a href="../java/storage/time-series/">Java</a>/<a href="../go/storage/time-series/">Go</a>/<a href="../rust/storage/time-series/">Rust</a> time-series notes, <a href="../go/web-frameworks/stdlib-correspondence/">Frameworks × the stdlib contracts</a>, and <a href="../java/frameworks/jakarta-ee-correspondence/">Frameworks × Jakarta EE</a>.</li>
+</ul>
+<h3>2026-08-10</h3>
 <ul>
 <li><strong>Creation</strong>: Added concept <a href="../frontend/build-ecosystem/build-ecosystem/">The TypeScript build ecosystem</a> — the layered TypeScript toolchain — runtimes, package managers, compilers, bundlers — across the frontend and backend worlds, and the artifact formats they produce.</li>
 <li><strong>Creation</strong>: Added concept <a href="../frontend/build-ecosystem/backend-builds/">Building TypeScript for the backend</a> — the spectrum from tsc-as-the-whole-build to type-stripping runtimes to bundled lambdas, with ESM vs CJS as the central pain and orchestrators caching monorepo task graphs.</li>
@@ -421,7 +430,7 @@ existing bundle: nothing currently requires the flag.</li>
 <li><strong>Update</strong>: Extended <a href="../system-design/concurrency-and-parallelism/concurrency-and-parallelism/">Concurrency and Parallelism</a> Related links to the new async-patterns and language deep-dive concepts.</li>
 <li><strong>Creation</strong>: Created theme <a href="../algorithms/">Algorithms</a> — algorithms, data structures, complexity &amp; deliberate practice.</li>
 <li><strong>Creation</strong>: Added concept <a href="../system-administration/networking-fundamentals/">Networking fundamentals</a> — TCP/UDP, TLS, HTTP/1.1→3, DNS, and on-the-wire tooling.</li>
-<li><strong>Creation</strong>: Added concept <a href="../platform/observability-and-sre/">Observability &amp; SRE practice</a> — metrics/logs/traces, SLOs, error budgets, incident response.</li>
+<li><strong>Creation</strong>: Added concept Observability &amp; SRE practice — metrics/logs/traces, SLOs, error budgets, incident response.</li>
 <li><strong>Creation</strong>: Added concept <a href="../platform/ci-cd-and-delivery-engineering/">CI/CD &amp; delivery engineering</a> — trunk-based development, pipelines, flags, progressive deployment.</li>
 <li><strong>Creation</strong>: Added concept <a href="../system-design/api-design/">API design</a> — REST/gRPC/GraphQL, versioning, contract evolution.</li>
 <li><strong>Creation</strong>: Added concept <a href="../system-design/message-brokers-and-event-streaming/">Message brokers &amp; event streaming</a> — Kafka internals, logs vs. queues, delivery semantics.</li>
