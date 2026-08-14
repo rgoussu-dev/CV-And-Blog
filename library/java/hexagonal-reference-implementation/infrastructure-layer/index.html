@@ -140,7 +140,10 @@ those would be ceremony without a consumer that wants one and not the other. Spl
 when a real assembly wants the subset.</li>
 <li><strong>The module name states the technology</strong>, the package inside states the port.
 Reading an assembly's dependency list should read like its ops runbook: postgres,
-kafka, billing API.</li>
+kafka, billing API. A nested <code>infra/&lt;port&gt;/&lt;technology&gt;</code> directory pair says the same
+thing when the technology alone would be ambiguous — the scaffold emits
+<code>infra/greeting-log/jdbc</code> beside <code>infra/unit-of-work/jta</code>, and the Maven artifactId
+flattens either shape identically (<code>greeting-infra-greeting-log-jdbc</code>).</li>
 <li><strong>Never split along context lines you have not drawn.</strong> If two modules' adapters keep
 wanting to merge, the boundary between the contexts is the thing to re-examine — not
 the infrastructure.</li>
@@ -177,6 +180,49 @@ the infrastructure.</li>
 </tr>
 </tbody>
 </table>
+<h3>The adapter is not its connection</h3>
+<p>An infra module owns the <em>mapping</em>; the assembly owns the <em>connection</em>. Splitting them
+that way is what keeps the adapter a library:</p>
+<table>
+<thead>
+<tr>
+<th>Thing</th>
+<th>Home</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>OrderRepository</code> implemented over SQL</td>
+<td><code>modules/x/infra/persistence-postgres</code></td>
+<td>it is the context's mapping of its own aggregate</td>
+</tr>
+<tr>
+<td>The <code>DataSource</code> / pool, its credentials, its profile config</td>
+<td>the assembly</td>
+<td>pool sizing and secrets are deployment facts; two assemblies hosting the same context may size differently</td>
+</tr>
+<tr>
+<td>The transactional boundary's implementation</td>
+<td><code>modules/x/infra/unit-of-work-&lt;tech&gt;</code></td>
+<td>the port is the domain's (see <a href="../../../java/hexagonal-reference-implementation/domain-layer/">domain layer</a>); the framework's transaction machinery is an adapter</td>
+</tr>
+<tr>
+<td>The producer/<code>@Configuration</code> binding pool → adapter</td>
+<td>the assembly</td>
+<td>the assembly is the only module allowed to see both a <code>domain/core</code> and an infra module</td>
+</tr>
+<tr>
+<td>Schema migrations</td>
+<td>their own deployment unit (<code>migrations/</code>)</td>
+<td>run against the database <em>before</em> the service deploys, never from inside it, so a bad migration blocks the rollout instead of the fleet — and schema-altering credentials never ship in a service image</td>
+</tr>
+</tbody>
+</table>
+<p>The adapter takes a <code>DataSource</code> in its constructor and knows nothing else. That is
+what lets the same Postgres adapter serve an API assembly and a batch assembly whose
+pools are configured differently — and it is why &quot;each module ships its own
+configuration&quot; means <em>its own beans</em>, not <em>its own infrastructure credentials</em>.</p>
 <p>The last row is the one worth enforcing loudly: <strong>no shared schema between modules.</strong>
 Each context owns its tables, and a context that needs a peer's data asks for it
 through a port. That rule costs almost nothing while everything is one database and is

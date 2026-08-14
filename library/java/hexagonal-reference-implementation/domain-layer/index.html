@@ -85,10 +85,15 @@ deliberately — a design decision, not a default.</li>
 <li><strong><code>domain/core</code> depends only on its own <code>domain/contract</code></strong> and implements its
 driving ports. Framework-free: constructor injection of driven ports, plain Java,
 exhaustively unit tested without any container.</li>
-<li><strong>Transaction boundaries are a domain decision</strong> expressed as a port (a
-<code>TransactionRunner</code> driven port, or unit-of-work semantics on the repository port)
-and implemented in infrastructure or decorated in the assembly. A transaction never
-spans two modules — treat the service seam as if it were already remote.</li>
+<li><strong>Transaction boundaries are a domain decision</strong> expressed as a port. The settled
+shape is a dedicated <strong><code>UnitOfWork</code> driven port</strong> in <code>domain/contract</code> —
+<code>&lt;T&gt; T inTransaction(Supplier&lt;T&gt; work)</code> — rather than unit-of-work semantics smeared
+over the repository port: a handler wraps the state-changing work of one command in
+it and every port touched inside commits or rolls back together, while <em>how</em>
+atomicity is achieved (JTA, a <code>TransactionTemplate</code>, the framework's transaction
+operations) stays an adapter in <code>infra/unit-of-work-&lt;tech&gt;</code>. Keeping it a port of its
+own is what lets the handler be unit-tested against a counting fake. A transaction
+never spans two modules — treat the service seam as if it were already remote.</li>
 <li><strong>One domain per bounded context, several contexts per repository.</strong> A module that
 wants a slice of another module's use cases is asking a context-mapping question,
 and the answer is a port at the seam — not a wider contract module.</li>
