@@ -39,7 +39,7 @@
       <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../">~/library</a><span class="tok-path">/</span><span class="tok-path">frontend</span> <span class="tok-cmd">cat</span> <span class="tok-file">hexagonal-reference-implementation</span><span class="tok-ext">.md</span></div>
       <div class="term-out">
         <h1 class="lib-title">Hexagonal architecture reference implementation — Frontend (web components)</h1>
-        <p class="lib-lede"><span class="tok-comment"># The house hexagonal reference realized for the browser — an npm workspace of per-context module packages, custom elements as the driving adapters, every browser API behind a driven port, and the WCCG Context protocol wiring ports from each app shell's assembly point.</span></p>
+        <p class="lib-lede"><span class="tok-comment"># The house hexagonal reference realized for the browser — an npm workspace of per-context module packages, custom elements as the driving adapters, every browser API behind a driven port, the WCCG Context protocol wiring ports from each app shell's assembly point, and an import map deduplicating element-defining packages across micro-frontend bundles.</span></p>
         <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span><span class="lib-meta-date">updated 2026-08-14</span></cluster-pk>
         <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../tags/#hexagonal-architecture">#hexagonal-architecture</a><a class="lib-tag" href="../../tags/#architecture">#architecture</a><a class="lib-tag" href="../../tags/#frontend">#frontend</a><a class="lib-tag" href="../../tags/#web-components">#web-components</a><a class="lib-tag" href="../../tags/#typescript">#typescript</a><a class="lib-tag" href="../../tags/#modulith">#modulith</a><a class="lib-tag" href="../../tags/#micro-frontends">#micro-frontends</a><a class="lib-tag" href="../../tags/#reference-implementation">#reference-implementation</a></cluster-pk>
       </div>
@@ -61,7 +61,11 @@ Context protocol). Adopting the
 <a href="../../applicative-architecture/hexagonal-architecture/">modulith layout</a> on 2026-08-14
 resolved most of what this note previously left open: a bounded context is a cluster of
 workspace packages, and a <strong>micro-frontend is a carved-out module</strong> — same procedure as
-every other reference.</p>
+every other reference. <strong>Verified in a browser</strong> (Chromium via Playwright) and against
+<code>tsc</code>/Node 22 on 2026-08-14: the Context protocol's subtree scoping holds exactly as
+claimed, the last open question — cross-bundle dependency deduplication — is now closed
+with a ruling, and the enforcement claims for the package graph turned out to be
+substantially weaker than written.</p>
 <h2>Key points</h2>
 <ul>
 <li><strong>The hexagon inverts the backend intuition: the UI is the driving side, the backend
@@ -75,12 +79,39 @@ unit.</strong> Each app shell (<code>public-app</code>, <code>backoffice-app</co
 the Dockerfile beside it. The shell is the <strong>assembly</strong>: it decides which modules it
 mounts, wires their ports, and owns the History-API router. Individual custom
 elements are adapter parts, as handlers are to a REST adapter.</li>
-<li><strong>A bounded context is a package cluster</strong> under <code>modules/&lt;context&gt;/</code>:
-<code>@acme/&lt;ctx&gt;-domain-contract</code>, <code>-domain-core</code>, <code>-user-side-elements</code>,
-<code>-user-side-service</code>, <code>-infra-*</code>. The workspace <code>dependencies</code> graph plus TypeScript
-project references make a cross-context import a build failure — the frontend's
-version of Rust's crate graph, weaker (it is checked, not compiled) but checked in
-the same CI step as everything else.</li>
+<li><strong>A bounded context is <em>one</em> workspace package</strong> at <code>modules/&lt;context&gt;/</code>, named
+<code>@acme/&lt;ctx&gt;</code> (revised 2026-08-14 — this note previously specified a cluster of four
+or five packages per context). Its layers are ordinary directories inside
+<code>src/</code> — <code>domain/{contract,core}</code>, <code>user-side/{elements,service}</code>, <code>infra/*</code> — and its
+<code>package.json</code> <code>exports</code> map publishes exactly three entry points: <code>&quot;.&quot;</code> (the facade),
+<code>&quot;./service&quot;</code> (the peer seam) and <code>&quot;./elements&quot;</code> (the element registrations).
+A cluster bought four manifests and no additional enforcement, because the package
+graph checks nothing (see the next bullet); the <code>exports</code> map is the whole wall, and
+one package per context keeps all of it. This is Go's facade rule in TypeScript.
+<code>design-system</code> stays a separate top-level package — domain-blind, consumed by every
+context, and the package the import map deduplicates.</li>
+<li><strong>The package graph enforces nothing; the linter is the wall (corrected 2026-08-14).</strong>
+The previous claim — that workspace <code>dependencies</code> plus TypeScript project references
+make a cross-context import a build failure — is false, and was tested three ways.
+An undeclared dependency on a sibling workspace package typechecks and runs, because
+npm symlinks every member into the root <code>node_modules</code>. Project references do not
+restrict which projects a project may import: the same undeclared import builds clean
+under <code>tsc -b --force</code>. And a relative path (<code>../../modules/catalog/domain/core/src/ internal/x.ts</code>) walks straight through the <code>exports</code> map that would have blocked the
+package-specifier form. <strong>dependency-cruiser is not a belt-and-braces addition here —
+it is the only thing holding the inter-context and layering rules</strong>, and it must be
+treated as load-bearing infrastructure.</li>
+<li><strong>A dependency-cruiser that isn't configured for the workspace fails <em>open</em>.</strong> With
+default options, pointed at source directories, every <code>@acme/*</code> import resolves to the
+bare specifier as <code>dependencyTypes: ['unknown']</code> and every architecture rule passes
+green over a tree in violation. It needs
+<code>enhancedResolveOptions: { extensions: ['.ts', …], exportsFields: ['exports'], conditionNames: ['import', 'default', 'types'] }</code> before it resolves workspace packages
+back to real source paths. A lint that silently passes is worse than no lint; verify it
+fires by committing a deliberate violation once.</li>
+<li><strong>What the packages <em>do</em> buy</strong>: the <code>exports</code> map (a real resolver-level wall against
+deep package-specifier imports, enforced by tsc and Node alike), the bundler's
+route-level code-split boundary, and an extraction that rewrites <strong>zero</strong> imports
+because every cross-context import is already a package specifier. Those are the
+reasons to keep per-module packages in the browser — not enforcement.</li>
 <li><strong>The domain of a context is two packages.</strong> <code>&lt;ctx&gt;-domain-contract</code> holds port
 interfaces (driving and driven), command/result types and domain events — depending
 only on <code>@acme/platform-kernel</code>; <code>&lt;ctx&gt;-domain-core</code> holds entities, services and
@@ -231,11 +262,15 @@ rule-breaking import fails CI before it can ship.</p>
 </tr>
 <tr>
 <td>a context's core is invisible to adapters and shells</td>
-<td><code>&lt;ctx&gt;-domain-core</code>'s <code>exports</code> map — only factory entry points resolve; deep imports fail in Node, tsc and the bundler alike</td>
+<td><code>&lt;ctx&gt;-domain-core</code>'s <code>exports</code> map — only factory entry points resolve; deep imports fail in Node (<code>ERR_PACKAGE_PATH_NOT_EXPORTED</code>) and tsc (<code>TS2307</code>) alike. <strong>Bypassed by a relative path</strong>, so pair it with the rule below</td>
+</tr>
+<tr>
+<td>no relative import escapes its own package</td>
+<td>dependency-cruiser — the rule that makes the <code>exports</code> map airtight</td>
 </tr>
 <tr>
 <td>contexts don't import each other</td>
-<td>workspace <code>dependencies</code> + TS project references: no package outside <code>modules/&lt;ctx&gt;/</code> may depend on <code>&lt;ctx&gt;-domain-*</code>; dependency-cruiser states it as a rule and CI runs it</td>
+<td><strong>dependency-cruiser only.</strong> Workspace <code>dependencies</code> and TS project references do <em>not</em> enforce this: an undeclared sibling import typechecks and runs</td>
 </tr>
 <tr>
 <td>contexts meet only at the service seam</td>
@@ -243,7 +278,7 @@ rule-breaking import fails CI before it can ship.</p>
 </tr>
 <tr>
 <td><code>domain</code> imports nothing from <code>user-side</code>/<code>infra</code>; <code>infra</code> never imports <code>user-side</code>; adapters never import each other</td>
-<td>workspace dependencies + TS project references + dependency-cruiser</td>
+<td>dependency-cruiser (the package graph documents the intent; it does not check it)</td>
 </tr>
 <tr>
 <td>a deployment unit ships only what it uses</td>
@@ -291,10 +326,20 @@ still empty. Runtime resolution reduces to one guard clause.</li>
 <li><strong>Context delivers ports once; reactivity stays with the read models.</strong> The
 protocol's <code>subscribe</code> mode goes unused — the driving side already has subscriptions,
 and keeping the two mechanisms separate keeps both honest.</li>
-<li><strong>The scoping prize.</strong> First-ancestor-wins means a per-route provider, a preview
-subtree running on the domain's in-memory fakes, or several units on one page each
-answering their own subtree — without touching any element. Tests wrap the element in
-a test provider: same tag everywhere, no registry games.</li>
+<li><strong>The scoping prize — verified 2026-08-14.</strong> First-ancestor-wins means a per-route
+provider, a preview subtree running on the domain's in-memory fakes, or several units
+on one page each answering their own subtree — without touching any element. Two
+independently built bundles, each registering its listener on its own root element,
+each resolved its own widget's port with no coordination and no global provider.
+Tests wrap the element in a test provider: same tag everywhere, no registry games.
+<ul>
+<li><strong>The corollary, also verified</strong>: a widget cross-mounted into <em>another</em> bundle's
+subtree gets no provider at all. Elements are not composable across shells, only
+within one — which is exactly why templates and pages are shell-owned (see the
+atomic-design section). Composition across contexts is visual, in a shell, or it is
+through a gateway; never by dropping one module's element inside another's subtree.</li>
+</ul>
+</li>
 <li><strong>The stated caveat — upgrade ordering.</strong> A consumer that requests before its
 provider listens gets silence. At startup the assembly shape prevents it (<code>main.ts</code>
 registers the listener <em>before</em> defining elements — definitions upgrade parsed markup
@@ -326,6 +371,22 @@ per-port typing the protocol was chosen for and weakening the scoping prize
 domain factories in <code>main.ts</code> (<code>createPlaceOrder</code> wrapped with logging) — the
 assembly point is the seam, exactly like Go's decorators.</li>
 </ul>
+<h3>The layout dial — both layouts, <code>basic</code> default (settled 2026-08-14)</h3>
+<p>The architectural pull toward the modulith is stronger here than in any other reference:
+a real app is multi-context before its first release (catalog / checkout / account are
+distinct bounded contexts on day one), the context is already the natural code-split
+boundary, and a micro-frontend <em>is</em> a carved-out module. That argues for making the
+modulith the browser's only layout, and an earlier draft of this note did.</p>
+<p><strong>Both layouts ship anyway, with <code>basic</code> as the default.</strong> The modulith's cost is not
+only the packages it adds but the indirection it imposes — a <code>modules/&lt;ctx&gt;/</code> level, a
+facade, a peer seam with no peer — and plenty of real browser work (a single-purpose
+widget, an internal admin panel, a demo SPA) genuinely has one context. A scaffold should
+let that project decline the structure rather than teach it a shape it must immediately
+work around. Where this reference has an opinion, it belongs in the choice's help text,
+not in removing the choice.</p>
+<p>The package shape is the same under both: a package per bounded context under the
+modulith, and the same flat package set as today under <code>basic</code>. See
+<a href="../../applicative-architecture/hexagonal-references-compared/">the four references compared</a>.</p>
 <h3>Rendering and state without a framework</h3>
 <ul>
 <li>A component clones its <code>&lt;template&gt;</code> once in <code>connectedCallback</code>, keeps references to
@@ -416,12 +477,69 @@ shells and no global provider.</li>
 <li><strong>Per-module packages are already the code-split boundary</strong>, so a module extracted
 into its own bundle ships exactly what it shipped as a lazily-loaded route.</li>
 </ul>
-<p>What stays genuinely open is narrower than before: <strong>shared dependency deduplication
-across independently built bundles</strong> (two shells each shipping their own copy of the
-design system) has no clean platform answer today — import maps and module federation
-are the candidates, and both are build-topology decisions rather than architectural
-ones. Scoped custom element registries remain worth revisiting if the tag-prefix
-convention ever proves insufficient.</p>
+<h4>Cross-bundle deduplication — closed (settled 2026-08-14)</h4>
+<p>This note previously left shared-dependency deduplication open, calling it a
+build-topology decision rather than an architectural one. <strong>Browser testing shows it is
+architectural, and the ruling is: element-defining packages must be deduplicated across
+bundles, via an import map.</strong></p>
+<p>The reason is specific. <code>CustomElementRegistry</code> is a per-document singleton keyed by tag
+name, and <code>define()</code> <strong>throws</strong> on a duplicate. So any module that calls
+<code>customElements.define</code> at import time is a <em>singleton dependency</em>: it may be loaded at
+most once per document, however many bundles want it. Two independently built bundles
+each inlining the design system produced
+<code>NotSupportedError: the name &quot;acme-ds-button&quot; has already been used with this registry</code>
+— and because the throw aborts that module's top-level execution, the second
+micro-frontend's <em>own</em> elements never registered either. Half the page silently vanished.
+That is not wasted bytes; it is a correctness failure with a confusing symptom.</p>
+<p>The three-way classification that falls out:</p>
+<table>
+<thead>
+<tr>
+<th>Shared code</th>
+<th>Rule</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Module-owned elements</strong> (<code>acme-catalog-*</code>)</td>
+<td>duplication impossible by construction</td>
+<td>tag prefixes are per-context, so two bundles never define the same tag — the note's original claim, and it holds</td>
+</tr>
+<tr>
+<td><strong>Element-defining shared packages</strong> (the design system)</td>
+<td><strong>must be a single instance per document</strong> — leave external, resolve via import map</td>
+<td>its tags are <em>not</em> context-prefixed; it is exactly the thing two bundles both want</td>
+</tr>
+<tr>
+<td><strong>Non-defining shared code</strong> (kernel, commons, pure domain)</td>
+<td>may duplicate</td>
+<td>costs bytes and gives each bundle its own module state; no crash</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>The mechanism is the import map</strong>, not module federation. Each bundle is built with
+the design system marked external; the page carries
+<code>{&quot;imports&quot;: {&quot;@acme/design-system&quot;: &quot;/assets/design-system.js&quot;}}</code>. Verified: one
+instance, shared module state, every panel rendered, no errors. Import maps are a
+platform feature — no bundler runtime, no framework, which is the same reason the
+Context protocol was chosen over a DI library.</li>
+<li><strong>Rejected — the guarded define</strong> (<code>if (!customElements.get(tag)) define(...)</code>). It
+removes the crash and installs silent divergence in its place: whichever bundle loads
+first owns the class for the whole page, the loser keeps a dead second copy of the
+module's state, and <code>instanceof</code> across the boundary is <strong>false</strong>. A crash you can read
+beats an identity bug you can't.</li>
+<li><strong>Consequence for the design system's release cadence.</strong> One instance per document
+means one <em>version</em> per document, so independently deployed shells cannot upgrade the
+design system independently. That is the genuine cost of the ruling, and it is the
+usual micro-frontend trade: shared-singleton dependencies are the coupling that
+survives extraction. Keep the design system's public API additive, and treat a breaking
+change to it as a coordinated release across every shell on the page.</li>
+<li><strong>Still worth revisiting</strong>: scoped custom element registries would dissolve the
+singleton constraint entirely and make per-bundle versions possible. Not yet broadly
+available; the import-map ruling stands until it is.</li>
+</ul>
 <h2>Examples</h2>
 <p>The protocol, owned by the workspace — the whole mechanism:</p>
 <pre><code class="language-ts">// platform/kernel — owned by the workspace, shared by every module
@@ -521,6 +639,9 @@ shared house principles this note realizes; the hub for all the reference
 implementations.</li>
 <li><a href="../../applicative-architecture/modulith-and-microservices/">Modulith &amp; microservices</a> —
 the extraction procedure this note reads as micro-frontend composition.</li>
+<li><a href="../../applicative-architecture/hexagonal-references-compared/">The four hexagonal references compared</a>
+— why the browser has the weakest walls and the strongest domain-purity check of the
+four, and where server-side TypeScript's answer differs.</li>
 <li><a href="../../frontend/component-architecture-and-state/">Component architecture &amp; state management</a> —
 the state-classification discipline this reference pins behind ports.</li>
 <li><a href="../../frontend/atomic-design/">Atomic design</a> — the methodology organizing the driving adapter's

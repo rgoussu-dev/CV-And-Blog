@@ -39,7 +39,7 @@
       <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../">~/library</a><span class="tok-path">/</span><span class="tok-path">rust</span> <span class="tok-cmd">cat</span> <span class="tok-file">hexagonal-reference-implementation</span><span class="tok-ext">.md</span></div>
       <div class="term-out">
         <h1 class="lib-title">Hexagonal architecture reference implementation — Rust</h1>
-        <p class="lib-lede"><span class="tok-comment"># The house hexagonal reference realized for Rust — a Cargo workspace of per-context crate clusters, crates as compile-enforced walls, traits as ports, one binary crate per assembly, and dyn-by-default wiring with generics as the measured escape hatch.</span></p>
+        <p class="lib-lede"><span class="tok-comment"># The house hexagonal reference realized for Rust — a Cargo workspace of per-context crate clusters, crates as compile-enforced walls, traits as ports, one binary crate per assembly, dyn-by-default wiring with generics as the measured escape hatch, and the orphan rule quietly forcing the gateway to be a real artifact.</span></p>
         <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span><span class="lib-meta-date">updated 2026-08-14</span></cluster-pk>
         <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../tags/#hexagonal-architecture">#hexagonal-architecture</a><a class="lib-tag" href="../../tags/#architecture">#architecture</a><a class="lib-tag" href="../../tags/#rust">#rust</a><a class="lib-tag" href="../../tags/#cargo">#cargo</a><a class="lib-tag" href="../../tags/#workspace">#workspace</a><a class="lib-tag" href="../../tags/#modulith">#modulith</a><a class="lib-tag" href="../../tags/#reference-implementation">#reference-implementation</a></cluster-pk>
       </div>
@@ -58,7 +58,10 @@ by the compiler, no linter needed. On the
 <em>cluster</em> of crates, and &quot;billing must not touch ordering's domain&quot; is not a convention
 or a linter rule but a missing edge in <code>Cargo.toml</code>. The decision the language itself
 forces is <em>how ports are wired</em>: trait objects vs generics — settled below (2026-08-09
-discussion).</p>
+discussion). <strong>Compile-verified</strong> against a hand-built two-context workspace on rustc
+1.94.1 (2026-08-14). Two results reshaped the note: the orphan rule turns out to enforce
+more than the crate graph does, and the crate graph turns out to enforce <em>less</em> than
+claimed — it stops you naming a crate, not domain types flowing across the seam.</p>
 <h2>Key points</h2>
 <ul>
 <li><strong>The workspace is the backbone.</strong> The root <code>Cargo.toml</code> declares members and
@@ -74,6 +77,19 @@ a compile error rather than a review comment.</li>
 only on <code>platform-kernel</code>) and <code>&lt;ctx&gt;-domain-core</code> (entities, services implementing
 driving ports — depends only on its own contract crate). The crate graph makes
 <code>infra → domain-core</code> and <code>billing-* → ordering-domain-*</code> compile errors alike.</li>
+<li><strong>…but the two-crate split is bought for build economics, not for the wall (corrected
+2026-08-14).</strong> A private <code>mod core_impl</code> inside a single <code>&lt;ctx&gt;-domain</code> crate hides
+entities from dependents exactly as well (<code>E0603: module core_impl is private</code>) — Rust
+does have sub-crate visibility, which the note previously wrote off. What the split
+genuinely buys is a smaller incremental rebuild: touching the core rebuilt <strong>2</strong> crates
+when split and <strong>3</strong> when merged, because in the merged crate every dependent of the
+contract face rebuilds too. Keep two crates on any context under active development;
+a small, stable context may legitimately collapse them to one.</li>
+<li><strong><code>&lt;ctx&gt;-user-side-service</code> must be its own crate — this one <em>is</em> load-bearing.</strong>
+Whatever crate owns the peer-facing API also hands its consumers everything else that
+crate exports. Fold the service into <code>&lt;ctx&gt;-domain-contract</code> and every gateway in the
+workspace gains a legal edge to the peer's domain. Four crates is therefore the floor
+for a context that composes with peers: contract, core, service, infra.</li>
 <li><strong><code>platform-kernel</code> is the shared vocabulary crate</strong> — command/query marker traits,
 the dispatch helpers, nothing business-shaped — and depends on nothing. Ubiquitous
 ports (clock, id generation) sit beside it in <code>platform-commons</code>, not inside any
@@ -95,6 +111,20 @@ selection — the assembly's <code>[dependencies]</code> does that.</li>
 <code>[dependencies]</code> names two contexts: it implements a port the consumer declared and
 delegates to <code>&lt;peer&gt;-user-side-service</code>. <code>cargo tree --invert ordering-user-side-service</code>
 enumerates every inter-context edge in the workspace, exactly.</li>
+<li><strong>The orphan rule is what makes the gateway a real artifact, not a convention
+(2026-08-14).</strong> The assembly cannot shortcut it: <code>impl OrderLookup for Arc&lt;dyn OrderingService&gt;</code> in <code>application/api</code> fails with <code>E0117 — only traits defined in the current crate can be implemented for types defined outside of the crate</code>.
+Because neither the port trait nor the peer's service type is local to the assembly,
+the impl has nowhere to live except a crate that owns a newtype for it. Rust is the
+only reference where &quot;the gateway exists as its own unit&quot; is a compile error rather
+than a review comment.</li>
+<li><strong>The crate graph stops you naming a crate; it does not stop types flowing (open,
+2026-08-14).</strong> A gateway depending only on <code>ordering-user-side-service</code> compiled while
+holding a value of <code>ordering_domain_contract::Summary</code> — returned through the service
+crate's public signature — and reading its fields, with no dependency edge, no error
+and no warning. Inference supplies what the name cannot. So &quot;the service crate's DTOs
+are its own&quot; is a <strong>discipline</strong> on stable Rust, not a guarantee. <code>cargo -Z public-dependency</code> with <code>public = false</code> and <code>#![deny(exported_private_dependencies)]</code>
+catches it precisely — it flags leaked return types <em>and</em> constructor parameters — but
+it is nightly-only as of 1.94. See the open question below.</li>
 <li><strong>The wiring rule — <code>Arc&lt;dyn Port&gt;</code> at the seams by default, generics as the measured
 escape hatch.</strong> Trait objects give late binding and a readable <code>main.rs</code>;
 the cost is that async trait methods aren't natively object-safe, so dyn ports mean
@@ -104,18 +134,23 @@ into type Tetris that infects every signature upward. The ruling: <code>dyn</cod
 default; generics are legitimate <strong>on hot paths, for measured performance reasons</strong> —
 a profiled boundary, not a style preference — and the crate that opts in keeps the
 generic parameters from leaking past its own public surface where possible.</li>
-<li><strong>Port design follows from the ruling</strong>: ports in <code>domain-api</code> are object-safe
+<li><strong>Port design follows from the ruling</strong>: ports in <code>domain-contract</code> are object-safe
 (no generic methods), <code>Send + Sync</code>, boxed-async accepted — so every port <em>can</em> be
 wired as <code>dyn</code>, and a generics opt-in remains possible per call site.</li>
+<li><strong>Boxed-async is mandatory, not stylistic (verified 2026-08-14).</strong> Native <code>async fn</code>
+in traits is <em>still</em> not dyn-compatible on rustc 1.94 (<code>E0038 … because method call is async</code>). That makes <code>platform-kernel</code> load-bearing in a way the JVM's kernel is not:
+it owns the <code>pub type BoxFuture&lt;'a, T&gt; = Pin&lt;Box&lt;dyn Future&lt;Output = T&gt; + Send + 'a&gt;&gt;</code>
+alias that every port method returns. Without it the <code>Arc&lt;dyn Port&gt;</code> wiring rule — and
+with it the identical-signature property below — simply does not compile.</li>
 <li><strong>Command dispatch: the compiler is the registry (settled 2026-08-09)</strong> —
 per-use-case driving-port traits by default; where a unified dispatch seam is
 justified, commands become an enum dispatched by one exhaustive <code>match</code>. The
 runtime registry of trait objects probed via <code>supports()</code> is ruled out — details
 below.</li>
 <li><strong>Async is decided at the edges</strong>: the runtime (tokio) is a dependency of binary
-crates and infra crates; <code>domain-api</code> traits stay runtime-agnostic (<code>async fn</code> in
-traits / <code>#[trait_variant]</code>, no tokio types in signatures) so the domain never depends
-on an executor.</li>
+crates and infra crates; <code>domain-contract</code> traits stay runtime-agnostic (port methods
+return <code>platform_kernel::BoxFuture</code>, no tokio types in signatures) so the domain never
+depends on an executor.</li>
 </ul>
 <h2>Details</h2>
 <h3>The derived workspace</h3>
@@ -215,9 +250,19 @@ gets the inter-context rule for free.</p>
 <td>rustc, and <code>cargo tree --invert</code> enumerates them</td>
 </tr>
 <tr>
+<td>the gateway exists as its own crate</td>
+<td>the orphan rule — the assembly cannot <code>impl</code> a foreign trait for a foreign type</td>
+<td><strong>rustc (<code>E0117</code>)</strong></td>
+</tr>
+<tr>
+<td>the seam carries only the service crate's own DTOs</td>
+<td>nothing on stable — a leaked signature hands the peer's domain type to every consumer</td>
+<td><strong>discipline + review</strong>; <code>-Z public-dependency</code> on nightly</td>
+</tr>
+<tr>
 <td>domain contract vs implementation</td>
-<td><code>&lt;ctx&gt;-domain-contract</code> / <code>&lt;ctx&gt;-domain-core</code> crates</td>
-<td>crate dependencies</td>
+<td><code>&lt;ctx&gt;-domain-contract</code> / <code>&lt;ctx&gt;-domain-core</code> crates, or a private <code>mod</code> in one crate</td>
+<td>crate dependencies, or module privacy (<code>E0603</code>)</td>
 </tr>
 <tr>
 <td>ports</td>
@@ -261,9 +306,12 @@ gets the inter-context rule for free.</p>
 <ul>
 <li><strong><code>&lt;peer&gt;-user-side-service</code></strong> exports a trait (<code>OrderingService</code>) plus its own DTO
 types, and an implementation that maps them onto the peer's commands. It depends only
-on the peer's <code>domain-contract</code>, so consumers never see the peer's domain — Cargo
-does not re-export a private dependency's types, and the trait's signature mentions
-only the service crate's own types.</li>
+on the peer's <code>domain-contract</code>. Consumers cannot <em>name</em> that crate — but note the
+correction above: they can still receive and use its types if the service crate lets
+one into a public signature. <strong>Every type in the service crate's public API must be
+declared by the service crate itself</strong>, and that rule is on the author, not the
+compiler. The realistic guard is a review checklist plus, where the team is willing to
+build on nightly, <code>-Z public-dependency</code>.</li>
 <li><strong><code>&lt;consumer&gt;-infra-&lt;peer&gt;-gateway</code></strong> implements a driven-port trait the consumer
 declared in its own <code>domain-contract</code>, delegating to <code>Arc&lt;dyn OrderingService&gt;</code>. It
 is the only crate in the workspace whose <code>[dependencies]</code> names two contexts, and
@@ -303,15 +351,35 @@ language wants static.</li>
 <li><strong>Cross-cutting</strong>: wrap the dispatch function (or decorate individual port impls)
 at the assembly point, same as the other references.</li>
 </ul>
-<h3>Nothing left open</h3>
-<p>The compile-time cost of many small crates is settled (2026-08-09): <strong>accepted by
-design</strong> — the dependency-rule enforcement the crate separation buys is the point of the
+<h3>The layout dial — keep <code>basic</code> the default, longer than the JVM does (settled 2026-08-14)</h3>
+<p>Rust pays the most ceremony of the four references: four crates per context minimum,
+each a <code>Cargo.toml</code>, each a line in the workspace member list, each with hand-written
+relative <code>path =</code> dependencies. That is a real cost for a service that genuinely holds
+one bounded context, and unlike Go there is no version of the modulith that is nearly
+free. So Rust should offer both layouts and default to <code>basic</code> — and should stay on
+<code>basic</code> past the point where a JVM project would switch, because the JVM's per-context
+cost is build files a plugin can generate while Rust's is also a crate-name namespace
+every <code>use</code> statement spells out. The counter-pressure is that Rust's walls are the
+strongest of the four once you have paid, so a project that <em>knows</em> it has two contexts
+should start at <code>modulith</code> rather than migrate. See
+<a href="../../applicative-architecture/hexagonal-references-compared/">the four references compared</a>.</p>
+<h3>Settled, and the one thing still open</h3>
+<p><strong>Settled — the compile-time cost of many small crates</strong> (2026-08-09): accepted by
+design. The dependency-rule enforcement the crate separation buys is the point of the
 layout; the build cost is its price, not a factor to optimize the architecture around.
-The modulith multiplies the crate count by the number of contexts and does not change
-the ruling: cargo compiles independent clusters in parallel and rebuilds only the
-cluster that changed, so in practice per-context crates make incremental builds <em>faster</em>
-than one fat domain crate would. (Port object-safety and the <code>Send + Sync</code> contract
-bounds were settled earlier by the wiring rule in Key points.)</p>
+Measured incremental behaviour supports this: touching a <code>domain-core</code> rebuilt only that
+crate and the assembly (2 crates), where the same edit in a merged domain crate rebuilt
+3. Cargo compiles independent clusters in parallel and rebuilds only what changed.</p>
+<p><strong>Open — enforcing the seam's type discipline on stable.</strong> The one wall this layout
+assumes and does not get: nothing on stable Rust stops <code>&lt;ctx&gt;-user-side-service</code> from
+exposing a <code>&lt;ctx&gt;-domain-contract</code> type in its public API, and once it does, every
+consumer can use that type without declaring any dependency on it. Candidate answers, in
+order of preference: (1) wait for <code>public-dependency</code> to stabilize and turn
+<code>exported_private_dependencies</code> into a deny-level lint; (2) a <code>cargo-deny</code>-style custom
+check or a clippy lint over the crate's public signatures; (3) accept it as a review rule
+and rely on the seam being one small, rarely-edited crate per context. Nothing here is
+blocking — the failure mode is coupling that compiles, not a broken build — but the note
+should stop claiming the crate graph prevents it.</p>
 <h2>Examples</h2>
 <p>Workspace root:</p>
 <pre><code class="language-toml">[workspace]
@@ -331,28 +399,43 @@ tokio = { version = &quot;1&quot;, features = [&quot;rt-multi-thread&quot;] }
 sqlx = { version = &quot;0.8&quot;, features = [&quot;postgres&quot;, &quot;runtime-tokio&quot;] }
 </code></pre>
 <p>A port and the peer seam:</p>
-<pre><code class="language-rust">// ordering-domain-contract
+<p>Note the shape every port takes: <code>BoxFuture</code>, never <code>async fn</code>. On rustc 1.94 an
+<code>async fn</code> in a trait makes that trait dyn-incompatible, so <code>Arc&lt;dyn Port&gt;</code> would not
+compile.</p>
+<pre><code class="language-rust">// platform-kernel — the alias the whole layout depends on
+pub type BoxFuture&lt;'a, T&gt; = Pin&lt;Box&lt;dyn Future&lt;Output = T&gt; + Send + 'a&gt;&gt;;
+
+// ordering-domain-contract
 pub trait OrderRepository: Send + Sync {
-    async fn save(&amp;self, order: NewOrder) -&gt; Result&lt;OrderId, RepositoryError&gt;;
+    fn save(&amp;self, order: NewOrder) -&gt; BoxFuture&lt;'_, Result&lt;OrderId, RepositoryError&gt;&gt;;
 }
 
-// ordering-user-side-service — the peer-facing driving adapter
+// ordering-user-side-service — the peer-facing driving adapter.
+// OrderSummary and ServiceError are declared HERE: every type in this
+// crate's public API must be its own, or the peer's domain leaks.
 pub trait OrderingService: Send + Sync {
-    async fn orders_for(&amp;self, customer: &amp;str) -&gt; Result&lt;Vec&lt;OrderSummary&gt;, ServiceError&gt;;
+    fn orders_for(&amp;self, customer: &amp;str) -&gt; BoxFuture&lt;'_, Result&lt;Vec&lt;OrderSummary&gt;, ServiceError&gt;&gt;;
 }
 
 // billing-domain-contract — billing's own vocabulary, no mention of ordering
 pub trait OrderLookup: Send + Sync {
-    async fn activity_for(&amp;self, customer: &amp;CustomerRef) -&gt; Result&lt;Activity, LookupError&gt;;
+    fn activity_for(&amp;self, customer: &amp;CustomerRef) -&gt; BoxFuture&lt;'_, Result&lt;Activity, LookupError&gt;&gt;;
 }
 
-// billing-infra-ordering-gateway — the one crate naming two contexts
+// billing-infra-ordering-gateway — the one crate naming two contexts.
+// The orphan rule forces this newtype: the assembly cannot write this
+// impl itself, because neither the trait nor Arc&lt;dyn OrderingService&gt;
+// is local to it (E0117).
 pub struct OrderingGateway(Arc&lt;dyn OrderingService&gt;);
 
 impl OrderLookup for OrderingGateway {
-    async fn activity_for(&amp;self, customer: &amp;CustomerRef) -&gt; Result&lt;Activity, LookupError&gt; {
-        let orders = self.0.orders_for(customer.as_str()).await?;
-        Ok(Activity::from_orders(&amp;orders))
+    fn activity_for(&amp;self, customer: &amp;CustomerRef) -&gt; BoxFuture&lt;'_, Result&lt;Activity, LookupError&gt;&gt; {
+        let peer = self.0.clone();
+        let customer = customer.as_str().to_owned();
+        Box::pin(async move {
+            let orders = peer.orders_for(&amp;customer).await.map_err(|_| LookupError)?;
+            Ok(Activity::of(orders.iter().map(|o| o.cents).sum()))
+        })
     }
 }
 </code></pre>
@@ -373,6 +456,8 @@ shared house principles this note realizes; the hub for all four reference
 implementations.</li>
 <li><a href="../../applicative-architecture/modulith-and-microservices/">Modulith &amp; microservices</a> —
 what the gateway crate is for, and the extraction the crate graph makes mechanical.</li>
+<li><a href="../../applicative-architecture/hexagonal-references-compared/">The four hexagonal references compared</a>
+— Rust's walls graded against the other three, and what its ceremony actually costs.</li>
 <li><a href="../../rust/rust-deep-dive/">Deep dive Rust</a> — traits, ownership and async, the machinery
 this realization leans on.</li>
 <li><a href="../../rust/build-ecosystem/cargo-in-depth/">Cargo in depth — workspaces, features, profiles &amp; publishing</a>
@@ -380,7 +465,7 @@ this realization leans on.</li>
 features are for variants, not adapter selection.</li>
 <li><a href="../../rust/compilers-and-runtimes/async-runtimes/">Async runtimes</a> — the
 runtime-at-the-edges rule: why tokio belongs to binary and infra crates, never to
-<code>domain-api</code>.</li>
+<code>domain-contract</code>.</li>
 <li><a href="../../rust/protocols/">Backend protocols in Rust</a> — the transport crates (axum,
 tonic, rdkafka) the application-layer adapters are built with.</li>
 <li><a href="../../rust/protocols/api-documentation/">API documentation in Rust</a> — the contract

@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>The four hexagonal references compared — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../assets/styles.css" />
+  <link rel="stylesheet" href="../../assets/structural.css" />
+  <link rel="stylesheet" href="../../assets/theme.css" />
+</head>
+<body data-prefix="../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/applicative-architecture</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../">~/library</a><span class="tok-path">/</span><span class="tok-path">applicative-architecture</span> <span class="tok-cmd">cat</span> <span class="tok-file">hexagonal-references-compared</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">The four hexagonal references compared</h1>
+        <p class="lib-lede"><span class="tok-comment"># What each language buys and pays for the same architectural property — that a bounded context can be carved out as a wiring change — graded by what genuinely enforces each wall, with the findings that only a compiler revealed.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-14</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../tags/#hexagonal-architecture">#hexagonal-architecture</a><a class="lib-tag" href="../../tags/#architecture">#architecture</a><a class="lib-tag" href="../../tags/#modulith">#modulith</a><a class="lib-tag" href="../../tags/#reference-implementation">#reference-implementation</a><a class="lib-tag" href="../../tags/#go">#go</a><a class="lib-tag" href="../../tags/#rust">#rust</a><a class="lib-tag" href="../../tags/#typescript">#typescript</a><a class="lib-tag" href="../../tags/#java">#java</a><a class="lib-tag" href="../../tags/#comparison">#comparison</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>The four reference implementations (<a href="../../java/hexagonal-reference-implementation/hexagonal-reference-implementation/">Java</a>,
+<a href="../../go/hexagonal-reference-implementation/">Go</a>, <a href="../../rust/hexagonal-reference-implementation/">Rust</a>,
+<a href="../../frontend/hexagonal-reference-implementation/">Frontend</a>) all claim the same prize: a
+bounded context can be carved out into its own service as a <strong>wiring</strong> change, because
+modules meet only at a narrow peer seam. This note compares what each language actually
+pays for that prize and, more importantly, <strong>what genuinely holds each wall</strong> — compiler,
+resolver, linter, or review.</p>
+<p>The gradings below were established by hand-building two-context skeletons in each
+language and compiling them (Go 1.24.7, rustc 1.94.1, Node 22.22 + TypeScript 5.9,
+Chromium via Playwright), including deliberate violation probes. Several widely-repeated
+claims did not survive: they are called out in §Findings that only compiling revealed.
+The skeletons were throwaway; the findings are the deliverable.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>The prize decomposes into three walls</strong>, and no language holds all three the same
+way: (1) a peer cannot reach a provider's domain, (2) the consumer owns the port it
+calls the peer through, (3) the assembly is the only thing that knows the full module
+list.</li>
+<li><strong>Rust holds the most, Go holds the most per unit of ceremony, TypeScript holds the
+least by an order of magnitude.</strong> Java sits between Rust and Go: the build graph is
+real but lives in a build tool rather than a compiler.</li>
+<li><strong>Go's <code>internal/</code> is the best enforcement-per-character in the four.</strong> A context is a
+directory with a facade file and an <code>internal/</code> beneath it — five files for a whole
+hexagon — and the two walls that matter are compiler-held.</li>
+<li><strong>Go's facade must re-export <em>nothing</em>.</strong> If the facade aliases the types appearing in
+its ports' signatures, any package in the repository can implement those ports. Export
+only <code>New</code>, <code>Deps</code> and <code>Module</code>, and &quot;only the consumer's own directory may implement
+the consumer's ports&quot; becomes a compile error. Type inference lets the assembly hold
+the resulting unnameable values, so the tighter aperture costs nothing.</li>
+<li><strong>Rust's crate graph stops you naming a crate — not domain types flowing.</strong> A peer
+service crate that mentions a domain type in its public signature hands that type to
+every consumer, with no error and no warning. The fix (<code>public = false</code> +
+<code>exported_private_dependencies</code>) is <strong>nightly-only</strong>, so on stable this is discipline.</li>
+<li><strong>TypeScript's package graph enforces nothing.</strong> Undeclared workspace dependencies
+resolve fine (hoisting), relative paths bypass <code>exports</code> maps entirely, and project
+references do not restrict which projects a project may import. The <code>exports</code> map is
+the one real wall, and only against package-specifier imports.</li>
+<li><strong>Every stack offers both layouts, <code>basic</code> default</strong> — and the cost figures say <em>when
+to turn the dial</em>, not whether to have one. Manifest count measures the cost of
+building a layout, not of reading it: the modulith's facade, <code>modules/&lt;ctx&gt;/</code> level and
+peer-seam-without-a-peer are indirection a single-context project can decline no matter
+how cheap its build files are. Go can adopt it for zero manifests and defer it for
+free; Rust jumps from one crate to eight and should stay flat longest.</li>
+<li><strong>Every language has a &quot;hand-computed path&quot; trap</strong> — the JVM's <code>mavenArtifact</code> /
+<code>upToRoot</code> bug class — and each has a <em>different</em> one. Naming them before writing
+templates is the cheapest lesson the JVM implementation taught.</li>
+</ul>
+<h2>Details</h2>
+<h3>The three walls, and what holds each</h3>
+<p>An arrow of enforcement strength: <strong>compiler</strong> &gt; <strong>resolver/build tool</strong> &gt; <strong>linter</strong> &gt;
+<strong>review</strong>. Only the first is unbypassable from inside the repository.</p>
+<table>
+<thead>
+<tr>
+<th>Wall</th>
+<th>Java</th>
+<th>Go</th>
+<th>Rust</th>
+<th>TypeScript (node &amp; browser)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A peer cannot reach a provider's <strong>domain</strong></td>
+<td>build tool — Gradle <code>implementation</code> scope keeps it off the compile classpath</td>
+<td><strong>compiler</strong> — nested <code>internal/</code></td>
+<td><strong>compiler</strong> — a missing <code>Cargo.toml</code> edge</td>
+<td><strong>linter</strong> — dependency-cruiser only</td>
+</tr>
+<tr>
+<td>A context's <strong>core</strong> is hidden from its own adapters</td>
+<td>build tool — separate <code>domain-core</code> module</td>
+<td><strong>compiler</strong> — a second nested <code>internal/</code></td>
+<td><strong>compiler</strong> — private module, or a separate crate</td>
+<td><strong>resolver</strong> — the <code>exports</code> map, for package specifiers only</td>
+</tr>
+<tr>
+<td>Only the <strong>gateway</strong> may <em>implement</em> a consumer's ports</td>
+<td>linter (ArchUnit)</td>
+<td><strong>compiler</strong>, if the facade re-exports nothing; otherwise linter</td>
+<td><strong>compiler</strong> — the orphan rule leaves the impl nowhere else to live</td>
+<td><strong>linter</strong></td>
+</tr>
+<tr>
+<td>Only the <strong>gateway</strong> may <em>import</em> a peer</td>
+<td>linter (ArchUnit)</td>
+<td>linter (<code>depguard</code>; facades are module-wide visible)</td>
+<td>linter (a <code>Cargo.toml</code> edge is legal anywhere)</td>
+<td><strong>linter</strong></td>
+</tr>
+<tr>
+<td>The <strong>assembly</strong> is the only full module list</td>
+<td>build tool</td>
+<td>compiler (<code>cmd/</code> cannot see any context's internals)</td>
+<td>build tool</td>
+<td>linter</td>
+</tr>
+<tr>
+<td>The <strong>domain never touches the platform</strong> (DOM, executor)</td>
+<td>convention</td>
+<td>convention</td>
+<td>convention (<code>domain</code> has no tokio edge)</td>
+<td><strong>compiler</strong> — <code>&quot;lib&quot;: [&quot;ES2022&quot;]</code> with no <code>&quot;DOM&quot;</code></td>
+</tr>
+</tbody>
+</table>
+<p>Two asymmetries are worth naming. Go and Rust are the only references where the
+<strong>primary</strong> wall is compiler-held, which is why their extraction stories are believable
+without CI. And TypeScript is the only reference that gets a wall the others don't have
+at all: <code>tsc</code> can make &quot;the domain never touches the browser&quot; a <strong>type error</strong>, which no
+JVM or Go project can do.</p>
+<h3>What each pays</h3>
+<p>Counted from the compiled skeletons: one context, contract + core + peer service + one
+driven adapter, no HTTP face.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Java</th>
+<th>Go</th>
+<th>Rust</th>
+<th>ts-http (packages)</th>
+<th>ts-http (directories)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Build/manifest files per context</td>
+<td>5–6 (<code>build.gradle.kts</code> each)</td>
+<td><strong>0</strong></td>
+<td>4–5 (<code>Cargo.toml</code> each)</td>
+<td>4–5 (<code>package.json</code> each)</td>
+<td><strong>0</strong></td>
+</tr>
+<tr>
+<td>Source files for a whole hexagon</td>
+<td>~8</td>
+<td><strong>5</strong></td>
+<td>~6</td>
+<td>~5</td>
+<td>~5</td>
+</tr>
+<tr>
+<td>Directories per context</td>
+<td>~8</td>
+<td>9</td>
+<td>~6</td>
+<td>~6</td>
+<td>~6</td>
+</tr>
+<tr>
+<td>Cross-context imports rewritten on extraction</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td><strong>0</strong></td>
+<td>3 (relative → package)</td>
+</tr>
+<tr>
+<td>Enforcement lost if CI is skipped</td>
+<td>the ArchUnit rules</td>
+<td>almost none</td>
+<td>almost none</td>
+<td><strong>everything</strong></td>
+<td><strong>everything</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Go's zero-manifest column is the headline. A Go context costs <em>nothing</em> structurally —
+no build file, no member list, no version — because the compiler reads directory names.
+That is why the modulith is nearly free there and why the dial ruling below falls the way
+it does.</p>
+<h3>Findings that only compiling revealed</h3>
+<p>Each of these contradicted a plausible reading of the reference note it belongs to.</p>
+<p><strong>Go — the assembly cannot construct adapters buried under a context's <code>internal/</code>.</strong>
+The obvious tree (<code>modules/&lt;ctx&gt;/internal/infra/postgres/</code>) makes <code>cmd/api/main.go</code>
+uncompilable: <code>use of internal package … not allowed</code>. The fix is to put driven adapters
+at <code>modules/&lt;ctx&gt;/infra/&lt;tech&gt;/</code> — <em>outside</em> the context's <code>internal/</code>, still <em>inside</em> its
+directory, where they can still import <code>&lt;ctx&gt;/internal/domain</code> (the <code>internal/</code> rule
+admits anything rooted at the parent of <code>internal/</code>). The price is that peers can now
+import a context's adapters; that residue is a linter rule, and it is the only one the Go
+layout genuinely needs.</p>
+<p><strong>Go — the facade's alias set is the aperture, and it should be empty.</strong> With
+<code>type CustomerRef = domain.CustomerRef</code> re-exported, an arbitrary package compiles an
+implementation of billing's port. Drop the aliases and the same probe fails with
+<code>want ActivityFor(context.Context, domain.CustomerRef) (domain.Activity, error)</code> —
+unnameable outside billing's directory. The assembly is unaffected: <code>:=</code> infers the
+unnameable type happily. This turns the gateway convention into a compiler rule and is
+the single highest-value correction across all four references.</p>
+<p><strong>Rust — the orphan rule is doing more work than the crate graph.</strong> The assembly cannot
+skip the gateway crate and write <code>impl OrderLookup for Arc&lt;dyn OrderingService&gt;</code>:
+<code>E0117, only traits defined in the current crate can be implemented for types defined outside of the crate</code>. The gateway must exist as a real artifact owning a newtype. The
+reference claims this as convention; it is a compile error.</p>
+<p><strong>Rust — the crate graph does not stop domain types crossing the seam.</strong> A gateway crate
+that depends only on <code>ordering-user-side-service</code> compiled, held a value of
+<code>ordering_domain_contract::Summary</code> returned through the service's public API, and read
+its fields — with no dependency edge, no error, no warning. The crate graph stops you
+<em>naming</em> a crate, not values flowing. <code>cargo -Z public-dependency</code> with <code>public = false</code>
+and <code>#![deny(exported_private_dependencies)]</code> catches it exactly (it also flags
+constructor signatures taking the domain's own ports), but it is <strong>nightly-only as of
+1.94</strong> — so on stable the &quot;the service crate's DTOs are its own&quot; rule is discipline, and
+that is now an explicitly open item rather than a silent assumption.</p>
+<p><strong>Rust — the contract/core split does not need two crates.</strong> A private <code>mod core_impl</code>
+inside one <code>ordering-domain</code> crate hides entities from dependents
+(<code>E0603: module core_impl is private</code>) exactly as a separate crate would. The two-crate
+split survives on a <em>different</em> argument than the one usually given: measured rebuild
+blast radius. Touching the core rebuilt <strong>2</strong> crates when split and <strong>3</strong> when merged,
+because in the merged crate every dependent of the contract face also rebuilds. Splitting
+buys cheaper incremental builds on the most frequent edit, not a wall you couldn't
+otherwise have.</p>
+<p><strong>Rust — <code>&lt;ctx&gt;-user-side-service</code> must be its own crate.</strong> Whatever crate owns the peer
+API also hands consumers everything else it exports. Merging the service into the domain
+crate gives every gateway a legal edge to the peer's domain. This one <em>is</em> load-bearing,
+and it is the reason the cluster cannot collapse below four crates.</p>
+<p><strong>Rust — native <code>async fn</code> in traits is still not dyn-compatible</strong> on 1.94
+(<code>E0038 … because method call is async</code>). So <code>platform-kernel</code>'s <code>BoxFuture</code> alias is
+load-bearing infrastructure, not a stylistic choice: every port method returns one by
+hand (or via a macro) or the <code>Arc&lt;dyn Port&gt;</code> wiring rule collapses.</p>
+<p><strong>TypeScript — the package graph enforces nothing.</strong> <code>@acme/billing-domain-core</code>
+importing <code>@acme/ordering-domain-contract</code> without declaring the dependency typechecks
+and runs, because npm workspaces symlink every member into the root <code>node_modules</code>.
+Project references do not help: with <code>composite</code>, the same undeclared import builds clean
+under <code>tsc -b --force</code>.</p>
+<p><strong>TypeScript — relative paths walk straight through <code>exports</code> maps.</strong> The map is a real
+wall for <code>@acme/pkg/src/internal/x.ts</code> (<code>TS2307</code> at build,
+<code>ERR_PACKAGE_PATH_NOT_EXPORTED</code> at runtime) and no wall at all for
+<code>../../modules/ordering/domain/core/src/internal/order.ts</code>. Under project references the
+relative form is <em>worse</em>: tsc silently redirects it to the peer's emitted <code>.d.ts</code> and
+typechecks it clean, while the emitted JS keeps a specifier that does not resolve — the
+violation surfaces only when Node runs.</p>
+<p><strong>TypeScript — dependency-cruiser silently sees nothing across workspace packages
+unless configured.</strong> Pointed at source directories with default options, every
+cross-package import resolves to the bare specifier with <code>dependencyTypes: ['unknown']</code>,
+so every architecture rule passes green while the tree is in violation. It needs
+<code>enhancedResolveOptions: { extensions: ['.ts', …], exportsFields: ['exports'], conditionNames: ['import', 'default', 'types'] }</code> before it resolves <code>@acme/*</code> back to
+real source paths and the rules begin to fire. <strong>A lint that fails open is worse than no
+lint</strong>, and this is the single most important thing to get right in any TypeScript
+realization of the layout.</p>
+<p><strong>Browser — cross-bundle duplication of an element-defining package is a crash, not
+waste.</strong> Two independently built bundles each inlining a shared design system: the second
+<code>customElements.define('acme-ds-button', …)</code> throws <code>NotSupportedError</code>, and because the
+throw aborts that module's top-level execution, the <em>rest</em> of that micro-frontend never
+registers. Half the page silently disappears. An import map leaving the design system
+external fixes it completely — one instance, shared module state, both panels rendered,
+no errors. The tempting cheap fix — <code>if (!customElements.get(tag)) define(...)</code> — removes
+the crash and installs silent divergence in its place: whichever bundle loads first owns
+the class, the other keeps a dead second copy of the module state, and <code>instanceof</code>
+across the boundary is <strong>false</strong>.</p>
+<p><strong>Browser — Context protocol subtree scoping works exactly as claimed.</strong> Two bundles,
+each registering a <code>context-request</code> listener on its own root, each resolved its own
+widget's port with no coordination. A widget cross-mounted into the <em>other</em> bundle's
+subtree got no provider — confirming both the scoping prize and its corollary: shells
+compose their own modules' elements, and cross-bundle element composition is not a thing
+the protocol offers.</p>
+<h3>The dial: should each stack offer <code>basic</code> and <code>modulith</code>?</h3>
+<p><strong>Every stack offers both, <code>basic</code> default (settled 2026-08-14).</strong> The measurements below
+vary enormously — a context costs zero manifest files in Go and four or five crates in
+Rust — and an earlier draft of this note used them to argue that the cheap stacks should
+ship the modulith as their <em>only</em> layout.</p>
+<p>That was the wrong inference, and the correction is the most transferable thing in this
+section: <strong>manifest count measures the cost of building the layout, not the cost of
+reading it.</strong> The modulith also imposes indirection — a facade between the assembly and
+the domain, a <code>modules/&lt;ctx&gt;/</code> level above everything, a peer seam with no peer yet — and
+a genuinely single-context project can reasonably decline all of it however cheap the
+build files are. So the per-language figures below are guidance on <em>when to turn the
+dial</em>, not a reason to remove the choice:</p>
+<table>
+<thead>
+<tr>
+<th>Stack</th>
+<th>Cost of a context</th>
+<th>When to turn the dial</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>JVM (12 stacks)</td>
+<td>5–6 <code>build.gradle.kts</code></td>
+<td>The most expensive to adopt and the most expensive to defer, since the modules must be created either way. Turn it when the second context is on the roadmap, not when it arrives.</td>
+</tr>
+<tr>
+<td>Go</td>
+<td><strong>zero manifest files</strong></td>
+<td>Cheapest to adopt <em>and</em> cheapest to defer — moving later is one facade file and a directory move. No penalty for starting flat; turn it the moment a second context is real.</td>
+</tr>
+<tr>
+<td>ts-http</td>
+<td>1 package</td>
+<td>Cheap both ways. The <code>modules/&lt;ctx&gt;/</code> level is the whole difference, so defer it until there is something to put beside <code>&lt;ctx&gt;</code>.</td>
+</tr>
+<tr>
+<td>web-components</td>
+<td>1 package</td>
+<td>The strongest architectural pull of the four — most browser apps are multi-context before their first release — so the default is right but the help text should lean toward <code>modulith</code>.</td>
+</tr>
+<tr>
+<td>Rust</td>
+<td>4–5 crates</td>
+<td>Heaviest by far, and today's flat skeleton is a <em>single crate</em> rather than a workspace, so the jump is 1 → 8. Stays on <code>basic</code> longest; turn it only with a concrete second context.</td>
+</tr>
+</tbody>
+</table>
+<h3>ts-http specifically: packages or directories?</h3>
+<p>The sharpest question, because the enforcement answer and the extraction answer point in
+opposite directions.</p>
+<ul>
+<li><strong>Enforcement is a wash.</strong> Packages add exactly one wall the directory layout lacks —
+the <code>exports</code> map against package-specifier deep imports — and that wall is bypassed by
+a relative path. Cross-context imports need dependency-cruiser under <em>both</em> designs.</li>
+<li><strong>The directory layout's lint is more trustworthy.</strong> Everything is a relative path, so
+dependency-cruiser resolves it natively with default options. The package layout needs
+the three-key resolver configuration above or it fails open. Fewer ways to be wrong.</li>
+<li><strong>Extraction favors packages, measurably.</strong> Moving <code>ordering</code> out cost <strong>0</strong> import
+rewrites under packages (every cross-context import is already a package specifier, and
+no relative import escapes a package) versus <strong>3</strong> under directories, plus authoring the
+extracted unit's <code>package.json</code> and <code>tsconfig.json</code> for the first time.</li>
+</ul>
+<p><strong>The answer is a third shape neither option offered: one package per <em>context</em>, not per
+(context × layer).</strong> <code>@acme/&lt;ctx&gt;</code> holds <code>src/domain/{contract,core}</code>, <code>src/user-side/…</code>
+and <code>src/infra/…</code> as ordinary directories, and its <code>exports</code> map publishes exactly two
+entry points — <code>&quot;.&quot;</code> (the facade) and <code>&quot;./service&quot;</code> (the peer seam). Verified: both
+resolve, while <code>@acme/&lt;ctx&gt;/src/domain/core/internal/…</code> is rejected by tsc (<code>TS2307</code>) and
+by Node (<code>ERR_PACKAGE_PATH_NOT_EXPORTED</code>) alike. It is <strong>Go's facade rule expressed in
+TypeScript</strong>, and it dominates both original options:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>package per (ctx × layer)</th>
+<th><strong>package per ctx</strong></th>
+<th>directories only</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>manifests per context</td>
+<td>3.5</td>
+<td><strong>1</strong></td>
+<td>0</td>
+</tr>
+<tr>
+<td>core hidden from outside</td>
+<td><code>exports</code> map</td>
+<td><strong><code>exports</code> map</strong></td>
+<td>lint only</td>
+</tr>
+<tr>
+<td>intra-context layering</td>
+<td>lint (the package graph doesn't check it)</td>
+<td>lint</td>
+<td>lint</td>
+</tr>
+<tr>
+<td>cross-context imports</td>
+<td>lint</td>
+<td>lint</td>
+<td>lint</td>
+</tr>
+<tr>
+<td>imports rewritten on extraction</td>
+<td>0</td>
+<td><strong>0</strong></td>
+<td>3</td>
+</tr>
+</tbody>
+</table>
+<p>Splitting a context into four packages buys four manifests and <em>zero</em> enforcement,
+because the package graph checks nothing in the first place. Collapsing to one package
+per context keeps the only wall that was ever real. This is the one place the JVM's shape
+genuinely does not transfer: on the JVM the build module <em>is</em> the enforcement, so
+per-layer modules are worth their cost; in TypeScript they are cost without enforcement.</p>
+<p>The same shape serves <code>web-components</code>, with one extra entry point (<code>&quot;./elements&quot;</code>) for
+the module's element registrations — the context is also the right code-split unit, since
+route-level splitting is done by dynamic import rather than by package granularity.</p>
+<h3>The hand-computed path trap, per language</h3>
+<p>The JVM's recurring bug class was hand-computed depths and prefixes, which is why
+<code>jvmLayout</code> centralises <code>mavenArtifact</code>, <code>gradleProject</code> and <code>upToRoot</code>. Each language has
+its own version, and each is different in kind:</p>
+<table>
+<thead>
+<tr>
+<th>Language</th>
+<th>The trap</th>
+<th>Why it bites</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Go</td>
+<td>the <strong>import-path prefix</strong> <code>&lt;modulePath&gt;/internal/modules/&lt;ctx&gt;/internal/domain</code></td>
+<td>there is no relative import in Go; every file names the full path, so the module path, the layout depth and the context name are concatenated in every import line of every template</td>
+</tr>
+<tr>
+<td>Go</td>
+<td><strong>package-name collisions</strong></td>
+<td><code>modules/ordering</code> and <code>modules/billing/gateway/ordering</code> are both <code>package ordering</code>; every importer of both must alias one. A template that emits an unaliased import compiles only until a second context appears</td>
+</tr>
+<tr>
+<td>Rust</td>
+<td><strong>crate name vs directory path</strong>, which do not match</td>
+<td><code>modules/ordering/user-side/service</code> is crate <code>ordering-user-side-service</code> and Rust identifier <code>ordering_user_side_service</code>. Three spellings of one thing, in <code>Cargo.toml</code> members, in <code>[dependencies]</code> keys, and in <code>use</code> statements</td>
+</tr>
+<tr>
+<td>Rust</td>
+<td><strong>relative <code>path =</code> depth</strong> in every <code>[dependencies]</code> entry</td>
+<td><code>../../../platform/kernel</code> from <code>modules/&lt;ctx&gt;/user-side/service</code> — the exact <code>upToRoot</code> bug, transplanted</td>
+</tr>
+<tr>
+<td>TypeScript</td>
+<td><strong>package name vs directory path</strong></td>
+<td><code>@&lt;scope&gt;/&lt;ctx&gt;-domain-contract</code> at <code>modules/&lt;ctx&gt;/domain/contract</code>; the scope, the context and the path depth vary independently and none is derivable from another. (Workspace member globs are <em>not</em> a trap — nested patterns like <code>modules/*/domain/*</code> work under npm 10 and pnpm 10 alike)</td>
+</tr>
+<tr>
+<td>TypeScript</td>
+<td><strong>the <code>exports</code> map is coupled to the build mode</strong></td>
+<td>no build step means <code>&quot;.&quot; → &quot;./src/index.ts&quot;</code> and <code>.ts</code> import specifiers; an emitting build means <code>./dist/index.js</code> plus a <code>types</code> condition and <code>.js</code> specifiers. Mix them and it typechecks, then fails at runtime — adding project references to a working no-build workspace required rewriting every map and every specifier</td>
+</tr>
+<tr>
+<td>TypeScript</td>
+<td><strong><code>erasableSyntaxOnly</code></strong></td>
+<td>Node's type-stripping bans parameter properties and enums; a domain-entity template using <code>constructor(readonly id: string)</code> fails with <code>TS1294</code> in exactly the stack that runs sources directly</td>
+</tr>
+<tr>
+<td>Browser</td>
+<td><strong>the tag prefix</strong> <code>&lt;scope&gt;-&lt;context&gt;-&lt;element&gt;</code></td>
+<td>it is a runtime string, not a path, so nothing checks it; and the shared design system's tags are <em>not</em> context-prefixed, which is precisely why they collide across bundles</td>
+</tr>
+</tbody>
+</table>
+<p>The lesson transfers: whatever the per-language <code>jvmLayout</code> equivalent is, it must own
+<strong>name derivation</strong> (crate name, package name, import prefix, tag prefix) as well as path
+derivation. On the JVM only paths were dangerous because the package prefix was already
+centralised; in Rust and TypeScript the <em>name</em> is the more dangerous half.</p>
+<h2>Related</h2>
+<ul>
+<li><a href="../../applicative-architecture/hexagonal-architecture/">Hexagonal architecture</a> — the house principles and the
+modulith layout all four references realize; the hub.</li>
+<li><a href="../../applicative-architecture/modulith-and-microservices/">Modulith &amp; microservices</a> — the extraction property
+this note grades each language against.</li>
+<li><a href="../../java/hexagonal-reference-implementation/hexagonal-reference-implementation/">Java reference</a>
+— the one that has been through a compiler in anger, and the shape the others were
+measured against.</li>
+<li><a href="../../go/hexagonal-reference-implementation/">Go reference</a> — cheapest realization; the
+empty-facade rule is recorded there.</li>
+<li><a href="../../rust/hexagonal-reference-implementation/">Rust reference</a> — strongest walls; the
+seam-leak caveat is recorded there.</li>
+<li><a href="../../frontend/hexagonal-reference-implementation/">Frontend reference</a> — weakest walls,
+strongest domain-purity check; the cross-bundle ruling is recorded there.</li>
+<li><a href="../../applicative-architecture/coupling-and-cohesion/">Coupling &amp; cohesion</a> — the forces the walls exist to manage.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../assets/planks.js"></script>
+  <script src="../../assets/search.js" defer></script>
+  <script src="../../assets/mermaid.js" defer></script>
+</body>
+</html>
