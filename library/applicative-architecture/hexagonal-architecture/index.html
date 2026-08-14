@@ -40,8 +40,8 @@
       <div class="term-out">
         <h1 class="lib-title">Hexagonal architecture</h1>
         <p class="lib-lede"><span class="tok-comment"># Ports &amp; adapters — isolating the domain from infrastructure so the application is testable and technology-agnostic at its edges.</span></p>
-        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-08</span><span class="lib-meta-date">updated 2026-08-11</span></cluster-pk>
-        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../tags/#hexagonal-architecture">#hexagonal-architecture</a><a class="lib-tag" href="../../tags/#architecture">#architecture</a><a class="lib-tag" href="../../tags/#ddd">#ddd</a><a class="lib-tag" href="../../tags/#design">#design</a></cluster-pk>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-08</span><span class="lib-meta-date">updated 2026-08-14</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../tags/#hexagonal-architecture">#hexagonal-architecture</a><a class="lib-tag" href="../../tags/#architecture">#architecture</a><a class="lib-tag" href="../../tags/#ddd">#ddd</a><a class="lib-tag" href="../../tags/#design">#design</a><a class="lib-tag" href="../../tags/#modulith">#modulith</a></cluster-pk>
       </div>
     </div>
     <article class="lib-doc"><h2>Overview</h2>
@@ -60,6 +60,10 @@ controller, CLI, scheduler); secondary (driven) adapters are called by it throug
 ports — dependency inversion applied at architecture scale.</li>
 <li><strong>Test strategy falls out</strong>: domain tested with plain unit tests, ports contract-tested,
 adapters integration-tested; end-to-end kept thin.</li>
+<li><strong>One hexagon is not an architecture</strong> — a system has several bounded contexts, and
+the house answer is the <strong>modulith</strong>: one hexagon per context under <code>modules/</code>,
+composed into runnable assemblies under <code>application/</code>. The full layout and its
+dependency rules are in the Details.</li>
 <li><strong>Siblings</strong>: onion architecture and Clean Architecture (Martin) are the same idea with
 different layering vocabulary; don't get lost in the taxonomy.</li>
 <li><strong>Cost</strong>: indirection and mapping (DTOs ↔ domain objects) — overkill for CRUD-only
@@ -104,17 +108,34 @@ one shared set of principles, each with its own enforcement mechanism (Maven mod
 graph, nested <code>internal/</code> + linter, Cargo crate graph, npm workspace + TS project
 references). Each implementation stands on its own; the principles live here:</p>
 <ul>
-<li><strong>Trisection</strong>: <code>application/</code> (primary adapters), <code>domain/</code> (the hexagon),
-<code>infrastructure/</code> (secondary adapters), plus a <code>deployment/</code> home for IaC.</li>
-<li><strong>One primary adapter = one deployment unit = one container</strong>; its containerisation
-definition (Dockerfile and the likes) lives beside it, never centralised.</li>
+<li><strong>One hexagon per bounded context, several hexagons per repository.</strong> The favored
+layout is a <strong>modulith</strong>: <code>modules/&lt;context&gt;/</code> holds a self-contained hexagon
+(<code>user-side/</code>, <code>domain/</code>, <code>infra/</code>), <code>platform/</code> holds what every context shares,
+and <code>application/</code> holds the assemblies that compose modules into runnable
+artifacts. The flat trisection (<code>application/</code> + <code>domain/</code> + <code>infrastructure/</code> at
+the root) is the degenerate one-context case of the same rules — see
+<a href="#the-favored-layout--a-modulith-of-hexagons">the favored layout</a> below.</li>
+<li><strong>One deployment unit per delivery typology</strong>, not per adapter: an <code>application/</code>
+assembly (<code>api</code>, <code>consumer</code>, <code>cron</code>, …) is the runnable, containerised artifact, and
+it hosts the matching user-side adapters of every module it assembles. Its
+containerisation definition (Dockerfile and the likes) lives beside it, never
+centralised.</li>
+<li><strong>A module's driving adapters are not runnable.</strong> <code>user-side/</code> carries HTTP
+resources, message consumers and the in-process service, each as a library an
+assembly mounts. Deciding <em>what runs together</em> is the assembly's job alone.</li>
+<li><strong>Modules compose through the in-process service adapter, never through each
+other's domains.</strong> A module that needs a peer declares a <strong>driven port in its own
+vocabulary</strong>; its <code>infra/</code> implements that port by delegating to the peer's
+<code>user-side/service</code>. This is the seam that makes carve-out cheap — see
+<a href="../../applicative-architecture/modulith-and-microservices/">modulith &amp; microservices</a>.</li>
 <li><strong>The domain has a contract face and an implementation face</strong> — ports in both
 directions, command DTOs and events on the contract side; entities and services on
 the implementation side. Everything depends on the contract; almost nothing on the
 implementation.</li>
 <li><strong>Business logic enters the hexagon as command/query data through one explicit
-dispatch seam</strong> — primary adapters construct commands and never import concrete
-handlers. The <em>mechanism</em> behind the seam is per-language, settled 2026-08-09:
+dispatch seam</strong> — driving adapters construct commands and never import concrete
+handlers. The seam is <strong>per module</strong>, not per repository. The <em>mechanism</em> behind it
+is per-language, settled 2026-08-09:
 Java routes through a registry <strong>Mediator</strong> (handlers self-declare via
 <code>supports()</code>); Rust keeps per-use-case driving-port traits and, where a unified
 seam is justified, makes the compiler the registry (commands as an enum, one
@@ -123,23 +144,140 @@ driving ports, explicitly wired in <code>main</code> (Go) or delivered by typed 
 (frontend) — with cross-cutting concerns as decorators around the seam. Each
 reference records its stance and the rejected alternatives.</li>
 <li><strong>An adapter's API artifact exists only where the contract is real and consumable</strong>
-(REST DTOs/OpenAPI, protos, message schemas) — the pair is earned, never imposed for
-symmetry; a cron unit is a single module.</li>
-<li><strong>Infrastructure granularity is decided ad-hoc per context</strong> — single module or one
-per (port × technology); the forcing question is which deployment units need which
-driven adapters. Ubiquitous ports (clock, id generation) sit together in a commons
-module. A deployment unit's dependency list reads like its ops runbook.</li>
-<li><strong>One assembly point per deployment unit</strong> wires domain and infrastructure — a
-configurator module in Java, each binary's <code>main</code> in Go and Rust. Dependency
-injection is a pattern (explicit construction), never a reflection container.</li>
+(REST DTOs/OpenAPI, protos, message schemas) — the <code>contract</code>/<code>adapters</code> pair under
+<code>user-side/api/</code> is earned, never imposed for symmetry; a cron adapter is a single
+module.</li>
+<li><strong>Infrastructure granularity is decided ad-hoc per context</strong> — a module's <code>infra/</code>
+is a single module or one per (port × technology); the forcing question is which
+assemblies need which driven adapters. Ubiquitous ports (clock, id generation) are
+not a module's business at all: they sit in <code>platform/</code>. An assembly's dependency
+list reads like its ops runbook.</li>
+<li><strong>One assembly point per deployment unit</strong> wires domains and infrastructure — the
+<code>application/&lt;typology&gt;</code> module in Java, each binary's <code>main</code> in Go and Rust.
+Dependency injection is a pattern (explicit construction), never a reflection
+container.</li>
 <li><strong>No contract testing between infrastructure and the domain contract</strong>: adapters are
 integration-tested against their real technology on their own terms; the domain owns
 its in-memory fakes.</li>
 <li><strong>Duplication between deployment units is accepted</strong> over cross-unit coupling — by
-design there is scarcely any overlap between units.</li>
+design there is scarcely any overlap between assemblies.</li>
 <li><strong>Every directory/module carries a <code>README.md</code> and an <code>AGENTS.md</code></strong> stating its
 purpose and local conventions.</li>
 </ul>
+<h3>The favored layout — a modulith of hexagons</h3>
+<p>The trisection is what a <em>single</em> hexagon looks like. Real systems hold several
+bounded contexts, and the layout that scales is one that repeats the trisection per
+context instead of merging every context into one domain module:</p>
+<pre><code>acme/
+├── application/                  # assemblies: one per deployment typology
+│   ├── api/                      #   HTTP app — mounts every module's api adapters
+│   ├── consumer/                 #   messaging app
+│   └── cron/                     #   scheduler app
+├── platform/                     # shared, domain-agnostic modules
+│   ├── kernel/                   #   Command/Query, Handler, the dispatch seam
+│   └── …                         #   ubiquitous ports (clock, ids), test kit
+├── modules/                      # one directory per bounded context
+│   ├── ordering/
+│   │   ├── user-side/            #   driving adapters — libraries, never runnable
+│   │   │   ├── api/
+│   │   │   │   ├── contract/     #     published interfaces + DTOs
+│   │   │   │   └── adapters/     #     their implementation
+│   │   │   ├── consumers/        #     message consumers
+│   │   │   └── service/          #     in-process adapter for peer modules
+│   │   ├── domain/
+│   │   │   ├── contract/         #   driving + driven ports, public DTOs
+│   │   │   └── core/             #   the business logic
+│   │   └── infra/                #   driven-port adapters
+│   └── billing/                  # same shape, independently
+└── deployment/                   # IaC — OpenTofu stacks per environment
+</code></pre>
+<p>The dependency rules are the trisection's, restated per module (an entry not listed
+is forbidden):</p>
+<table>
+<thead>
+<tr>
+<th>Module</th>
+<th>May depend on</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>platform/kernel</code></td>
+<td>nothing</td>
+</tr>
+<tr>
+<td><code>modules/x/domain/contract</code></td>
+<td><code>platform/kernel</code></td>
+</tr>
+<tr>
+<td><code>modules/x/domain/core</code></td>
+<td>its own <code>domain/contract</code></td>
+</tr>
+<tr>
+<td><code>modules/x/infra</code></td>
+<td>its own <code>domain/contract</code>, <strong>peer modules' <code>user-side/service</code></strong>, its technology</td>
+</tr>
+<tr>
+<td><code>modules/x/user-side/api/contract</code></td>
+<td>nothing — transport types only</td>
+</tr>
+<tr>
+<td><code>modules/x/user-side/api/adapters</code></td>
+<td>its own <code>user-side/api/contract</code> + <code>domain/contract</code></td>
+</tr>
+<tr>
+<td><code>modules/x/user-side/service</code></td>
+<td>its own <code>domain/contract</code></td>
+</tr>
+<tr>
+<td><code>application/&lt;typology&gt;</code></td>
+<td>anything it assembles — the only place allowed to see a <code>domain/core</code></td>
+</tr>
+</tbody>
+</table>
+<p>Two consequences carry the layout's value:</p>
+<ul>
+<li><strong>No module ever depends on another module's domain.</strong> The single legal
+inter-module edge is <code>infra → peer user-side/service</code>, and it runs through a port
+the <em>consumer</em> declared in its own language. Contexts stay independently
+understandable, and a bad dependency is a build failure rather than a review
+comment.</li>
+<li><strong>The composition is decided in <code>application/</code>, at assembly time.</strong> Which modules
+run in one process, which get their own, and whether a peer call is a method call
+or a network hop are all assembly concerns. That is precisely what makes the
+modulith → microservices move mechanical rather than architectural.</li>
+</ul>
+<p>The whole hexagon shape is preserved inside each module, so nothing above replaces the
+trisection — it repeats it:</p>
+<pre class="mermaid">flowchart LR
+    subgraph asm[&quot;application/api (the deployment unit)&quot;]
+        ASSEMBLY[&quot;assembly + wiring&quot;]
+    end
+    subgraph ordering[&quot;modules/ordering&quot;]
+        OUS[&quot;user-side/api/adapters&quot;]
+        OSVC[&quot;user-side/service&quot;]
+        ODC[&quot;domain/contract (ports)&quot;]
+        OCORE[&quot;domain/core&quot;]
+        OINFRA[&quot;infra&quot;]
+    end
+    subgraph billing[&quot;modules/billing&quot;]
+        BDC[&quot;domain/contract&lt;br/&gt;(declares an OrderLookup driven port)&quot;]
+        BINFRA[&quot;infra/ordering-gateway&quot;]
+    end
+    ASSEMBLY --&gt;|&quot;mounts&quot;| OUS
+    ASSEMBLY --&gt;|&quot;wires&quot;| OCORE
+    OUS --&gt; ODC
+    OSVC --&gt; ODC
+    OCORE --&gt; ODC
+    OINFRA --&gt; ODC
+    BINFRA --&gt;|&quot;implements&quot;| BDC
+    BINFRA --&gt;|&quot;calls in-process&quot;| OSVC
+</pre>
+<p><strong>When to stay flat.</strong> A service with one genuine bounded context gains nothing from
+<code>modules/&lt;the-only-one&gt;/</code> but a level of nesting. Start flat, and adopt the modulith
+the moment a second context appears — the flat trisection maps onto
+<code>modules/&lt;context&gt;/</code> one-to-one, so the promotion is a directory move plus a build
+file, not a redesign.</p>
 <h2>Practice</h2>
 <ul>
 <li><strong>Trip Service Kata</strong> (<a href="https://github.com/sandromancuso/trip-service-kata" rel="noopener">source</a>) —
@@ -166,7 +304,10 @@ standing on its own:
 <a href="../../go/hexagonal-reference-implementation/">Go</a>,
 <a href="../../rust/hexagonal-reference-implementation/">Rust</a>, and
 <a href="../../frontend/hexagonal-reference-implementation/">Frontend — web components</a>.</li>
-<li><a href="../../applicative-architecture/ddd/">DDD</a> — supplies the domain model the hexagon protects.</li>
+<li><a href="../../applicative-architecture/modulith-and-microservices/">Modulith &amp; microservices</a> — the layout above read as
+a position on the decomposition spectrum, and the mechanics of moving along it.</li>
+<li><a href="../../applicative-architecture/ddd/">DDD</a> — supplies the domain model the hexagon protects, and the bounded
+contexts <code>modules/</code> is carved along.</li>
 <li><a href="../../applicative-architecture/clean-code/">Clean code</a> — dependency inversion is SOLID's &quot;D&quot;.</li>
 <li><a href="../../applicative-architecture/tdd/">TDD</a> — ports make outside-in test-first design practical.</li>
 <li><a href="../../system-design/microservice-architecture/">Microservice architecture</a> — a common

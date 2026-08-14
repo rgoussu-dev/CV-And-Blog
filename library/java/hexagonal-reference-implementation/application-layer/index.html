@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="color-scheme" content="dark light" />
-  <title>Application layer — primary adapters as deployment units — Library — rgoussu.dev</title>
+  <title>User-side adapters &amp; assemblies — Library — rgoussu.dev</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
@@ -38,128 +38,150 @@
 <div class="sess-block">
       <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../java/">java</a><span class="tok-path">/</span><span class="tok-path">hexagonal-reference-implementation</span> <span class="tok-cmd">cat</span> <span class="tok-file">application-layer</span><span class="tok-ext">.md</span></div>
       <div class="term-out">
-        <h1 class="lib-title">Application layer — primary adapters as deployment units</h1>
-        <p class="lib-lede"><span class="tok-comment"># Per user-side adapter, an implementation module plus an API module where the contract is real — each mapping to a single unit of deployment — and the optional configurator that harbors the wiring.</span></p>
-        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
-        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#hexagonal-architecture">#hexagonal-architecture</a><a class="lib-tag" href="../../../tags/#architecture">#architecture</a><a class="lib-tag" href="../../../tags/#java">#java</a><a class="lib-tag" href="../../../tags/#primary-adapters">#primary-adapters</a><a class="lib-tag" href="../../../tags/#deployment-unit">#deployment-unit</a></cluster-pk>
+        <h1 class="lib-title">User-side adapters &amp; assemblies</h1>
+        <p class="lib-lede"><span class="tok-comment"># Each module's user-side/ holds its driving adapters as libraries — api contract+adapters where the contract is real, consumers, and the in-process service — while application/&lt;typology&gt; assembles them into the runnable deployment units.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span><span class="lib-meta-date">updated 2026-08-14</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#hexagonal-architecture">#hexagonal-architecture</a><a class="lib-tag" href="../../../tags/#architecture">#architecture</a><a class="lib-tag" href="../../../tags/#java">#java</a><a class="lib-tag" href="../../../tags/#primary-adapters">#primary-adapters</a><a class="lib-tag" href="../../../tags/#deployment-unit">#deployment-unit</a><a class="lib-tag" href="../../../tags/#modulith">#modulith</a></cluster-pk>
       </div>
     </div>
     <article class="lib-doc"><h2>Overview</h2>
-<p>The <code>application/</code> folder holds the <strong>primary (user-side) adapters</strong>: everything that
-drives the domain from the outside — REST endpoints, gRPC servers, Kafka consumers, cron
-jobs and the like. Each adapter has an <strong>implementation module</strong>, paired with an <strong>API
-module</strong> (DTOs + contracts) when its transport contract is real and consumable, and each
-maps to a <strong>single unit of deployment / container</strong>. An optional <code>configurator</code> module
-harbors the wiring of the domain and infrastructure modules so the adapters stay thin.</p>
+<p>The driving side of the modulith is split across two places, and the split is the whole
+design. <strong><code>modules/&lt;context&gt;/user-side/</code></strong> holds a module's primary adapters — REST
+resources, message consumers, the in-process service — each as an ordinary <strong>library</strong>.
+<strong><code>application/&lt;typology&gt;</code></strong> holds the <strong>assemblies</strong>: <code>api</code>, <code>consumer</code>, <code>cron</code>, each a
+runnable, containerised deployment unit that mounts the matching adapters of every
+module it composes and wires them to infrastructure. Adapters say <em>how the outside
+reaches a module</em>; assemblies say <em>what runs together</em>.</p>
 <h2>Key points</h2>
 <ul>
-<li><strong>A module pair where the contract is real.</strong> <code>&lt;adapter&gt;-api</code> carries the transport
-contract: request/response DTOs, the OpenAPI spec or generated interfaces for REST, the
-<code>.proto</code> files and generated stubs for gRPC, message schemas for Kafka. <code>&lt;adapter&gt;-app</code>
-carries the implementation: controllers/handlers/consumers, DTO ↔ command mapping, the
-main class, runtime configuration.</li>
-<li><strong>Why the split</strong>: the API module is publishable. A client team (or a sibling service)
-can depend on <code>rest-public-api</code> or the proto stubs without ever seeing the
-implementation; contract-first workflows (OpenAPI, protobuf) get a natural home for
+<li><strong>A module's adapters are never runnable.</strong> No <code>main</code>, no framework bootstrap, no
+<code>application.properties</code> under <code>user-side/</code>. Everything there is a library, which is
+what lets one adapter be mounted by different assemblies — or by none, after a
+carve-out.</li>
+<li><strong>One deployment unit per delivery typology</strong>, not per adapter. Six modules exposing
+HTTP produce <em>one</em> <code>application/api</code> container, not six. Scaling and rollout are
+decided per typology; a module that genuinely needs its own cadence is asking for
+extraction, not for a seventh assembly.</li>
+<li><strong>A module pair where the contract is real.</strong> <code>user-side/api/contract</code> carries the
+transport contract: request/response DTOs, the OpenAPI spec or generated interfaces
+for REST, <code>.proto</code> files and stubs for gRPC, message schemas for consumers.
+<code>user-side/api/adapters</code> carries the implementation: resources/controllers, DTO ↔
+command mapping, error translation.</li>
+<li><strong>Why the split</strong>: the contract module is publishable. A client team — or the module
+itself after extraction — depends on <code>ordering-user-side-api-contract</code> without ever
+seeing the implementation, and contract-first workflows get a natural home for
 generated sources.</li>
 <li><strong>The pair is earned, not imposed.</strong> An adapter with no consumable contract — a cron
-runner, an internal batch — is a <strong>single <code>-app</code> module</strong>; an empty <code>-api</code> would be
-ceremony. The test: could another team meaningfully depend on the <code>-api</code> artifact? If
-not, don't create it.</li>
-<li><strong>One adapter = one deployment unit.</strong> A service may ship two REST units (e.g. public
-API and back-office), one gRPC server, one Kafka consumer group, one cron runner — five
-containers, five <code>&lt;adapter&gt;-app</code> modules, each with its Dockerfile beside it. Scaling,
-resource profiles and rollout cadence are decided per adapter, not per service.</li>
-<li><strong>Adapters translate, never decide.</strong> An <code>-app</code> module maps transport DTOs to domain
-commands, dispatches them through the <code>Mediator</code> driving port from <code>domain-api</code>
-(the settled dispatch seam — see the
-<a href="../../../java/hexagonal-reference-implementation/domain-layer/">domain layer</a>), and maps results back. Business rules living in
-a controller are a smell — push them through the port.</li>
-<li><strong>The configurator is optional and is the only assembly point.</strong> It exposes the wiring
-of <code>domain-core</code> with the infrastructure modules (as Spring <code>@Configuration</code> /
-CDI producers); each deployment unit imports it and selects what it needs. Without one,
-each <code>*-app</code> does its own wiring — acceptable while there is one deployment unit,
-repetitive beyond that.</li>
-<li><strong>No adapter depends on another adapter.</strong> Cross-adapter reuse happens in the domain,
-or not at all.</li>
+entry point, an internal batch — is a single module; an empty <code>contract/</code> would be
+ceremony. The test: could another team meaningfully depend on that artifact?</li>
+<li><strong><code>user-side/service</code> is a peer of the others</strong>, treated in full in
+<a href="../../../java/hexagonal-reference-implementation/module-composition/">module composition</a>: same job, different transport.</li>
+<li><strong>Adapters translate, never decide.</strong> An adapter maps transport DTOs to domain
+commands, dispatches them through the module's <code>Mediator</code> from
+<a href="../../../java/hexagonal-reference-implementation/domain-layer/"><code>domain/contract</code></a>, and maps results back. Business rules in a
+controller are a smell — push them through the port.</li>
+<li><strong>The assembly is the only assembly point</strong>, and it absorbed the flat layout's
+<code>configurator</code>: it is the one module allowed to see a <code>domain/core</code> alongside the
+infrastructure modules. There is no separate wiring module, because the deployment
+unit already is one.</li>
+<li><strong>No adapter depends on another adapter</strong>, within a module or across modules.
+Cross-module reuse happens at the service seam, or not at all.</li>
 </ul>
 <h2>Details</h2>
-<h3>Anatomy of one adapter pair</h3>
-<pre><code>application/rest-public/
-├── rest-public-api/
-│   ├── pom.xml                        # no domain deps; transport contract only
-│   └── src/main/java/…/api/
-│       ├── OrderRequest.java          # DTOs — transport-shaped, not domain-shaped
-│       ├── OrderResponse.java
-│       └── openapi.yaml               # or generated interfaces from it
-└── rest-public-app/
-    ├── pom.xml                        # depends on: rest-public-api, domain-api, configurator
-    ├── Dockerfile                     # the deployment unit's container definition
-    ├── README.md                      # how to run THIS unit
-    ├── AGENTS.md                      # conventions for THIS unit
-    └── src/main/java/…/
-        ├── RestPublicApplication.java # main class
-        ├── OrderController.java       # calls driving ports from domain-api
-        └── OrderApiMapper.java        # DTO ↔ command/result mapping
+<h3>Anatomy of one module's user side</h3>
+<pre><code>modules/ordering/user-side/
+├── api/
+│   ├── contract/
+│   │   ├── pom.xml                        # no domain deps; transport contract only
+│   │   └── src/main/java/…/api/
+│   │       ├── OrderRequest.java          # DTOs — transport-shaped, not domain-shaped
+│   │       ├── OrderResponse.java
+│   │       └── openapi.yaml               # or generated interfaces from it
+│   └── adapters/
+│       ├── pom.xml                        # depends on: api/contract, domain/contract
+│       ├── README.md · AGENTS.md
+│       └── src/main/java/…/
+│           ├── OrderResource.java         # dispatches commands through the mediator
+│           └── OrderApiMapper.java        # DTO ↔ command/result mapping
+├── consumers/                             # message consumers (+ a contract module
+│                                          #   when the schemas are published)
+└── service/                               # the in-process adapter — see module-composition
 </code></pre>
-<p>The same shape repeats wherever a contract exists — for <code>grpc-server</code> the <code>-api</code> module
-holds <code>.proto</code> + generated stubs; for <code>kafka-consumers</code> it holds the message schemas
-(Avro/JSON schema) the topics carry. For <code>cron-jobs</code> there is no consumable contract, so
-it stays a lone <code>cron-jobs-app</code> module — the tree stays predictable because the <em>rule</em> is
-uniform (pair ⇔ real contract), not because every adapter carries two modules.</p>
-<p>The fan-out, three adapters shown (an arrow reads &quot;depends on&quot;):</p>
+<p>Notice what is <em>absent</em>: no Dockerfile, no main class, no runtime configuration. Those
+belong to whichever assembly mounts this adapter.</p>
+<h3>Anatomy of one assembly</h3>
+<pre><code>application/api/
+├── pom.xml                                # lists every module it composes
+├── Dockerfile                             # the deployment unit's container definition
+├── README.md                              # how to run THIS unit
+├── AGENTS.md
+└── src/
+    ├── main/java/…/
+    │   ├── ApiApplication.java            # the main class
+    │   └── composition/                   # one configuration class per module
+    │       ├── OrderingCompositionRoot.java
+    │       └── BillingCompositionRoot.java
+    ├── main/resources/application.properties
+    └── test/java/…/                       # ArchUnit rules + end-to-end tests
+</code></pre>
+<p>The assembly's dependency list is its ops runbook: read <code>application/consumer</code>'s POM
+and you know it ships Kafka and Postgres but not the billing HTTP client.</p>
+<p>The fan-out — three assemblies over two modules (an arrow reads &quot;depends on&quot;):</p>
 <pre class="mermaid">flowchart TB
-    subgraph restpublic[&quot;rest-public deployment unit, one container&quot;]
-        RPA[&quot;rest-public-api (DTOs, OpenAPI)&quot;]
-        RPP[&quot;rest-public-app + Dockerfile&quot;]
+    subgraph apiunit[&quot;application/api — one container&quot;]
+        API[&quot;assembly + Dockerfile&quot;]
     end
-    subgraph grpcserver[&quot;grpc-server deployment unit, one container&quot;]
-        GRA[&quot;grpc-server-api (proto, stubs)&quot;]
-        GRP[&quot;grpc-server-app + Dockerfile&quot;]
+    subgraph consumerunit[&quot;application/consumer — one container&quot;]
+        CON[&quot;assembly + Dockerfile&quot;]
     end
-    subgraph cronjobs[&quot;cron-jobs deployment unit, one container&quot;]
-        CRO[&quot;cron-jobs-app + Dockerfile (no consumable contract, no -api)&quot;]
+    subgraph cronunit[&quot;application/cron — one container&quot;]
+        CRO[&quot;assembly + Dockerfile (no consumable contract anywhere)&quot;]
     end
-    CONF[&quot;configurator (optional)&quot;]
-    DAPI[&quot;domain-api&quot;]
+    subgraph ordering[&quot;modules/ordering/user-side&quot;]
+        OA[&quot;api/adapters&quot;]
+        OC[&quot;consumers&quot;]
+    end
+    subgraph billing[&quot;modules/billing/user-side&quot;]
+        BA[&quot;api/adapters&quot;]
+        BCRON[&quot;cron&quot;]
+    end
 
-    RPP --&gt; RPA
-    GRP --&gt; GRA
-    RPP --&gt; DAPI
-    GRP --&gt; DAPI
-    CRO --&gt; DAPI
-    RPP --&gt; CONF
-    GRP --&gt; CONF
-    CRO --&gt; CONF
+    API --&gt; OA
+    API --&gt; BA
+    CON --&gt; OC
+    CRO --&gt; BCRON
 </pre>
-<h3>The configurator</h3>
-<ul>
-<li>Lives at <code>application/configurator</code>; depends on <code>domain-api</code>, <code>domain-core</code>, and the
-infrastructure modules; is depended on by the <code>*-app</code> modules. It is the one place
-allowed to see both sides of the hexagon.</li>
-<li>Keep it declarative: bean/producer definitions binding each driven port to a chosen
-adapter, transaction decoration, nothing else. If logic accumulates there, it belongs
-in the domain.</li>
-<li>When deployment units need different subsets of infrastructure, split the wiring into
-per-concern configuration classes (persistence, messaging, clients) so a unit imports
-only what it uses — the Kafka consumer unit shouldn't drag the Postgres wiring (and
-driver) into its image.</li>
-</ul>
+<h3>Composition classes, one per module</h3>
+<p>Keep the assembly declarative: one configuration class per composed module, binding
+that module's driven ports to chosen adapters and constructing its mediator over its
+handlers. Splitting per module rather than per concern means an extraction deletes one
+file rather than editing five, and it keeps the assembly readable as a list of &quot;which
+contexts am I hosting&quot;.</p>
+<p>If logic accumulates in a composition class, it belongs in a domain. If wiring
+duplicates across assemblies, that is acceptable — the house rule prefers duplication
+between deployment units over a shared wiring module that couples them.</p>
+<h3>Per-module framework configuration</h3>
+<p>An adapter library still needs framework metadata (CDI <code>beans.xml</code>, Spring
+auto-configuration entries, component scan roots). That metadata ships <strong>with the
+adapter module</strong>, so mounting it is a dependency line and nothing more. The assembly
+selects modules; it never reaches inside them to configure their internals.</p>
 <h2>Related</h2>
 <ul>
 <li><a href="../../../java/hexagonal-reference-implementation/hexagonal-reference-implementation/">Hexagonal architecture reference implementation — Java</a>
 — the summary note this details.</li>
-<li><a href="../../../java/hexagonal-reference-implementation/domain-layer/">Domain layer — contract &amp; implementation</a> — the driving ports these
-adapters call.</li>
-<li><a href="../../../java/hexagonal-reference-implementation/infrastructure-layer/">Infrastructure layer — secondary adapters</a> — the modules the
-configurator wires in.</li>
-<li><a href="../../../java/hexagonal-reference-implementation/deployment-and-iac/">Deployment &amp; IaC</a> — how each unit's Dockerfile and stack
+<li><a href="../../../java/hexagonal-reference-implementation/module-composition/">Module composition — the in-process service seam</a> — the
+<code>user-side/service</code> adapter and how assemblies wire two modules together.</li>
+<li><a href="../../../java/hexagonal-reference-implementation/domain-layer/">Domain layer — contract &amp; implementation</a> — the mediator and
+driving ports these adapters call.</li>
+<li><a href="../../../java/hexagonal-reference-implementation/infrastructure-layer/">Infrastructure layer — secondary adapters</a> — the modules an
+assembly binds the driven ports to.</li>
+<li><a href="../../../java/hexagonal-reference-implementation/deployment-and-iac/">Deployment &amp; IaC</a> — how each assembly's Dockerfile and stack
 definition travel with it.</li>
 <li><a href="../../../java/protocols/">Backend protocols in Java</a> — the transport implementations
 (REST, gRPC, messaging) these adapters are built with.</li>
 <li><a href="../../../java/protocols/api-documentation/">API documentation in Java</a> — the contract
-formats (OpenAPI, AsyncAPI, proto) the <code>-api</code> modules carry, and the code-first vs
-contract-first workflows they anchor.</li>
+formats (OpenAPI, AsyncAPI, proto) the <code>contract</code> modules carry, and the code-first
+vs contract-first workflows they anchor.</li>
 </ul>
 </article>
         </div>

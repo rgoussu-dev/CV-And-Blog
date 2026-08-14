@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Module composition — the in-process service seam — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/structural.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/java/hexagonal-reference-implementation</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../java/">java</a><span class="tok-path">/</span><span class="tok-path">hexagonal-reference-implementation</span> <span class="tok-cmd">cat</span> <span class="tok-file">module-composition</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Module composition — the in-process service seam</h1>
+        <p class="lib-lede"><span class="tok-comment"># How two modules of the modulith meet in Java — a consumer-owned driven port implemented by an infra gateway that delegates to the peer's user-side/service adapter, and the build rules that keep it the only edge.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-14</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#hexagonal-architecture">#hexagonal-architecture</a><a class="lib-tag" href="../../../tags/#architecture">#architecture</a><a class="lib-tag" href="../../../tags/#java">#java</a><a class="lib-tag" href="../../../tags/#modulith">#modulith</a><a class="lib-tag" href="../../../tags/#modules">#modules</a><a class="lib-tag" href="../../../tags/#composition">#composition</a><a class="lib-tag" href="../../../tags/#ports">#ports</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>Everything the modulith buys rests on one rule: <strong>modules meet at
+<code>user-side/service</code>, and nowhere else</strong>. When <code>billing</code> needs something from
+<code>ordering</code>, billing declares a driven port in <em>its own</em> vocabulary, implements that
+port with a small gateway in <code>billing/infra/</code>, and that gateway is the only class in
+the system that knows <code>ordering</code> exists. <code>ordering</code> offers itself through an ordinary
+driving adapter — one that happens to speak Java method calls instead of HTTP. This
+note is the Java mechanics of that seam and the build rules that hold it.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong><code>user-side/service</code> is a driving adapter, not a domain artifact.</strong> It sits beside
+the REST resources and the message consumers because it is the same kind of thing:
+something outside the hexagon calling in. Its transport just happens to be the JVM
+call stack.</li>
+<li><strong>The consumer owns the port and names it.</strong> <code>billing/domain/contract</code> declares
+<code>OrderLookup</code>, in billing's language, returning billing's types. It must not be
+<code>OrderingService</code> re-exported — a port named after the provider is the coupling the
+layout exists to prevent.</li>
+<li><strong>The gateway lives in the consumer's <code>infra/</code>.</strong> <code>billing/infra/ordering-gateway</code>
+implements <code>OrderLookup</code> by calling <code>ordering-user-side-service</code> and mapping its
+DTOs into billing's. It is a driven adapter in every respect, including how it is
+tested and how it is swapped.</li>
+<li><strong>The service module publishes its own interface and DTOs.</strong> Peers program against
+<code>OrderingService</code> + its records, never against <code>ordering/domain/contract</code>. Gradle's
+<code>implementation</code> configuration makes that a compile-time fact rather than a rule
+people remember.</li>
+<li><strong>The service adapter maps, it does not decide.</strong> It translates its own DTOs into
+the module's commands, pushes them through the module's mediator, and maps results
+back — the identical job the REST adapter does, minus serialization.</li>
+<li><strong>No shared transaction across the seam.</strong> Treat a peer call as if it were already
+remote: no ambient <code>@Transactional</code> spanning two modules, no lazy entity handed
+across, no assumption of read-your-writes. Code that relies on co-location is the
+one thing that makes extraction expensive.</li>
+<li><strong>The assembly wires it.</strong> <code>application/api</code> constructs ordering's service adapter
+and injects it into billing's gateway. Choosing the in-process gateway over an HTTP
+one is a one-line binding, which is exactly the point.</li>
+<li><strong>A cycle between two modules is a modelling bug</strong>, not a wiring problem. If
+ordering also needs billing, either the boundary is wrong or the dependency should
+be inverted into an event the consumer subscribes to.</li>
+</ul>
+<h2>Details</h2>
+<h3>The four artifacts, and who may see whom</h3>
+<table>
+<thead>
+<tr>
+<th>Artifact</th>
+<th>Lives in</th>
+<th>Depends on</th>
+<th>Visible to</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>OrderLookup</code> (driven port)</td>
+<td><code>billing/domain/contract</code></td>
+<td><code>platform/kernel</code></td>
+<td>billing's core and infra</td>
+</tr>
+<tr>
+<td><code>OrderingGateway</code> (implements it)</td>
+<td><code>billing/infra/ordering-gateway</code></td>
+<td>billing's <code>domain/contract</code>, ordering's <code>user-side/service</code></td>
+<td>the assembly only</td>
+</tr>
+<tr>
+<td><code>OrderingService</code> (peer-facing interface + DTOs)</td>
+<td><code>ordering/user-side/service</code></td>
+<td>ordering's <code>domain/contract</code></td>
+<td>anyone — it is the module's published in-process API</td>
+</tr>
+<tr>
+<td><code>OrderingServiceAdapter</code> (implements it)</td>
+<td><code>ordering/user-side/service</code></td>
+<td>ordering's <code>domain/contract</code></td>
+<td>the assembly, which constructs it</td>
+</tr>
+</tbody>
+</table>
+<p>Interface and implementation share one module because the consumer's gateway needs the
+interface at compile time and the assembly needs the implementation at wiring time —
+splitting them buys nothing that the dependency configuration doesn't already give.</p>
+<h3>Keeping the provider's domain out of the consumer's classpath</h3>
+<p>Depending on <code>ordering-user-side-service</code> must not transitively expose
+<code>ordering-domain-contract</code>. Gradle says so directly:</p>
+<pre><code class="language-kotlin">// modules/ordering/user-side/service/build.gradle.kts
+dependencies {
+    implementation(project(&quot;:modules:ordering:domain:contract&quot;))  // NOT api(...)
+}
+</code></pre>
+<p><code>implementation</code> keeps ordering's commands and ports off billing's compile classpath,
+so an accidental <code>import com.acme.ordering.domain...</code> in billing does not compile.
+Maven's equivalent is scoping the dependency and letting the enforcer's
+<code>bannedDependencies</code> state the rule per module — less elegant, same outcome. Either
+way it is checked by the build, and the ArchUnit slice rule in the
+<a href="../../../java/hexagonal-reference-implementation/hexagonal-reference-implementation/#examples">reference tree</a> catches what the build
+graph cannot see.</p>
+<h3>The flow of one cross-module call</h3>
+<pre class="mermaid">sequenceDiagram
+    participant BC as billing/domain/core
+    participant BP as OrderLookup (billing port)
+    participant BG as billing/infra/ordering-gateway
+    participant OS as ordering/user-side/service
+    participant OM as ordering mediator
+    participant OC as ordering/domain/core
+
+    BC-&gt;&gt;BP: lookup(customerId)
+    BP-&gt;&gt;BG: (bound by the assembly)
+    BG-&gt;&gt;OS: findOrdersFor(customerId)
+    OS-&gt;&gt;OM: dispatch(FindOrdersQuery)
+    OM-&gt;&gt;OC: handle
+    OC--&gt;&gt;OS: ordering result
+    OS--&gt;&gt;BG: OrderingService DTOs
+    BG--&gt;&gt;BC: billing types
+</pre>
+<p>Two mappings happen on purpose. Ordering maps its domain results into service DTOs so
+its internals stay free to change; billing maps those DTOs into its own types so its
+domain never learns ordering's vocabulary. It is the same double mapping a REST call
+would do — and that is why replacing the middle with HTTP changes nothing on either
+end.</p>
+<h3>Where events fit</h3>
+<p>Not every cross-module need is a query. When the peer relationship is &quot;tell me when
+something happened&quot; rather than &quot;answer me now&quot;, the seam is an event instead:
+ordering publishes a domain event through a driven port, and billing consumes it
+through a <code>user-side/consumers</code> adapter. The rules are unchanged — billing owns the
+consumer, the event payload is a published contract, and the transport (in-process
+dispatch today, Kafka after extraction) is an assembly choice. Prefer the event shape
+whenever the consumer does not need a synchronous answer: it survives extraction
+without acquiring new failure modes.</p>
+<h3>Testing the seam</h3>
+<ul>
+<li><strong>Billing's core</strong> is tested against an in-memory fake of <code>OrderLookup</code>, like any
+driven port. It never sees ordering in any form.</li>
+<li><strong>The gateway</strong> is tested against ordering's <em>real</em> service adapter wired to
+ordering's own in-memory fakes — a fast, honest integration test of the mapping, and
+the closest thing the layout has to a contract test.</li>
+<li><strong>Ordering's service adapter</strong> gets a plain unit test proving it dispatches the right
+command and maps the result; it is a driving adapter, so it is tested like one.</li>
+<li><strong>The assembly</strong> carries the ArchUnit rules and one end-to-end test per typology.</li>
+</ul>
+<h3>Why this is the carve-out seam</h3>
+<p>When ordering is extracted, billing gains
+<code>billing/infra/ordering-http</code> — the same <code>OrderLookup</code>, implemented against ordering's
+<code>user-side/api/contract</code> artifact instead of its <code>user-side/service</code> one — and the
+assembly binds that instead. Billing's domain, ordering's domain, and every test above
+the gateway are untouched. The full procedure, including the parts that are genuinely
+not free (data separation, and re-reading the port's failure semantics), is in
+<a href="../../../applicative-architecture/modulith-and-microservices/">modulith &amp; microservices</a>.</p>
+<h2>Examples</h2>
+<p>Ordering's side — a published interface and the adapter behind it:</p>
+<pre><code class="language-java">// modules/ordering/user-side/service — the module's in-process API
+public interface OrderingService {
+    List&lt;OrderSummary&gt; findOrdersFor(String customerId);
+
+    record OrderSummary(String orderId, long totalCents, Instant placedAt) {}
+}
+
+public final class OrderingServiceAdapter implements OrderingService {
+    private final Mediator mediator;   // ordering's own, from platform/kernel
+
+    public OrderingServiceAdapter(Mediator mediator) {
+        this.mediator = mediator;
+    }
+
+    @Override
+    public List&lt;OrderSummary&gt; findOrdersFor(String customerId) {
+        return mediator.dispatch(new FindOrders(new CustomerId(customerId)))
+            .orders().stream()
+            .map(o -&gt; new OrderSummary(o.id().value(), o.total().cents(), o.placedAt()))
+            .toList();
+    }
+}
+</code></pre>
+<p>Billing's side — a port in billing's language, and the gateway implementing it:</p>
+<pre><code class="language-java">// modules/billing/domain/contract — billing's vocabulary, no mention of ordering
+public interface OrderLookup {
+    Optional&lt;BillableActivity&gt; activityFor(CustomerRef customer);
+}
+
+// modules/billing/infra/ordering-gateway — the only class that knows ordering exists
+public final class OrderingGateway implements OrderLookup {
+    private final OrderingService ordering;
+
+    public OrderingGateway(OrderingService ordering) {
+        this.ordering = ordering;
+    }
+
+    @Override
+    public Optional&lt;BillableActivity&gt; activityFor(CustomerRef customer) {
+        var orders = ordering.findOrdersFor(customer.value());
+        return orders.isEmpty()
+            ? Optional.empty()
+            : Optional.of(BillableActivity.of(orders.size(),
+                orders.stream().mapToLong(OrderingService.OrderSummary::totalCents).sum()));
+    }
+}
+</code></pre>
+<p>The assembly — the one place the two modules are named together:</p>
+<pre><code class="language-java">// application/api — the composition root
+@ApplicationScoped
+class OrderingCompositionRoot {
+
+    @Produces
+    OrderingService orderingService(@Ordering Mediator mediator) {
+        return new OrderingServiceAdapter(mediator);
+    }
+
+    @Produces
+    OrderLookup orderLookup(OrderingService ordering) {
+        return new OrderingGateway(ordering);   // ← swap for OrderingHttpClient on extraction
+    }
+}
+</code></pre>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../java/hexagonal-reference-implementation/hexagonal-reference-implementation/">Hexagonal architecture reference implementation — Java</a>
+— the tree and dependency rules this seam sits inside.</li>
+<li><a href="../../../java/hexagonal-reference-implementation/domain-layer/">Domain layer</a> — where the consumer's driven port is declared and
+why it must be in the consumer's vocabulary.</li>
+<li><a href="../../../java/hexagonal-reference-implementation/infrastructure-layer/">Infrastructure layer</a> — the gateway is a driven adapter and
+obeys that layer's granularity rules.</li>
+<li><a href="../../../java/hexagonal-reference-implementation/application-layer/">User-side adapters &amp; assemblies</a> — the service adapter's
+siblings, and the assembly that wires this together.</li>
+<li><a href="../../../applicative-architecture/modulith-and-microservices/">Modulith &amp; microservices</a> —
+what this seam is for.</li>
+<li><a href="../../../applicative-architecture/ddd/">DDD</a> — context mapping; the consumer-owned port is
+an anticorruption layer by another name.</li>
+<li><a href="../../../applicative-architecture/coupling-and-cohesion/">Coupling &amp; cohesion</a> — why the
+port is named after the need, not the provider.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+  <script src="../../../assets/mermaid.js" defer></script>
+</body>
+</html>

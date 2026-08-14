@@ -39,42 +39,62 @@
       <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../">~/library</a><span class="tok-path">/</span><span class="tok-path">rust</span> <span class="tok-cmd">cat</span> <span class="tok-file">hexagonal-reference-implementation</span><span class="tok-ext">.md</span></div>
       <div class="term-out">
         <h1 class="lib-title">Hexagonal architecture reference implementation — Rust</h1>
-        <p class="lib-lede"><span class="tok-comment"># The house hexagonal reference realized for Rust — a Cargo workspace with crates as compile-enforced walls, traits as ports, binary crates as deployment units, and dyn-by-default wiring with generics as the measured escape hatch.</span></p>
-        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
-        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../tags/#hexagonal-architecture">#hexagonal-architecture</a><a class="lib-tag" href="../../tags/#architecture">#architecture</a><a class="lib-tag" href="../../tags/#rust">#rust</a><a class="lib-tag" href="../../tags/#cargo">#cargo</a><a class="lib-tag" href="../../tags/#workspace">#workspace</a><a class="lib-tag" href="../../tags/#reference-implementation">#reference-implementation</a></cluster-pk>
+        <p class="lib-lede"><span class="tok-comment"># The house hexagonal reference realized for Rust — a Cargo workspace of per-context crate clusters, crates as compile-enforced walls, traits as ports, one binary crate per assembly, and dyn-by-default wiring with generics as the measured escape hatch.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span><span class="lib-meta-date">updated 2026-08-14</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../tags/#hexagonal-architecture">#hexagonal-architecture</a><a class="lib-tag" href="../../tags/#architecture">#architecture</a><a class="lib-tag" href="../../tags/#rust">#rust</a><a class="lib-tag" href="../../tags/#cargo">#cargo</a><a class="lib-tag" href="../../tags/#workspace">#workspace</a><a class="lib-tag" href="../../tags/#modulith">#modulith</a><a class="lib-tag" href="../../tags/#reference-implementation">#reference-implementation</a></cluster-pk>
       </div>
     </div>
     <article class="lib-doc"><h2>Overview</h2>
 <p>The house reference implementation of
 <a href="../../applicative-architecture/hexagonal-architecture/">hexagonal architecture</a> for Rust,
 standing on its own terms. The shared principles live in that note — trisection, one
-deployment unit per primary adapter, a contract face and an implementation face for the
-domain, containerisation beside its unit, per-crate <code>README.md</code>/<code>AGENTS.md</code>. Rust's
+deployment unit per delivery typology, a contract face and an implementation face for
+the domain, containerisation beside its unit, per-crate <code>README.md</code>/<code>AGENTS.md</code>. Rust's
 realization is a <strong>Cargo workspace whose crate graph is the architecture</strong>: crates are
 real compilation units with an enforced dependency graph, so every boundary rule is held
-by the compiler, no linter needed. The decision the language itself forces is <em>how ports
-are wired</em>: trait objects vs generics — settled below (2026-08-09 discussion).</p>
+by the compiler, no linter needed. On the
+<a href="../../applicative-architecture/hexagonal-architecture/">modulith layout</a> (adopted
+2026-08-14) that becomes the strongest of the four references: a bounded context is a
+<em>cluster</em> of crates, and &quot;billing must not touch ordering's domain&quot; is not a convention
+or a linter rule but a missing edge in <code>Cargo.toml</code>. The decision the language itself
+forces is <em>how ports are wired</em>: trait objects vs generics — settled below (2026-08-09
+discussion).</p>
 <h2>Key points</h2>
 <ul>
 <li><strong>The workspace is the backbone.</strong> The root <code>Cargo.toml</code> declares members and
-centralises versions via <code>[workspace.dependencies]</code>; <code>cargo build -p rest-public-app</code>
+centralises versions via <code>[workspace.dependencies]</code>; <code>cargo build -p acme-api</code>
 builds exactly one deployment unit.</li>
-<li><strong>Ports are traits; the domain is two crates</strong>: <code>domain-api</code> (traits for driving
-and driven ports, command/result types, domain events — zero dependencies) and
-<code>domain-core</code> (entities, services implementing driving ports — depends only on
-<code>domain-api</code>). The crate graph makes <code>infra → domain-core</code> a compile error — the
-dependency rule, enforced by rustc.</li>
-<li><strong>One binary crate per primary adapter</strong> under <code>application/</code>, each a deployment unit
-with its Dockerfile beside it. The <code>*-api</code>/<code>*-app</code> pair exists where the contract is
-real (proto crate for gRPC, generated OpenAPI types crate for REST); cron-style units
-are a single binary crate — the pair is earned by a consumable contract, never
-imposed for symmetry.</li>
-<li><strong>Infrastructure granularity is decided ad-hoc per context</strong> — a single crate or one
-per (port × technology) (<code>persistence-postgres</code>, <code>messaging-kafka</code>,
-<code>client-billing</code>), the forcing question being which deployment units need which
-driven adapters; ubiquitous ports (clock, id generation) sit together in a <code>commons</code>
-crate. Cargo features gate <em>variants of one adapter</em>, never adapter selection — the
-unit's <code>[dependencies]</code> does that.</li>
+<li><strong>A bounded context is a crate cluster</strong> under <code>modules/&lt;context&gt;/</code>, named by
+convention <code>&lt;context&gt;-domain-contract</code>, <code>&lt;context&gt;-domain-core</code>,
+<code>&lt;context&gt;-user-side-api</code>, <code>&lt;context&gt;-user-side-service</code>, <code>&lt;context&gt;-infra-*</code>. Crate
+names carry the context, so <code>cargo tree</code> reads as a context map and a wrong edge is
+a compile error rather than a review comment.</li>
+<li><strong>Ports are traits; a context's domain is two crates</strong>: <code>&lt;ctx&gt;-domain-contract</code>
+(traits for driving and driven ports, command/result types, domain events — depends
+only on <code>platform-kernel</code>) and <code>&lt;ctx&gt;-domain-core</code> (entities, services implementing
+driving ports — depends only on its own contract crate). The crate graph makes
+<code>infra → domain-core</code> and <code>billing-* → ordering-domain-*</code> compile errors alike.</li>
+<li><strong><code>platform-kernel</code> is the shared vocabulary crate</strong> — command/query marker traits,
+the dispatch helpers, nothing business-shaped — and depends on nothing. Ubiquitous
+ports (clock, id generation) sit beside it in <code>platform-commons</code>, not inside any
+context.</li>
+<li><strong>One binary crate per delivery typology</strong> under <code>application/</code> (<code>acme-api</code>,
+<code>acme-consumer</code>, <code>acme-cron</code>), each a deployment unit with its Dockerfile beside it.
+It is the only crate depending on any <code>*-domain-core</code>, and its <code>[dependencies]</code> list
+is the ops runbook. A context's own user-side crates are libraries: nothing under
+<code>modules/</code> ever produces a binary.</li>
+<li><strong>The <code>*-api</code> contract crate is earned</strong>, not imposed: a proto crate for gRPC,
+generated OpenAPI types for REST, message schemas for consumers; cron-style adapters
+are a single crate.</li>
+<li><strong>Infrastructure granularity is decided ad-hoc per context</strong> — one <code>infra</code> crate per
+context or one per (port × technology) (<code>ordering-infra-postgres</code>,
+<code>ordering-infra-kafka</code>), the forcing question being which assemblies need which
+driven adapters. Cargo features gate <em>variants of one adapter</em>, never adapter
+selection — the assembly's <code>[dependencies]</code> does that.</li>
+<li><strong>Contexts meet at <code>&lt;consumer&gt;-infra-&lt;peer&gt;-gateway</code></strong>, the only crate whose
+<code>[dependencies]</code> names two contexts: it implements a port the consumer declared and
+delegates to <code>&lt;peer&gt;-user-side-service</code>. <code>cargo tree --invert ordering-user-side-service</code>
+enumerates every inter-context edge in the workspace, exactly.</li>
 <li><strong>The wiring rule — <code>Arc&lt;dyn Port&gt;</code> at the seams by default, generics as the measured
 escape hatch.</strong> Trait objects give late binding and a readable <code>main.rs</code>;
 the cost is that async trait methods aren't natively object-safe, so dyn ports mean
@@ -101,55 +121,74 @@ on an executor.</li>
 <h3>The derived workspace</h3>
 <pre><code>acme-service/
 ├── README.md / AGENTS.md
-├── Cargo.toml                     # [workspace] members + workspace.dependencies
+├── Cargo.toml                          # [workspace] members + workspace.dependencies
+├── platform/
+│   ├── kernel/                         # platform-kernel — no deps
+│   └── commons/                        # platform-commons: clock, id generation
+├── modules/
+│   ├── ordering/
+│   │   ├── domain-contract/            # ordering-domain-contract: port traits, commands
+│   │   ├── domain-core/                # ordering-domain-core: entities, services
+│   │   ├── user-side/
+│   │   │   ├── api/                    # ordering-user-side-api: axum router (lib crate)
+│   │   │   ├── api-contract/           # generated OpenAPI types — earned, not imposed
+│   │   │   └── service/                # ordering-user-side-service: the peer-facing API
+│   │   └── infra/
+│   │       ├── postgres/               # ordering-infra-postgres (sqlx)
+│   │       └── kafka/
+│   └── billing/
+│       ├── domain-contract/
+│       ├── domain-core/
+│       ├── user-side/…
+│       └── infra/
+│           ├── postgres/
+│           └── ordering-gateway/       # the one crate naming two contexts
 ├── application/
-│   ├── rest-public/
-│   │   ├── rest-public-api/       # generated/shared transport types (lib crate)
-│   │   └── rest-public-app/       # axum handlers, mapping, main.rs (bin crate)
-│   │       └── Dockerfile
-│   ├── grpc-server/               # tonic; -api crate holds proto + prost output
-│   ├── kafka-consumers/
-│   └── cron-jobs/                 # single bin crate; no -api needed
-├── domain/
-│   ├── domain-api/                # port traits, commands, events — no deps
-│   └── domain-core/               # entities, services — depends on domain-api only
-├── infrastructure/
-│   ├── commons/                   # ubiquitous ports: clock, id generation
-│   ├── persistence-postgres/      # sqlx; implements repository traits
-│   ├── messaging-kafka/
-│   └── client-billing/
+│   ├── api/                            # acme-api: bin crate + Dockerfile
+│   │   └── Dockerfile
+│   ├── consumer/
+│   └── cron/
 ├── compose.yaml
-└── deployment/                    # IaC: OpenTofu modules + per-environment stacks
+└── deployment/                         # IaC: OpenTofu modules + per-environment stacks
 </code></pre>
-<p>No configurator crate: <code>main.rs</code> per binary is the assembly point. If several binaries
-wire identical subsets, extract a small lib crate of assembly constructors; that is a
-deduplication move, not a layer of the architecture.</p>
+<p>No configurator crate: <code>main.rs</code> per assembly is the assembly point. If several
+binaries wire identical subsets, extract a small lib crate of assembly constructors;
+that is a deduplication move, not a layer of the architecture.</p>
 <p>The crate graph, rustc-enforced (an arrow reads &quot;depends on&quot;):</p>
 <pre class="mermaid">flowchart TB
-    subgraph application[&quot;application/&quot;]
-        RPA[&quot;rest-public-api (lib crate)&quot;]
-        RPP[&quot;rest-public-app (bin crate)&quot;]
-        CRON[&quot;cron-jobs (single bin crate, no api crate)&quot;]
+    APP[&quot;application/api (bin crate)&quot;]
+    subgraph ordering[&quot;modules/ordering&quot;]
+        OUS[&quot;user-side/api (lib)&quot;]
+        OSVC[&quot;user-side/service&quot;]
+        OCORE[&quot;domain-core&quot;]
+        OAPI[&quot;domain-contract&quot;]
+        OPG[&quot;infra/postgres&quot;]
     end
-    subgraph domain[&quot;domain/&quot;]
-        CORE[&quot;domain-core&quot;]
-        API[&quot;domain-api (port traits, no deps)&quot;]
+    subgraph billing[&quot;modules/billing&quot;]
+        BCORE[&quot;domain-core&quot;]
+        BAPI[&quot;domain-contract&quot;]
+        BGW[&quot;infra/ordering-gateway&quot;]
     end
-    subgraph infrastructure[&quot;infrastructure/&quot;]
-        PG[&quot;persistence-postgres&quot;]
-        KAFKA[&quot;messaging-kafka&quot;]
-    end
+    KERNEL[&quot;platform/kernel (no deps)&quot;]
 
-    CORE --&gt; API
-    PG --&gt; API
-    KAFKA --&gt; API
-    RPP --&gt; RPA
-    RPP --&gt; API
-    RPP --&gt; CORE
-    RPP --&gt;|&quot;wires ports as Arc dyn Port in main.rs&quot;| PG
-    CRON --&gt; API
-    CRON --&gt; CORE
+    OAPI --&gt; KERNEL
+    BAPI --&gt; KERNEL
+    OCORE --&gt; OAPI
+    OPG --&gt; OAPI
+    OUS --&gt; OAPI
+    OSVC --&gt; OAPI
+    BCORE --&gt; BAPI
+    BGW --&gt; BAPI
+    BGW --&gt;|&quot;the one inter-context edge&quot;| OSVC
+    APP --&gt; OUS
+    APP --&gt;|&quot;wires ports as Arc dyn Port in main.rs&quot;| OPG
+    APP --&gt; OCORE
+    APP --&gt; BCORE
+    APP --&gt; BGW
 </pre>
+<p>A missing arrow here is a missing line in a <code>Cargo.toml</code>, so &quot;billing does not depend
+on ordering's domain&quot; is checked by <code>cargo check</code> on every build. No other reference
+gets the inter-context rule for free.</p>
 <h3>The layout elements and their enforcement</h3>
 <table>
 <thead>
@@ -166,8 +205,18 @@ deduplication move, not a layer of the architecture.</p>
 <td>rustc — a wrong edge is a compile error</td>
 </tr>
 <tr>
+<td>context isolation</td>
+<td>one crate cluster per <code>modules/&lt;context&gt;/</code>, no edges between clusters</td>
+<td>rustc</td>
+</tr>
+<tr>
+<td>the inter-context seam</td>
+<td><code>&lt;consumer&gt;-infra-&lt;peer&gt;-gateway</code> → <code>&lt;peer&gt;-user-side-service</code></td>
+<td>rustc, and <code>cargo tree --invert</code> enumerates them</td>
+</tr>
+<tr>
 <td>domain contract vs implementation</td>
-<td><code>domain-api</code> / <code>domain-core</code> crates</td>
+<td><code>&lt;ctx&gt;-domain-contract</code> / <code>&lt;ctx&gt;-domain-core</code> crates</td>
 <td>crate dependencies</td>
 </tr>
 <tr>
@@ -177,17 +226,22 @@ deduplication move, not a layer of the architecture.</p>
 </tr>
 <tr>
 <td>adapter contract</td>
-<td>lib + bin crate pair where the contract is real; lone bin otherwise</td>
+<td>an <code>api-contract</code> lib crate where the contract is real; absent otherwise</td>
 <td>convention</td>
 </tr>
 <tr>
 <td>infra granularity</td>
-<td>per-context: single crate or one per (port × technology); <code>commons</code> for ubiquitous ports</td>
-<td>the unit's <code>[dependencies]</code></td>
+<td>per-context: single crate or one per (port × technology)</td>
+<td>the assembly's <code>[dependencies]</code></td>
+</tr>
+<tr>
+<td>ubiquitous ports</td>
+<td><code>platform-commons</code>, outside every context</td>
+<td>convention</td>
 </tr>
 <tr>
 <td>assembly point</td>
-<td><code>main.rs</code> per binary</td>
+<td><code>main.rs</code> per <code>application/&lt;typology&gt;</code> binary</td>
 <td>convention</td>
 </tr>
 <tr>
@@ -202,16 +256,46 @@ deduplication move, not a layer of the architecture.</p>
 </tr>
 </tbody>
 </table>
+<h3>Composing two contexts — the service crate and the gateway crate</h3>
+<p>Rust expresses the seam as two crates and one dependency edge:</p>
+<ul>
+<li><strong><code>&lt;peer&gt;-user-side-service</code></strong> exports a trait (<code>OrderingService</code>) plus its own DTO
+types, and an implementation that maps them onto the peer's commands. It depends only
+on the peer's <code>domain-contract</code>, so consumers never see the peer's domain — Cargo
+does not re-export a private dependency's types, and the trait's signature mentions
+only the service crate's own types.</li>
+<li><strong><code>&lt;consumer&gt;-infra-&lt;peer&gt;-gateway</code></strong> implements a driven-port trait the consumer
+declared in its own <code>domain-contract</code>, delegating to <code>Arc&lt;dyn OrderingService&gt;</code>. It
+is the only crate in the workspace whose <code>[dependencies]</code> names two contexts, and
+the workspace lint that keeps it that way is one <code>cargo-deny</code> ban list per crate
+cluster.</li>
+<li><strong>The assembly binds it</strong>: <code>main.rs</code> constructs the peer's service adapter, wraps it
+in the gateway, and hands the result to the consumer's core as
+<code>Arc&lt;dyn OrderLookup&gt;</code> — the same <code>dyn</code> wiring rule as every other port.</li>
+<li><strong>Extraction swaps one crate.</strong> <code>billing-infra-ordering-gateway</code> is replaced by
+<code>billing-infra-ordering-http</code>, built on the published <code>ordering-user-side-api-contract</code>
+crate; the workspace can then be split in two, each keeping only the clusters it
+needs. See
+<a href="../../applicative-architecture/modulith-and-microservices/">modulith &amp; microservices</a>.</li>
+</ul>
+<p>Async is worth calling out here: because the peer-facing trait is object-safe and
+boxed-async like every other port, the in-process and HTTP gateways have <em>identical</em>
+signatures. Rust makes the &quot;an in-process call and a remote call look the same at the
+port&quot; claim literally true at the type level rather than aspirationally.</p>
 <h3>Command dispatch — the compiler is the registry (settled 2026-08-09)</h3>
 <ul>
 <li><strong>Default</strong>: per-use-case driving-port traits (<code>PlaceOrder</code>) implemented by
-services in <code>domain-core</code> — the shape the wiring rule already assumes.</li>
+services in <code>&lt;ctx&gt;-domain-core</code> — the shape the wiring rule already assumes.</li>
 <li><strong>When a unified seam is justified</strong> (audit trail, command log/replay, uniform
 middleware): the mediator pattern applies in its Rust-native form — the sealed
-command hierarchy is literally an <code>enum</code> in <code>domain-api</code>, and dispatch is one
-exhaustive <code>match</code>. A new command without an arm is a <strong>compile error</strong> — strictly
-stronger than the JVM's runtime &quot;no handler supports&quot; exception; the compiler
-walks you through every dispatch site.</li>
+command hierarchy is literally an <code>enum</code> in <code>&lt;ctx&gt;-domain-contract</code>, and dispatch is
+one exhaustive <code>match</code>. A new command without an arm is a <strong>compile error</strong> —
+strictly stronger than the JVM's runtime &quot;no handler supports&quot; exception; the
+compiler walks you through every dispatch site.</li>
+<li><strong>The enum is per context, never per workspace.</strong> One command enum for the whole
+modulith would put every context's vocabulary in one crate every adapter depends on —
+the shared-domain failure the layout exists to prevent. Per-context enums also mean a
+carved-out context leaves with a closed, complete command set.</li>
 <li><strong>Ruled out — the registry-probing form</strong> (<code>Vec&lt;Box&lt;dyn Handler&gt;&gt;</code> with a
 <code>supports()</code> scan): carrying per-command result types through <code>dyn</code> forces <code>Any</code>
 downcasts and erases the command→result link — dynamic dispatch where the
@@ -223,38 +307,72 @@ at the assembly point, same as the other references.</li>
 <p>The compile-time cost of many small crates is settled (2026-08-09): <strong>accepted by
 design</strong> — the dependency-rule enforcement the crate separation buys is the point of the
 layout; the build cost is its price, not a factor to optimize the architecture around.
-(Port object-safety and the <code>Send + Sync</code> contract bounds were settled earlier by the
-wiring rule in Key points.)</p>
+The modulith multiplies the crate count by the number of contexts and does not change
+the ruling: cargo compiles independent clusters in parallel and rebuilds only the
+cluster that changed, so in practice per-context crates make incremental builds <em>faster</em>
+than one fat domain crate would. (Port object-safety and the <code>Send + Sync</code> contract
+bounds were settled earlier by the wiring rule in Key points.)</p>
 <h2>Examples</h2>
 <p>Workspace root:</p>
 <pre><code class="language-toml">[workspace]
 resolver = &quot;2&quot;
 members = [
-  &quot;domain/domain-api&quot;, &quot;domain/domain-core&quot;,
-  &quot;infrastructure/persistence-postgres&quot;, &quot;infrastructure/messaging-kafka&quot;,
-  &quot;application/rest-public/rest-public-api&quot;, &quot;application/rest-public/rest-public-app&quot;,
+  &quot;platform/kernel&quot;, &quot;platform/commons&quot;,
+  &quot;modules/ordering/domain-contract&quot;, &quot;modules/ordering/domain-core&quot;,
+  &quot;modules/ordering/infra/postgres&quot;,
+  &quot;modules/ordering/user-side/api&quot;, &quot;modules/ordering/user-side/service&quot;,
+  &quot;modules/billing/domain-contract&quot;, &quot;modules/billing/domain-core&quot;,
+  &quot;modules/billing/infra/ordering-gateway&quot;,
+  &quot;application/api&quot;,
 ]
 
 [workspace.dependencies]          # versions declared once, like a parent POM
 tokio = { version = &quot;1&quot;, features = [&quot;rt-multi-thread&quot;] }
 sqlx = { version = &quot;0.8&quot;, features = [&quot;postgres&quot;, &quot;runtime-tokio&quot;] }
 </code></pre>
-<p>A port and its wiring:</p>
-<pre><code class="language-rust">// domain-api
+<p>A port and the peer seam:</p>
+<pre><code class="language-rust">// ordering-domain-contract
 pub trait OrderRepository: Send + Sync {
     async fn save(&amp;self, order: NewOrder) -&gt; Result&lt;OrderId, RepositoryError&gt;;
 }
 
-// rest-public-app / main.rs — the configurator
-let repo: Arc&lt;dyn OrderRepository&gt; = Arc::new(PgOrderRepository::new(pool));
-let place_order = PlaceOrderService::new(repo.clone());
-let app = rest_public::router(Arc::new(place_order));
+// ordering-user-side-service — the peer-facing driving adapter
+pub trait OrderingService: Send + Sync {
+    async fn orders_for(&amp;self, customer: &amp;str) -&gt; Result&lt;Vec&lt;OrderSummary&gt;, ServiceError&gt;;
+}
+
+// billing-domain-contract — billing's own vocabulary, no mention of ordering
+pub trait OrderLookup: Send + Sync {
+    async fn activity_for(&amp;self, customer: &amp;CustomerRef) -&gt; Result&lt;Activity, LookupError&gt;;
+}
+
+// billing-infra-ordering-gateway — the one crate naming two contexts
+pub struct OrderingGateway(Arc&lt;dyn OrderingService&gt;);
+
+impl OrderLookup for OrderingGateway {
+    async fn activity_for(&amp;self, customer: &amp;CustomerRef) -&gt; Result&lt;Activity, LookupError&gt; {
+        let orders = self.0.orders_for(customer.as_str()).await?;
+        Ok(Activity::from_orders(&amp;orders))
+    }
+}
+</code></pre>
+<p><code>application/api/src/main.rs</code> — the configurator:</p>
+<pre><code class="language-rust">let repo: Arc&lt;dyn OrderRepository&gt; = Arc::new(PgOrderRepository::new(pool.clone()));
+let ordering = Arc::new(OrderingServiceAdapter::new(repo.clone()));
+
+let orders: Arc&lt;dyn OrderLookup&gt; = Arc::new(OrderingGateway::new(ordering.clone()));
+let invoice = InvoiceService::new(Arc::new(PgInvoiceRepository::new(pool)), orders);
+
+let app = ordering_user_side_api::router(ordering.clone())
+    .merge(billing_user_side_api::router(Arc::new(invoice)));
 </code></pre>
 <h2>Related</h2>
 <ul>
 <li><a href="../../applicative-architecture/hexagonal-architecture/">Hexagonal architecture</a> — the
-shared house principles this note realizes; the hub for all three reference
+shared house principles this note realizes; the hub for all four reference
 implementations.</li>
+<li><a href="../../applicative-architecture/modulith-and-microservices/">Modulith &amp; microservices</a> —
+what the gateway crate is for, and the extraction the crate graph makes mechanical.</li>
 <li><a href="../../rust/rust-deep-dive/">Deep dive Rust</a> — traits, ownership and async, the machinery
 this realization leans on.</li>
 <li><a href="../../rust/build-ecosystem/cargo-in-depth/">Cargo in depth — workspaces, features, profiles &amp; publishing</a>

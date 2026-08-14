@@ -39,55 +39,78 @@
       <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../">~/library</a><span class="tok-path">/</span><span class="tok-path">go</span> <span class="tok-cmd">cat</span> <span class="tok-file">hexagonal-reference-implementation</span><span class="tok-ext">.md</span></div>
       <div class="term-out">
         <h1 class="lib-title">Hexagonal architecture reference implementation — Go</h1>
-        <p class="lib-lede"><span class="tok-comment"># The house hexagonal reference realized for Go — one module per service, cmd/ binaries as deployment units, ports at the consumer, nested internal/ walls, and explicit constructor wiring with wire as the sanctioned escalation.</span></p>
-        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
-        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../tags/#hexagonal-architecture">#hexagonal-architecture</a><a class="lib-tag" href="../../tags/#architecture">#architecture</a><a class="lib-tag" href="../../tags/#go">#go</a><a class="lib-tag" href="../../tags/#packages">#packages</a><a class="lib-tag" href="../../tags/#reference-implementation">#reference-implementation</a></cluster-pk>
+        <p class="lib-lede"><span class="tok-comment"># The house hexagonal reference realized for Go — one Go module per service, a modulith of facade-fronted context packages under internal/modules/, cmd/ binaries as assemblies, ports at the consumer, nested internal/ walls, and explicit constructor wiring with wire as the sanctioned escalation.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span><span class="lib-meta-date">updated 2026-08-14</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../tags/#hexagonal-architecture">#hexagonal-architecture</a><a class="lib-tag" href="../../tags/#architecture">#architecture</a><a class="lib-tag" href="../../tags/#go">#go</a><a class="lib-tag" href="../../tags/#packages">#packages</a><a class="lib-tag" href="../../tags/#modulith">#modulith</a><a class="lib-tag" href="../../tags/#reference-implementation">#reference-implementation</a></cluster-pk>
       </div>
     </div>
     <article class="lib-doc"><h2>Overview</h2>
 <p>The house reference implementation of
 <a href="../../applicative-architecture/hexagonal-architecture/">hexagonal architecture</a> for Go,
 standing on its own terms. The shared principles live in that note — trisection, one
-deployment unit per primary adapter, a contract face and an implementation face for the
-domain, containerisation beside its unit, <code>README.md</code>/<code>AGENTS.md</code> at every level. Go's
-realization builds the walls from what the language gives: a service is one Go module,
-packages don't declare dependency rules, so <strong>nested <code>internal/</code> visibility holds the
-wall that matters most and an import linter holds the softer rules</strong>. Settled as the
-house reference (2026-08-09 discussion).</p>
+deployment unit per delivery typology, a contract face and an implementation face for
+the domain, containerisation beside its unit, <code>README.md</code>/<code>AGENTS.md</code> at every level.
+Go's realization builds the walls from what the language gives: a service is one Go
+module, packages don't declare dependency rules, so <strong>nested <code>internal/</code> visibility
+holds the wall that matters most and an import linter holds the softer rules</strong>.
+Settled as the house reference (2026-08-09 discussion); re-homed onto the
+<a href="../../applicative-architecture/hexagonal-architecture/">modulith layout</a> 2026-08-14, where
+Go turns out to have the least ceremony of the four references — a bounded context is a
+directory with a facade package and an <code>internal/</code> beneath it.</p>
 <h2>Key points</h2>
 <ul>
-<li><strong>One Go module per service; one <code>cmd/&lt;unit&gt;/</code> per deployment unit.</strong> Each primary
-adapter gets a <code>cmd/</code> binary — <code>cmd/rest-public/</code>, <code>cmd/rest-backoffice/</code>,
-<code>cmd/grpc-server/</code>, <code>cmd/kafka-consumers/</code>, <code>cmd/cron-jobs/</code> — with its Dockerfile
-beside its <code>main.go</code>. Multi-module workspaces inside one service buy a hard module
-graph at a real toolchain cost; not the default.</li>
+<li><strong>One Go module per service; one <code>cmd/&lt;typology&gt;/</code> per deployment unit.</strong> Each
+assembly gets a <code>cmd/</code> binary — <code>cmd/api/</code>, <code>cmd/consumer/</code>, <code>cmd/cron/</code> — with its
+Dockerfile beside its <code>main.go</code>. Multi-module workspaces inside one service buy a
+hard module graph at a real toolchain cost; not the default.</li>
+<li><strong>A bounded context is <code>internal/modules/&lt;context&gt;/</code>, fronted by a facade package.</strong>
+The directory's root package is the module's <em>entire</em> exported surface:
+<code>New(Deps) *Module</code>, <code>(*Module).Service()</code> for peers, <code>(*Module).MountHTTP(mux)</code> for
+the assembly, plus type aliases for the ports its <code>Deps</code> asks for. Everything else
+sits under <code>internal/modules/&lt;context&gt;/internal/</code>, unimportable from anywhere else in
+the repository — the compiler, not a linter, keeps contexts apart. This is the
+cheapest realization of the modulith across the four references: a context is a
+directory with a facade and an <code>internal/</code> beneath it.</li>
+<li><strong>Inside a context, the trisection is package layout.</strong> Under its <code>internal/</code>:
+<code>domain/</code> (the contract face — ports, commands, events, factories), the core face
+nested one level deeper under <code>domain/internal/…</code>, plus <code>userside/…</code> (handlers,
+mappers) and <code>infra/…</code> (driven adapters). The two nested <code>internal/</code> levels do two
+different jobs — the outer hides the context from its peers, the inner hides the core
+from the context's own adapters.</li>
 <li><strong>The domain is one package tree with two faces.</strong> Go defines interfaces at the
 <em>consumer</em>, and for driven ports the consumer <em>is</em> the domain, so ports live in the
-domain package by design: the contract face is <code>internal/domain/</code> (ports, commands,
-events, factories), the implementation face is <code>internal/domain/internal/…</code> — package
-layout, not separate artifacts.</li>
+domain package by design: the contract face is <code>…/internal/domain/</code> (ports, commands,
+events, factories), the implementation face is <code>…/internal/domain/internal/…</code> —
+package layout, not separate artifacts.</li>
 <li><strong>The core stays compiler-hidden via nested <code>internal/</code>.</strong> <code>internal/</code> visibility is
-directory-scoped: packages under <code>internal/domain/internal/…</code> are importable only from
-within the <code>internal/domain</code> subtree. Ports, commands, events and <strong>exported factory
-functions</strong> live in <code>internal/domain/</code>; entities and domain services live in
-<code>internal/domain/internal/…</code>. A <code>main.go</code> physically cannot import the core — it calls
+directory-scoped, so packages under <code>…/domain/internal/…</code> are importable only from
+within the <code>domain</code> subtree. Ports, commands, events and <strong>exported factory
+functions</strong> live in <code>…/internal/domain/</code>; entities and domain services live beneath
+it. Not even the context's own facade can import the core — it calls
 <code>domain.NewPlaceOrder(repo, billing)</code> and receives the driving-port interface. That is
 the Maven wall, rebuilt from a visibility rule and the constructor-returns-interface
 idiom.</li>
-<li><strong>Primary adapters</strong> live in <code>internal/app/&lt;adapter&gt;/</code> (handlers, mappers,
-server setup); their transport contracts (generated OpenAPI types, protobuf stubs,
-message schemas) live in <code>api/</code> at the root when they're published to other teams.
-The contract artifact exists only where the contract is real (nothing for cron). Give
-<code>api/</code> its own tiny <code>go.mod</code> when outside consumers exist, so they don't drag the
-service's dependency tree.</li>
-<li><strong>Secondary adapters</strong> live in <code>internal/infra/&lt;technology&gt;/</code>
-(<code>infra/postgres/</code>, <code>infra/kafka/</code>, <code>infra/billingclient/</code>) — same granularity rule as
-Java: the <em>unit's imports</em> (and thus the linker) decide what ships in each binary; Go's
-dead-code elimination means an unimported adapter costs the binary nothing.</li>
+<li><strong>Primary adapters</strong> live in <code>…/internal/userside/&lt;adapter&gt;/</code> (handlers, mappers,
+route registration — never a server bootstrap); their transport contracts (generated
+OpenAPI types, protobuf stubs, message schemas) live in <code>api/&lt;context&gt;/</code> at the root
+when they're published to other teams, necessarily outside <code>internal/</code> since
+publication is the point. The contract artifact exists only where the contract is
+real (nothing for cron). Give <code>api/</code> its own tiny <code>go.mod</code> when outside consumers
+exist, so they don't drag the service's dependency tree.</li>
+<li><strong>Secondary adapters live in the context that owns their port</strong>, under
+<code>…/internal/infra/&lt;technology&gt;/</code> (<code>infra/postgres/</code>, <code>infra/kafka/</code>) — same
+granularity rule as Java: the <em>assembly's</em> imports (and thus the linker) decide what
+ships in each binary; Go's dead-code elimination means an unimported adapter costs the
+binary nothing.</li>
+<li><strong>Peer modules meet in <code>internal/modules/&lt;consumer&gt;/gateway/&lt;peer&gt;/</code></strong> — the only
+package allowed to import another module's facade, and the Go home of Java's
+<code>infra/&lt;peer&gt;-gateway</code>. It sits <em>outside</em> the consumer's <code>internal/</code> so the assembly
+can construct it, and <em>inside</em> the consumer's directory so it can still see the
+consumer's own ports. One <code>grep</code> over <code>gateway/</code> lists every inter-context edge.</li>
 <li><strong>The assembly point is each <code>main.go</code>.</strong> Explicit constructor wiring, no DI
-framework: construct infra adapters, inject into domain constructors, hand driving
-ports to the transport server. Shared assembly helpers can live in <code>internal/config/</code>
-when several binaries wire identical subsets.</li>
+framework: construct each module, hand a peer's <code>Service()</code> to the gateway that wants
+it, mount the user-side adapters on the server. Shared assembly helpers can live in
+<code>internal/config/</code> when several binaries wire identical subsets.</li>
 <li><strong>Dependency injection is a pattern here, not a container</strong> — see the Details section
 for the settled stance: constructor injection at the composition root by default,
 <code>wire</code> as the sanctioned escalation, reflection containers (fx/dig) ruled out.</li>
@@ -95,9 +118,10 @@ for the settled stance: constructor injection at the composition root by default
 structs, the driving port stays a per-use-case interface wired explicitly in
 <code>main</code>, and cross-cutting concerns are decorator functions around the ports. The
 ruling and the rejected registry form are in the Details.</li>
-<li><strong>The linter covers only the softer rules.</strong> With the core compiler-hidden, what's
-left for <code>depguard</code>/<code>go-arch-lint</code> in CI: <code>domain</code> imports nothing from <code>app</code>/<code>infra</code>,
-<code>infra</code> never imports <code>app</code>, adapters never import each other. A <code>go.work</code>
+<li><strong>The linter covers only the softer rules.</strong> With contexts and cores both
+compiler-hidden, what's left for <code>depguard</code>/<code>go-arch-lint</code> in CI: <code>domain</code> imports
+nothing from <code>userside</code>/<code>infra</code>, <code>infra</code> never imports <code>userside</code>, adapters never
+import each other, and only <code>gateway/…</code> packages import a peer module. A <code>go.work</code>
 multi-module split to harden these too was considered and rejected: the toolchain
 friction (inter-module versioning, IDE, release tagging) outweighs walls the linter
 holds fine.</li>
@@ -108,44 +132,70 @@ holds fine.</li>
 ├── README.md / AGENTS.md
 ├── go.mod
 ├── cmd/
-│   ├── rest-public/       # main.go + Dockerfile  ← deployment unit
-│   ├── grpc-server/
-│   ├── kafka-consumers/
-│   └── cron-jobs/
-├── api/                   # published contracts: openapi/, proto/, schemas/
+│   ├── api/                        # main.go + Dockerfile  ← deployment unit
+│   ├── consumer/
+│   └── cron/
+├── api/                            # published contracts, per context
+│   └── ordering/                   #   openapi/, proto/, schemas/
 ├── internal/
-│   ├── domain/            # ports, commands, events, factories — the contract face
-│   │   └── internal/
-│   │       └── order/     # entities, services — compiler-hidden core face
-│   ├── app/
-│   │   ├── restpublic/    # handlers + DTO↔command mapping
-│   │   ├── grpcserver/
-│   │   ├── kafkaconsumer/
-│   │   └── cron/
-│   ├── infra/
-│   │   ├── postgres/
-│   │   ├── kafka/
-│   │   └── billingclient/
-│   └── config/            # optional shared wiring helpers
+│   ├── platform/
+│   │   ├── kernel/                 # Command/Query types, decorators — no deps
+│   │   └── clock/                  # ubiquitous ports + adapters
+│   ├── modules/
+│   │   ├── ordering/               # ← the facade package: the whole exported surface
+│   │   │   ├── ordering.go         #   New(Deps), (*Module).Service/MountHTTP
+│   │   │   └── internal/           #   invisible to every other module
+│   │   │       ├── domain/         #     ports, commands, events, factories
+│   │   │       │   └── internal/
+│   │   │       │       └── order/  #       entities, services — hidden core
+│   │   │       ├── userside/
+│   │   │       │   ├── http/       #     handlers + DTO↔command mapping
+│   │   │       │   └── consumer/
+│   │   │       └── infra/
+│   │   │           ├── postgres/
+│   │   │           └── kafka/
+│   │   └── billing/
+│   │       ├── billing.go
+│   │       ├── gateway/
+│   │       │   └── ordering/       # the one package importing a peer facade
+│   │       └── internal/           # same shape as ordering
+│   └── config/                     # optional shared wiring helpers
 ├── compose.yaml
-└── deployment/            # IaC: OpenTofu modules + per-environment stacks
+└── deployment/                     # IaC: OpenTofu modules + per-environment stacks
 </code></pre>
-<p>The visibility wall that replaces the Maven graph:</p>
+<p>Note what the facade file buys: <code>cmd/api/main.go</code> imports
+<code>internal/modules/ordering</code> and <code>internal/modules/billing</code> and <em>nothing else</em> from
+either context. Every other package in the repository is behind an <code>internal/</code> the
+compiler refuses to cross.</p>
+<p>The two visibility walls that replace the Maven graph:</p>
 <pre class="mermaid">flowchart TB
-    subgraph unit[&quot;cmd/rest-public (deployment unit)&quot;]
+    subgraph unit[&quot;cmd/api (deployment unit)&quot;]
         MAIN[&quot;main.go (the assembly point)&quot;]
     end
-    subgraph contract[&quot;internal/domain (exported contract face)&quot;]
-        PORTS[&quot;Ports, commands, events&quot;]
-        FACTORY[&quot;Exported factories returning driving-port interfaces&quot;]
-        subgraph hidden[&quot;internal/domain/internal (compiler-hidden core)&quot;]
-            CORE[&quot;Entities, domain services&quot;]
+    subgraph ordering[&quot;internal/modules/ordering&quot;]
+        FACADE[&quot;ordering.go — New, Service, MountHTTP&quot;]
+        subgraph oint[&quot;…/internal (hidden from every peer)&quot;]
+            PORTS[&quot;domain: ports, commands, factories&quot;]
+            USERSIDE[&quot;userside/http&quot;]
+            subgraph hidden[&quot;…/domain/internal (hidden from the context too)&quot;]
+                CORE[&quot;Entities, domain services&quot;]
+            end
         end
     end
-    MAIN --&gt;|&quot;imports&quot;| PORTS
-    MAIN --&gt;|&quot;calls domain.NewPlaceOrder&quot;| FACTORY
-    FACTORY --&gt;|&quot;constructs&quot;| CORE
-    MAIN -.-&gt;|&quot;blocked by compiler&quot;| CORE
+    subgraph billing[&quot;internal/modules/billing&quot;]
+        BGW[&quot;gateway/ordering&quot;]
+        BFACADE[&quot;billing.go&quot;]
+    end
+    MAIN --&gt;|&quot;imports&quot;| FACADE
+    MAIN --&gt;|&quot;imports&quot;| BFACADE
+    MAIN --&gt;|&quot;imports&quot;| BGW
+    FACADE --&gt; PORTS
+    FACADE --&gt; USERSIDE
+    PORTS --&gt;|&quot;factories construct&quot;| CORE
+    BGW --&gt;|&quot;the one inter-context edge&quot;| FACADE
+    MAIN -.-&gt;|&quot;blocked by compiler&quot;| PORTS
+    FACADE -.-&gt;|&quot;blocked by compiler&quot;| CORE
+    BFACADE -.-&gt;|&quot;blocked by compiler&quot;| PORTS
 </pre>
 <h3>The walls and what enforces them</h3>
 <table>
@@ -157,16 +207,24 @@ holds fine.</li>
 </thead>
 <tbody>
 <tr>
-<td>the domain core is invisible to adapters and mains</td>
-<td>nested <code>internal/</code>: everything under <code>internal/domain/internal/</code> is unimportable outside the domain subtree — the compiler</td>
+<td>a context's internals are invisible to every other context and to <code>cmd/</code></td>
+<td>nested <code>internal/</code>: everything under <code>internal/modules/&lt;ctx&gt;/internal/</code> is unimportable outside that subtree — the compiler</td>
 </tr>
 <tr>
-<td><code>domain</code> imports nothing from <code>app</code>/<code>infra</code>; <code>infra</code> never imports <code>app</code>; adapters never import each other</td>
+<td>the domain core is invisible even to its own context's adapters</td>
+<td>a second nested <code>internal/</code> under <code>domain/</code> — the compiler</td>
+</tr>
+<tr>
+<td>contexts meet only at the service seam</td>
+<td>only <code>internal/modules/&lt;ctx&gt;/gateway/…</code> may import a peer facade — <code>depguard</code> in CI, and it is one greppable directory</td>
+</tr>
+<tr>
+<td><code>domain</code> imports nothing from <code>userside</code>/<code>infra</code>; <code>infra</code> never imports <code>userside</code>; adapters never import each other</td>
 <td><code>depguard</code>/<code>go-arch-lint</code> in CI, plus review</td>
 </tr>
 <tr>
 <td>a deployment unit ships only what it uses</td>
-<td>the unit's <code>main</code> import list (the ops runbook) + dead-code elimination</td>
+<td>the assembly's <code>main</code> import list (the ops runbook) + dead-code elimination</td>
 </tr>
 <tr>
 <td>published contracts don't drag the service's dependencies</td>
@@ -178,6 +236,30 @@ holds fine.</li>
 </tr>
 </tbody>
 </table>
+<h3>Composing two contexts — the facade, the service, the gateway</h3>
+<p>Go's answer to Java's <code>user-side/service</code> module is a method on the facade, and its
+answer to <code>infra/&lt;peer&gt;-gateway</code> is a package sitting just outside the consumer's
+<code>internal/</code>:</p>
+<ul>
+<li><strong>The provider exposes <code>Service()</code></strong> returning a small exported interface declared in
+its facade package — the module's in-process API, with its own DTOs. It is a driving
+adapter like the HTTP handlers: it maps its DTOs onto the domain's commands and back.</li>
+<li><strong>The consumer declares the port it needs, in its own vocabulary</strong>, inside its
+<code>internal/domain/</code>, and re-exports it from the facade as a type alias so <code>Deps</code> can
+name it (<code>type OrderLookup = domain.OrderLookup</code>). An alias lets <code>main</code> hold a value
+of the type without importing the internal package.</li>
+<li><strong>The gateway maps between the two.</strong> <code>internal/modules/billing/gateway/ordering/</code>
+imports billing's internal domain (legal — it is inside billing's directory) and
+ordering's facade (legal — facades are exported), and satisfies the alias. It is the
+only package in the repository that names two contexts.</li>
+<li><strong>Nothing else changes on extraction.</strong> The gateway package gains a sibling built on
+the published <code>api/ordering</code> client instead of <code>ordering.Service</code>, and <code>main</code> binds
+that one. Billing's domain, ordering's domain and every test above the gateway are
+untouched — see
+<a href="../../applicative-architecture/modulith-and-microservices/">modulith &amp; microservices</a>.</li>
+</ul>
+<p>The rule that makes this work is the same consumer-defined-interface idiom Go already
+uses everywhere: the port belongs to the caller, so the provider never learns it exists.</p>
 <h3>Dependency injection — pattern, not container (settled 2026-08-09)</h3>
 <p>Go has DI the <em>pattern</em> — constructor injection at a composition root — not a DI
 <em>container</em>, and the reference embraces that:</p>
@@ -221,25 +303,85 @@ share shapes — is settled (2026-08-09): <strong>duplicate them</strong>. By de
 scarcely any overlap between deployment units; the rare shared shape is cheaper as two
 copies than as a mapping package coupling units meant to evolve independently.</p>
 <h2>Examples</h2>
-<p><code>cmd/rest-public/main.go</code> as the configurator:</p>
+<p>A module's facade — the whole exported surface of a bounded context:</p>
+<pre><code class="language-go">// internal/modules/ordering/ordering.go
+package ordering
+
+import (
+    &quot;acme/internal/modules/ordering/internal/domain&quot;
+    &quot;acme/internal/modules/ordering/internal/userside/http&quot;
+)
+
+// Service is ordering's in-process API: the peer-facing driving adapter.
+type Service interface {
+    FindOrdersFor(ctx context.Context, customerID string) ([]OrderSummary, error)
+}
+
+type OrderSummary struct {
+    OrderID    string
+    TotalCents int64
+    PlacedAt   time.Time
+}
+
+type Deps struct {
+    Orders domain.OrderRepository // satisfied by …/internal/infra/postgres
+    Clock  clock.Clock
+}
+
+type Module struct{ placeOrder domain.PlaceOrder; find domain.FindOrders }
+
+func New(d Deps) *Module { /* calls the exported domain factories */ }
+
+func (m *Module) Service() Service          { return serviceAdapter{m.find} }
+func (m *Module) MountHTTP(mux *http.ServeMux) { httpadapter.Mount(mux, m.placeOrder) }
+</code></pre>
+<p>The gateway — the only package naming two contexts:</p>
+<pre><code class="language-go">// internal/modules/billing/gateway/ordering/gateway.go
+package ordering
+
+import (
+    &quot;acme/internal/modules/billing&quot;          // for the exported port alias
+    orderingmod &quot;acme/internal/modules/ordering&quot;
+)
+
+func New(peer orderingmod.Service) billing.OrderLookup { return gateway{peer} }
+
+type gateway struct{ peer orderingmod.Service }
+
+func (g gateway) ActivityFor(ctx context.Context, c billing.CustomerRef) (billing.Activity, error) {
+    orders, err := g.peer.FindOrdersFor(ctx, c.Value())
+    if err != nil {
+        return billing.Activity{}, err
+    }
+    return billing.ActivityOf(orders), nil   // map peer DTOs into billing's vocabulary
+}
+</code></pre>
+<p><code>cmd/api/main.go</code> as the configurator — construct, bridge, mount:</p>
 <pre><code class="language-go">func main() {
     db := postgres.MustOpen(os.Getenv(&quot;DATABASE_URL&quot;))
-    orders := postgres.NewOrderRepository(db)      // driven adapter
-    billing := billingclient.New(os.Getenv(&quot;BILLING_URL&quot;))
 
-    // factory exported from internal/domain: constructs the service hidden in
-    // internal/domain/internal/order and returns the driving-port interface
-    placeOrder := domain.NewPlaceOrder(orders, billing)
+    ord := ordering.New(ordering.Deps{
+        Orders: postgres.NewOrderRepository(db),
+        Clock:  clock.System{},
+    })
+    bil := billing.New(billing.Deps{
+        Invoices: postgres.NewInvoiceRepository(db),
+        Orders:   orderinggw.New(ord.Service()),   // ← the one line extraction flips
+    })
 
-    srv := restpublic.NewServer(placeOrder)        // driving adapter ← driving port
-    log.Fatal(http.ListenAndServe(&quot;:8080&quot;, srv))
+    mux := http.NewServeMux()
+    ord.MountHTTP(mux)
+    bil.MountHTTP(mux)
+    log.Fatal(http.ListenAndServe(&quot;:8080&quot;, mux))
 }
 </code></pre>
 <h2>Related</h2>
 <ul>
 <li><a href="../../applicative-architecture/hexagonal-architecture/">Hexagonal architecture</a> — the
-shared house principles this note realizes; the hub for all three reference
+shared house principles this note realizes; the hub for all four reference
 implementations.</li>
+<li><a href="../../applicative-architecture/modulith-and-microservices/">Modulith &amp; microservices</a> —
+what the facade/gateway seam is for, and the extraction procedure it enables.</li>
 <li><a href="../../go/modules-and-build/go-modules/">Go modules</a> — why one module per service is the
 grain Go's tooling wants.</li>
 <li><a href="../../go/go-deep-dive/">Deep dive Go</a> — interfaces-at-the-consumer, the idiom doing the

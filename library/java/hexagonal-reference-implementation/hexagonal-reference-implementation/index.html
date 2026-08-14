@@ -39,9 +39,9 @@
       <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../java/">java</a><span class="tok-path">/</span><span class="tok-path">hexagonal-reference-implementation</span> <span class="tok-cmd">cat</span> <span class="tok-file">hexagonal-reference-implementation</span><span class="tok-ext">.md</span></div>
       <div class="term-out">
         <h1 class="lib-title">Hexagonal architecture reference implementation — Java</h1>
-        <p class="lib-lede"><span class="tok-comment"># The house layout for a hexagonal monolith/microservice in Java — Maven multi-module, application/domain/infrastructure trisection, one deployment unit per primary adapter.</span></p>
-        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
-        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#hexagonal-architecture">#hexagonal-architecture</a><a class="lib-tag" href="../../../tags/#architecture">#architecture</a><a class="lib-tag" href="../../../tags/#java">#java</a><a class="lib-tag" href="../../../tags/#maven">#maven</a><a class="lib-tag" href="../../../tags/#modules">#modules</a><a class="lib-tag" href="../../../tags/#reference-implementation">#reference-implementation</a></cluster-pk>
+        <p class="lib-lede"><span class="tok-comment"># The house layout for a hexagonal service in Java — a Maven/Gradle modulith whose module graph is the architecture, one hexagon per bounded context under modules/, composed into runnable assemblies under application/.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span><span class="lib-meta-date">updated 2026-08-14</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#hexagonal-architecture">#hexagonal-architecture</a><a class="lib-tag" href="../../../tags/#architecture">#architecture</a><a class="lib-tag" href="../../../tags/#java">#java</a><a class="lib-tag" href="../../../tags/#maven">#maven</a><a class="lib-tag" href="../../../tags/#modules">#modules</a><a class="lib-tag" href="../../../tags/#modulith">#modulith</a><a class="lib-tag" href="../../../tags/#reference-implementation">#reference-implementation</a></cluster-pk>
       </div>
     </div>
     <article class="lib-doc"><h2>Overview</h2>
@@ -49,71 +49,98 @@
 <a href="../../../applicative-architecture/hexagonal-architecture/">hexagonal architecture</a> for Java —
 an opinionated layout, not a survey of what the internet does. The shared,
 language-agnostic principles live in that note; this group realizes them for Java with
-Maven multi-module as the enforcement mechanism.
+the <strong>build tool's module graph as the enforcement mechanism</strong>. The favored shape is a
+<strong>modulith</strong>: one hexagon per bounded context under <code>modules/</code>, shared plumbing under
+<code>platform/</code>, and runnable assemblies under <code>application/</code>. Java is the language where
+this costs the least — a module is a directory plus a build file, and every dependency
+rule below is a compile error rather than a convention.
 The per-layer implementation guidelines live in the notes of this group:
-<a href="../../../java/hexagonal-reference-implementation/application-layer/">application</a>, <a href="../../../java/hexagonal-reference-implementation/domain-layer/">domain</a>,
-<a href="../../../java/hexagonal-reference-implementation/infrastructure-layer/">infrastructure</a>, <a href="../../../java/hexagonal-reference-implementation/deployment-and-iac/">deployment &amp; IaC</a>.</p>
+<a href="../../../java/hexagonal-reference-implementation/application-layer/">user-side &amp; assemblies</a>, <a href="../../../java/hexagonal-reference-implementation/domain-layer/">domain</a>,
+<a href="../../../java/hexagonal-reference-implementation/infrastructure-layer/">infrastructure</a>,
+<a href="../../../java/hexagonal-reference-implementation/module-composition/">module composition</a>, <a href="../../../java/hexagonal-reference-implementation/deployment-and-iac/">deployment &amp; IaC</a>.</p>
 <h2>Key points</h2>
 <ul>
-<li><strong>Three top-level folders</strong> per service: <code>application/</code> (primary adapters),
-<code>domain/</code> (the hexagon), <code>infrastructure/</code> (secondary adapters) — plus <code>deployment/</code>
-for IaC.</li>
-<li><strong>One primary adapter = one deployment unit = one container.</strong> Each user-side adapter
-under <code>application/</code> (a REST API, a gRPC server, a Kafka consumer group, a cron runner)
-carries an <strong>implementation module</strong> and — where the transport contract is real and
-consumable (REST DTOs/OpenAPI, gRPC protos, Kafka schemas) — a separate <strong>API module</strong>
-(DTOs + contracts). A cron runner has no consumable contract and stays a single
-module: the pair is earned by a contract, not imposed for symmetry.</li>
-<li><strong>The domain is two modules</strong>: <code>domain-api</code> (the surface API — ports, command DTOs,
-domain events) and <code>domain-core</code> (the actual implementation). Everything else depends
-on <code>domain-api</code>; almost nothing depends on <code>domain-core</code>.</li>
-<li><strong>Infrastructure granularity is an ad-hoc, per-context decision</strong> — a single module
-or several granular ones (one per port × technology), the forcing question being
-which deployment units need which driven adapters; ubiquitous ports (clock, id
-generation) sit together in a commons module (see
-<a href="../../../java/hexagonal-reference-implementation/infrastructure-layer/">infrastructure layer</a> for the forces).</li>
-<li><strong>An optional <code>configurator</code> module</strong> harbors the wiring of domain and infrastructure
-modules, so deployment units assemble rather than wire.</li>
-<li><strong>Containerisation definitions live with their deployment unit</strong> — the Dockerfile sits
-next to the implementation module it packages, never in a central <code>docker/</code> folder.</li>
-<li><strong>Every directory/module carries a <code>README.md</code> and an <code>AGENTS.md</code></strong> stating its purpose
-and the conventions applicable at that location.</li>
-<li><strong>The module graph is the architecture.</strong> Maven's dependency graph makes the dependency
-rule (<code>domain-api</code> depends on nothing; everything points inward) compile-time-enforced,
-backed by the enforcer plugin and ArchUnit.</li>
+<li><strong>Three top-level folders</strong>: <code>modules/</code> (one hexagon per bounded context),
+<code>platform/</code> (shared, domain-agnostic modules — <code>kernel</code> first among them), and
+<code>application/</code> (the assemblies) — plus <code>deployment/</code> for IaC.</li>
+<li><strong>One deployment unit per delivery typology, not per adapter.</strong> <code>application/api</code>,
+<code>application/consumer</code>, <code>application/cron</code> are the runnable, containerised
+artifacts; each mounts the matching user-side adapters of every module it assembles.
+A module's own adapters are libraries and are never runnable on their own.</li>
+<li><strong>A module is a whole hexagon</strong>: <code>user-side/</code> (driving adapters),
+<code>domain/contract</code> + <code>domain/core</code> (the hexagon proper), <code>infra/</code> (driven adapters).
+The trisection did not go away — it is now per context instead of per repository.</li>
+<li><strong><code>platform/kernel</code> is the dispatch vocabulary</strong> — <code>Command</code>, <code>Query</code>, <code>Handler</code>,
+<code>Mediator</code> — and depends on nothing. Each module gets its <strong>own</strong> mediator over its
+<strong>own</strong> handlers; there is no repository-wide command bus.</li>
+<li><strong>The one legal inter-module edge is <code>infra → peer user-side/service</code>.</strong> A module
+needing a peer declares a driven port in its own vocabulary and implements it in
+<code>infra/</code> by delegating to the peer's in-process service adapter. Everything about
+carve-out follows from this — see <a href="../../../java/hexagonal-reference-implementation/module-composition/">module composition</a>.</li>
+<li><strong>An adapter's API artifact exists only where the contract is real</strong>: the
+<code>contract/</code> + <code>adapters/</code> pair under <code>user-side/api/</code> is earned by a consumable
+transport contract (REST DTOs/OpenAPI, gRPC protos, message schemas). A cron
+adapter is one module.</li>
+<li><strong>Infrastructure granularity is an ad-hoc, per-context decision</strong> — one <code>infra</code>
+module or one per (port × technology); the forcing question is which assemblies need
+which driven adapters. Ubiquitous ports (clock, id generation) are not a module's
+business: they live in <code>platform/</code> (see
+<a href="../../../java/hexagonal-reference-implementation/infrastructure-layer/">infrastructure layer</a>).</li>
+<li><strong>The assembly is the only place allowed to see a <code>domain/core</code>.</strong> It wires domains
+to infrastructure, binds each driven port to a chosen adapter, and decides which
+modules share a process.</li>
+<li><strong>Containerisation definitions live with their assembly</strong> — the Dockerfile sits next
+to the <code>application/&lt;typology&gt;</code> module it packages, never in a central <code>docker/</code>
+folder.</li>
+<li><strong>Every directory/module carries a <code>README.md</code> and an <code>AGENTS.md</code></strong> stating its
+purpose and the conventions applicable at that location.</li>
+<li><strong>The module graph is the architecture.</strong> Gradle/Maven make the dependency rule
+compile-time-enforced, backed by the enforcer plugin and ArchUnit; Gradle's
+<code>implementation</code> versus <code>api</code> configurations additionally stop a module's internals
+leaking onto a consumer's compile classpath.</li>
 </ul>
 <h2>Details</h2>
 <h3>The reference tree</h3>
 <pre><code>acme-service/
-├── README.md                          # what the service is, how to build &amp; run
-├── AGENTS.md                          # repo-wide conventions
-├── pom.xml                            # parent aggregator (packaging: pom)
+├── README.md                              # what the service is, how to build &amp; run
+├── AGENTS.md                              # repo-wide conventions
+├── pom.xml                                # parent aggregator (packaging: pom)
+├── platform/
+│   ├── AGENTS.md
+│   ├── kernel/                            # Command, Query, Handler, Mediator — no deps
+│   └── commons/                           # ubiquitous ports + adapters: clock, ids
+├── modules/
+│   ├── ordering/
+│   │   ├── AGENTS.md
+│   │   ├── user-side/                     # driving adapters — libraries, not apps
+│   │   │   ├── api/
+│   │   │   │   ├── contract/              #   DTOs, OpenAPI, generated interfaces
+│   │   │   │   └── adapters/              #   resources/controllers + mapping
+│   │   │   ├── consumers/                 #   message consumers (api = schemas, if real)
+│   │   │   └── service/                   #   in-process adapter for peer modules
+│   │   ├── domain/
+│   │   │   ├── contract/                  # driving + driven ports, commands, events
+│   │   │   └── core/                      # entities, value objects, handlers
+│   │   └── infra/                         # granularity is a context call
+│   │       ├── persistence-postgres/
+│   │       └── ordering-gateway/          # implements a peer-facing driven port
+│   └── billing/                           # same shape, independently
 ├── application/
 │   ├── AGENTS.md
-│   ├── rest-public/                   # primary adapter → 1 deployment unit
-│   │   ├── rest-public-api/           #   DTOs + contracts (OpenAPI, request/response types)
-│   │   └── rest-public-app/           #   controllers, mappers, main class
-│   │       ├── Dockerfile
-│   │       └── README.md
-│   ├── rest-backoffice/               # second REST adapter, same shape
-│   ├── grpc-server/                   # gRPC adapter (api = proto/generated stubs)
-│   ├── kafka-consumers/               # Kafka consumer group adapter (api = message schemas)
-│   ├── cron-jobs/                     # single -app module: no consumable contract, no -api
-│   └── configurator/                  # optional: wiring of domain + infrastructure
-├── domain/
-│   ├── AGENTS.md
-│   ├── domain-api/                    # ports, command DTOs, domain events
-│   └── domain-core/                   # entities, value objects, port implementations
-├── infrastructure/                    # granularity is a context call: this shows the granular shape
-│   ├── AGENTS.md
-│   ├── commons/                       # ubiquitous ports: clock, id generation
-│   ├── persistence-postgres/          # one module per (port × technology)
-│   ├── messaging-kafka/
-│   └── client-billing/
-└── deployment/                        # IaC — OpenTofu stacks per environment
+│   ├── api/                               # deployment unit: HTTP assembly
+│   │   ├── Dockerfile
+│   │   └── README.md
+│   ├── consumer/                          # deployment unit: messaging assembly
+│   └── cron/                              # deployment unit: scheduler assembly
+├── compose.yaml
+└── deployment/                            # IaC — OpenTofu stacks per environment
     ├── AGENTS.md
     └── …
 </code></pre>
+<p>Maven artifactIds flatten the path with dashes — <code>ordering-domain-contract</code>,
+<code>ordering-user-side-api-adapters</code>, <code>platform-kernel</code>, <code>application-api</code> — so the
+artifact name states the module's address. Gradle project paths do it natively
+(<code>:modules:ordering:domain:contract</code>).</p>
 <h3>Dependency rules</h3>
 <table>
 <thead>
@@ -125,62 +152,103 @@ backed by the enforcer plugin and ArchUnit.</li>
 </thead>
 <tbody>
 <tr>
-<td><code>domain-api</code></td>
+<td><code>platform/kernel</code></td>
 <td>nothing (JDK only)</td>
 <td>anything</td>
 </tr>
 <tr>
-<td><code>domain-core</code></td>
-<td><code>domain-api</code></td>
-<td>frameworks, infra, application</td>
+<td><code>platform/*</code> (other)</td>
+<td><code>platform/kernel</code></td>
+<td>any <code>modules/*</code>, any <code>application/*</code></td>
 </tr>
 <tr>
-<td><code>infrastructure/*</code></td>
-<td><code>domain-api</code> + its own technology</td>
-<td><code>domain-core</code>, other infra modules, application</td>
+<td><code>modules/x/domain/contract</code></td>
+<td><code>platform/kernel</code></td>
+<td>frameworks, infra, user-side, any other module</td>
 </tr>
 <tr>
-<td><code>application/*-api</code></td>
+<td><code>modules/x/domain/core</code></td>
+<td>its own <code>domain/contract</code>, <code>platform/kernel</code></td>
+<td>frameworks, infra, user-side, any other module</td>
+</tr>
+<tr>
+<td><code>modules/x/infra/*</code></td>
+<td>its own <code>domain/contract</code>, <strong>peer <code>user-side/service</code></strong>, its technology</td>
+<td>its own <code>domain/core</code>, any other module's domain, <code>application/*</code></td>
+</tr>
+<tr>
+<td><code>modules/x/user-side/api/contract</code></td>
 <td>nothing domain-side (transport contracts only)</td>
-<td><code>domain-core</code>, infra</td>
+<td>any domain module, infra</td>
 </tr>
 <tr>
-<td><code>application/*-app</code></td>
-<td>its <code>*-api</code>, <code>domain-api</code>, <code>configurator</code> (or <code>domain-core</code> + chosen infra)</td>
-<td>other deployment units</td>
+<td><code>modules/x/user-side/api/adapters</code></td>
+<td>its own <code>user-side/api/contract</code> + <code>domain/contract</code></td>
+<td>its own <code>domain/core</code>, other modules</td>
 </tr>
 <tr>
-<td><code>configurator</code></td>
-<td><code>domain-api</code>, <code>domain-core</code>, <code>infrastructure/*</code></td>
-<td><code>application/*</code></td>
+<td><code>modules/x/user-side/service</code></td>
+<td>its own <code>domain/contract</code></td>
+<td>its own <code>domain/core</code>, other modules</td>
+</tr>
+<tr>
+<td><code>application/&lt;typology&gt;</code></td>
+<td>anything it assembles</td>
+<td>another assembly</td>
 </tr>
 </tbody>
 </table>
-<p>Dependencies always point inward; the only module allowed to see both <code>domain-core</code> and
-infrastructure is the configurator (or, without one, each <code>*-app</code>'s wiring class).</p>
-<p>The same rules as a graph (an arrow reads &quot;depends on&quot;):</p>
+<p>Dependencies always point inward, and <em>across</em> modules they point at a peer's
+user-side only. The assembly is the single module allowed to see both a <code>domain/core</code>
+and an infrastructure module — the configurator role of the flat layout, now
+per deployment unit by construction.</p>
+<p>The same rules as a graph, two modules shown (an arrow reads &quot;depends on&quot;):</p>
 <pre class="mermaid">flowchart TD
     subgraph application[&quot;application/&quot;]
-        APPAPI[&quot;adapter -api modules (transport contracts only)&quot;]
-        APP[&quot;adapter -app modules (deployment units)&quot;]
-        CONF[&quot;configurator&quot;]
+        API[&quot;api (assembly + Dockerfile)&quot;]
     end
-    subgraph domain[&quot;domain/&quot;]
-        CORE[&quot;domain-core&quot;]
-        API[&quot;domain-api (depends on nothing)&quot;]
+    subgraph ordering[&quot;modules/ordering&quot;]
+        OADAPT[&quot;user-side/api/adapters&quot;]
+        OCONTRACT[&quot;user-side/api/contract&quot;]
+        OSVC[&quot;user-side/service&quot;]
+        OCORE[&quot;domain/core&quot;]
+        ODC[&quot;domain/contract&quot;]
+        OINFRA[&quot;infra/persistence-postgres&quot;]
     end
-    INFRA[&quot;infrastructure modules&quot;]
+    subgraph billing[&quot;modules/billing&quot;]
+        BCORE[&quot;domain/core&quot;]
+        BDC[&quot;domain/contract&quot;]
+        BGW[&quot;infra/ordering-gateway&quot;]
+    end
+    KERNEL[&quot;platform/kernel (depends on nothing)&quot;]
 
-    APP --&gt; APPAPI
-    APP --&gt; API
-    APP --&gt; CONF
-    CORE --&gt; API
-    INFRA --&gt; API
-    CONF --&gt; API
-    CONF --&gt; CORE
-    CONF --&gt; INFRA
-    INFRA -.-&gt;|&quot;never&quot;| CORE
+    ODC --&gt; KERNEL
+    BDC --&gt; KERNEL
+    OADAPT --&gt; OCONTRACT
+    OADAPT --&gt; ODC
+    OSVC --&gt; ODC
+    OCORE --&gt; ODC
+    OINFRA --&gt; ODC
+    BCORE --&gt; BDC
+    BGW --&gt; BDC
+    BGW --&gt;|&quot;the one inter-module edge&quot;| OSVC
+    API --&gt; OADAPT
+    API --&gt; OCORE
+    API --&gt; OINFRA
+    API --&gt; BCORE
+    API --&gt; BGW
+    OINFRA -.-&gt;|&quot;never&quot;| OCORE
 </pre>
+<h3>Starting flat, and promoting later</h3>
+<p>A service with a single bounded context may skip <code>modules/</code> and put
+<code>domain/contract</code>, <code>domain/core</code>, <code>infra/</code> and <code>user-side/</code> at the root — the flat
+trisection, which is this layout with the module level elided. Promotion when a second
+context appears is mechanical: move the four directories under
+<code>modules/&lt;first-context&gt;/</code>, add the new module beside it, and update the build's module
+list. No source file changes, because no source file ever named the layout.</p>
+<p>The reverse warning holds too: <strong>do not create <code>modules/</code> with one module</strong> and call it
+future-proofing. The nesting costs a level of navigation and buys nothing until a
+second context exists.</p>
 <h3>Documentation convention</h3>
 <p>Each directory/module's <code>AGENTS.md</code> states: what belongs here, what must never end up
 here, and the local conventions (naming, mapping, testing). The <code>README.md</code> is for the
@@ -193,14 +261,16 @@ down; the leaf ones link up.</p>
   &lt;artifactId&gt;acme-service&lt;/artifactId&gt;
   &lt;packaging&gt;pom&lt;/packaging&gt;
   &lt;modules&gt;
-    &lt;module&gt;domain/domain-api&lt;/module&gt;
-    &lt;module&gt;domain/domain-core&lt;/module&gt;
-    &lt;module&gt;infrastructure/persistence-postgres&lt;/module&gt;
-    &lt;module&gt;infrastructure/messaging-kafka&lt;/module&gt;
-    &lt;module&gt;application/configurator&lt;/module&gt;
-    &lt;module&gt;application/rest-public/rest-public-api&lt;/module&gt;
-    &lt;module&gt;application/rest-public/rest-public-app&lt;/module&gt;
-    &lt;!-- … one pair (or lone -app, when there is no consumable contract) per primary adapter --&gt;
+    &lt;module&gt;platform/kernel&lt;/module&gt;
+    &lt;module&gt;platform/commons&lt;/module&gt;
+    &lt;module&gt;modules/ordering/domain/contract&lt;/module&gt;
+    &lt;module&gt;modules/ordering/domain/core&lt;/module&gt;
+    &lt;module&gt;modules/ordering/infra/persistence-postgres&lt;/module&gt;
+    &lt;module&gt;modules/ordering/user-side/api/contract&lt;/module&gt;
+    &lt;module&gt;modules/ordering/user-side/api/adapters&lt;/module&gt;
+    &lt;module&gt;modules/ordering/user-side/service&lt;/module&gt;
+    &lt;!-- … the same block per bounded context … --&gt;
+    &lt;module&gt;application/api&lt;/module&gt;
   &lt;/modules&gt;
   &lt;build&gt;
     &lt;plugins&gt;
@@ -213,8 +283,9 @@ down; the leaf ones link up.</p>
             &lt;configuration&gt;
               &lt;rules&gt;
                 &lt;bannedDependencies&gt;
-                  &lt;!-- overridden per module: domain-api bans everything,
-                       infra bans domain-core, apps ban each other --&gt;
+                  &lt;!-- overridden per module: kernel bans everything, a domain bans
+                       every other module, infra bans its own core, assemblies ban
+                       each other --&gt;
                 &lt;/bannedDependencies&gt;
               &lt;/rules&gt;
             &lt;/configuration&gt;
@@ -225,7 +296,7 @@ down; the leaf ones link up.</p>
   &lt;/build&gt;
 &lt;/project&gt;
 </code></pre>
-<p><code>domain-api</code>'s POM stays deliberately empty of dependencies:</p>
+<p><code>platform/kernel</code>'s POM stays deliberately empty of dependencies:</p>
 <pre><code class="language-xml">&lt;project&gt;
   &lt;parent&gt;
     &lt;groupId&gt;com.acme&lt;/groupId&gt;
@@ -233,34 +304,48 @@ down; the leaf ones link up.</p>
     &lt;version&gt;${revision}&lt;/version&gt;
     &lt;relativePath&gt;../../pom.xml&lt;/relativePath&gt;
   &lt;/parent&gt;
-  &lt;artifactId&gt;domain-api&lt;/artifactId&gt;
-  &lt;!-- no &lt;dependencies&gt;: the contract depends on the JDK alone --&gt;
+  &lt;artifactId&gt;platform-kernel&lt;/artifactId&gt;
+  &lt;!-- no &lt;dependencies&gt;: the dispatch vocabulary depends on the JDK alone --&gt;
 &lt;/project&gt;
 </code></pre>
-<p>An ArchUnit guard in <code>domain-core</code>'s tests, for the rules Maven can't see
-(package-level leaks inside a module):</p>
+<p>ArchUnit guards in the assembly's tests, for the rules the build graph can't see
+(package-level leaks inside a module, and cross-context package imports):</p>
 <pre><code class="language-java">@AnalyzeClasses(packages = &quot;com.acme&quot;)
 class ArchitectureTest {
     @ArchTest
     static final ArchRule domainIsFrameworkFree =
-        noClasses().that().resideInAPackage(&quot;com.acme.domain..&quot;)
+        noClasses().that().resideInAPackage(&quot;com.acme..domain..&quot;)
             .should().dependOnClassesThat()
             .resideInAnyPackage(&quot;org.springframework..&quot;, &quot;jakarta.persistence..&quot;);
+
+    @ArchTest
+    static final ArchRule contextsMeetOnlyAtTheServiceSeam =
+        SlicesRuleDefinition.slices()
+            .matching(&quot;com.acme.(*)..&quot;)           // one slice per bounded context
+            .namingSlices(&quot;context $1&quot;)
+            .should().notDependOnEachOther()
+            .ignoreDependency(
+                resideInAPackage(&quot;com.acme..infra..&quot;),
+                resideInAPackage(&quot;com.acme..userside.service..&quot;));
 }
 </code></pre>
 <h2>Related</h2>
 <ul>
-<li><a href="../../../java/hexagonal-reference-implementation/application-layer/">Application layer — primary adapters as deployment units</a> — the
-<code>application/</code> folder in detail.</li>
-<li><a href="../../../java/hexagonal-reference-implementation/domain-layer/">Domain layer — contract &amp; implementation</a> — <code>domain-api</code> vs
-<code>domain-core</code>.</li>
-<li><a href="../../../java/hexagonal-reference-implementation/infrastructure-layer/">Infrastructure layer — secondary adapters</a> — the granularity
-debate and the recommended shape.</li>
-<li><a href="../../../java/hexagonal-reference-implementation/deployment-and-iac/">Deployment &amp; IaC</a> — Dockerfiles beside their unit, the
+<li><a href="../../../java/hexagonal-reference-implementation/application-layer/">User-side adapters &amp; assemblies</a> — the <code>user-side/</code> folder and
+the <code>application/</code> deployment units in detail.</li>
+<li><a href="../../../java/hexagonal-reference-implementation/domain-layer/">Domain layer — contract &amp; implementation</a> — <code>domain/contract</code> vs
+<code>domain/core</code>, and what <code>platform/kernel</code> holds.</li>
+<li><a href="../../../java/hexagonal-reference-implementation/infrastructure-layer/">Infrastructure layer — secondary adapters</a> — the
+granularity debate and where ubiquitous ports live.</li>
+<li><a href="../../../java/hexagonal-reference-implementation/module-composition/">Module composition — the in-process service seam</a> — how two
+modules meet, and why that makes extraction cheap.</li>
+<li><a href="../../../java/hexagonal-reference-implementation/deployment-and-iac/">Deployment &amp; IaC</a> — Dockerfiles beside their assembly, the
 <code>deployment/</code> folder.</li>
 <li><a href="../../../applicative-architecture/hexagonal-architecture/">Hexagonal architecture</a> — the
-shared house principles this group realizes; the hub for all three reference
+shared house principles this group realizes; the hub for all four reference
 implementations.</li>
+<li><a href="../../../applicative-architecture/modulith-and-microservices/">Modulith &amp; microservices</a> —
+what this layout is a position on, and how to move along it.</li>
 <li><a href="../../../java/build-ecosystem/maven/">Maven</a> — the build tool doing the enforcement here.</li>
 </ul>
 </article>

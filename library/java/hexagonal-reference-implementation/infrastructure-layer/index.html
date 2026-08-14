@@ -39,49 +39,59 @@
       <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../java/">java</a><span class="tok-path">/</span><span class="tok-path">hexagonal-reference-implementation</span> <span class="tok-cmd">cat</span> <span class="tok-file">infrastructure-layer</span><span class="tok-ext">.md</span></div>
       <div class="term-out">
         <h1 class="lib-title">Infrastructure layer — secondary adapters &amp; the granularity debate</h1>
-        <p class="lib-lede"><span class="tok-comment"># Folder or single module — infrastructure granularity is decided ad-hoc per context; the forcing question is which deployment units need which driven adapters, with a commons module harboring the ubiquitous ports.</span></p>
-        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
-        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#hexagonal-architecture">#hexagonal-architecture</a><a class="lib-tag" href="../../../tags/#architecture">#architecture</a><a class="lib-tag" href="../../../tags/#java">#java</a><a class="lib-tag" href="../../../tags/#secondary-adapters">#secondary-adapters</a><a class="lib-tag" href="../../../tags/#infrastructure">#infrastructure</a></cluster-pk>
+        <p class="lib-lede"><span class="tok-comment"># A module's infra/ implements its driven ports — persistence, messaging, clients and peer gateways — with granularity decided ad-hoc per context; ubiquitous ports live in platform/ rather than in any module.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span><span class="lib-meta-date">updated 2026-08-14</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#hexagonal-architecture">#hexagonal-architecture</a><a class="lib-tag" href="../../../tags/#architecture">#architecture</a><a class="lib-tag" href="../../../tags/#java">#java</a><a class="lib-tag" href="../../../tags/#secondary-adapters">#secondary-adapters</a><a class="lib-tag" href="../../../tags/#infrastructure">#infrastructure</a><a class="lib-tag" href="../../../tags/#modulith">#modulith</a></cluster-pk>
       </div>
     </div>
     <article class="lib-doc"><h2>Overview</h2>
-<p>The infrastructure layer holds the <strong>secondary (driven) adapters</strong>: implementations of
-the driven ports declared in <code>domain-api</code> — persistence, messaging producers, external
-API clients, clocks. Its shape is deliberately not fixed by the reference: <strong>granularity
-is decided ad-hoc, per context</strong> — a single module or several more granular ones,
-depending on the granularity required, since some secondary ports may not be needed by
-every deployment unit. This note records the forces on that decision and the shapes to
-choose between (settled in the 2026-08-09 discussion).</p>
+<p><code>modules/&lt;context&gt;/infra/</code> holds that module's <strong>secondary (driven) adapters</strong>:
+implementations of the driven ports declared in its <code>domain/contract</code> — persistence,
+messaging producers, external API clients, and the gateways that reach peer modules.
+Its shape is deliberately not fixed by the reference: <strong>granularity is decided ad-hoc,
+per context</strong> — a single module or several more granular ones — because assemblies need
+different subsets. This note records the forces on that decision and the shapes to
+choose between (settled 2026-08-09; re-homed onto the modulith 2026-08-14).</p>
 <h2>Key points</h2>
 <ul>
-<li><strong>The forcing fact</strong>: deployment units need <em>different subsets</em> of the driven
-adapters. A Kafka-consumer unit that only writes to Postgres shouldn't ship the
-billing HTTP client; a read-only REST unit shouldn't ship the Kafka producer.
-Whatever shape is chosen must let each unit's dependency list say exactly what it
-touches.</li>
+<li><strong>Infrastructure belongs to a module, not to the repository.</strong> There is no root
+<code>infrastructure/</code> folder in the modulith: a Postgres adapter implements <em>some
+context's</em> repository port, and it lives with that context. Two contexts both using
+Postgres get two adapters, and that duplication is correct — they map different
+tables to different aggregates.</li>
+<li><strong>The forcing fact</strong>: assemblies need <em>different subsets</em> of the driven adapters. A
+consumer assembly that only writes to Postgres shouldn't ship the billing HTTP
+client; a read-only API assembly shouldn't ship the Kafka producer. Whatever shape
+is chosen must let each assembly's dependency list say exactly what it touches.</li>
 <li><strong>Granularity is the trade-off itself — decide it ad-hoc.</strong> Both shapes are
-legitimate: a <strong>single module</strong> where the service is small or its deployment units
+legitimate: a <strong>single <code>infra</code> module</strong> where the context is small or its assemblies
 homogeneous; <strong>several granular modules</strong> — one per (port × technology), e.g.
-<code>persistence-postgres</code>, <code>messaging-kafka</code>, <code>client-billing</code> — the day deployment
-units need different subsets. The reference refuses a fixed rule; the forcing
-question is always <em>which units need which adapters</em>.</li>
-<li><strong>Ubiquitous ports live together in a commons module.</strong> Secondary ports used
-throughout with no operational footprint of their own — clock, id generation and the
-like — are harbored in a single common module (<code>infrastructure/commons</code>) rather than
-one micro-module each or configurator-supplied defaults.</li>
-<li><strong>Infra modules depend on <code>domain-api</code> and their own technology — nothing else.</strong>
-Never on <code>domain-core</code>, never on each other. The commons module is an infra module
-like any other (it implements ports); <em>shared plumbing between adapters</em> (a common
-error mapper, shared testcontainers setup) is a different thing and remains a
-warning sign, not a convenience.</li>
-<li><strong>Each module ships its own configuration</strong> (Spring <code>@Configuration</code> /
-auto-configuration, CDI producers) so the configurator merely <em>selects</em> modules rather
-than knowing their internals.</li>
+<code>infra/persistence-postgres</code>, <code>infra/messaging-kafka</code>, <code>infra/client-billing</code> — the
+day assemblies need different subsets. The reference refuses a fixed rule; the
+forcing question is always <em>which assemblies need which adapters</em>.</li>
+<li><strong>Ubiquitous ports live in <code>platform/</code>, not in a module.</strong> Clock, id generation and
+the like have no business owner and no operational footprint; <code>platform/commons</code>
+declares and implements them once for the whole repository. A module's
+<code>domain/contract</code> may still re-declare a narrow port over them when it wants its own
+vocabulary, but the implementation is shared.</li>
+<li><strong>Peer gateways are ordinary driven adapters.</strong> <code>infra/ordering-gateway</code> implements
+a port its own domain declared, exactly like a Postgres adapter does; it just talks
+to <code>ordering/user-side/service</code> instead of a database. It obeys every rule in this
+note, and it is the module's only legal reference to another module — see
+<a href="../../../java/hexagonal-reference-implementation/module-composition/">module composition</a>.</li>
+<li><strong>Infra modules depend on their own <code>domain/contract</code>, their technology, and
+nothing else</strong> (peer service modules excepted). Never on their own <code>domain/core</code>,
+never on another module's domain, never on each other, never on an assembly.
+<em>Shared plumbing between adapters</em> (a common error mapper, shared Testcontainers
+setup) is a warning sign, not a convenience.</li>
+<li><strong>Each module ships its own configuration</strong> (Spring auto-configuration, CDI
+producers) so an assembly merely <em>selects</em> modules rather than knowing their
+internals.</li>
 <li><strong>No contract testing between infra and the domain contract.</strong> Each module is
-integration-tested against its real technology (Testcontainers) on its own terms; the
-domain is tested against its in-memory fakes. The known risk — a fake drifting from
-real adapter behavior — is accepted and handled when observed, not with a standing
-contract-test kit.</li>
+integration-tested against its real technology (Testcontainers) on its own terms;
+the domain is tested against its in-memory fakes. The known risk — a fake drifting
+from real adapter behavior — is accepted and handled when observed, not with a
+standing contract-test kit.</li>
 </ul>
 <h2>Details</h2>
 <h3>The three candidate shapes</h3>
@@ -96,22 +106,22 @@ contract-test kit.</li>
 </thead>
 <tbody>
 <tr>
-<td>Single <code>infrastructure</code> module</td>
+<td>Single <code>infra</code> module per context</td>
 <td>trivial build, no ceremony</td>
-<td>every unit drags every driver: fat images, wide attack surface, muddy test scope, slow builds</td>
-<td>legitimate while the service is small or its units homogeneous</td>
+<td>every assembly hosting the context drags every driver: fat images, wide attack surface, muddy test scope</td>
+<td>legitimate while the context is small or its assemblies homogeneous</td>
 </tr>
 <tr>
-<td>Folder, one module per adapter</td>
-<td>units cherry-pick; per-adapter tests &amp; deps; tech swap is localized</td>
+<td>One module per adapter under <code>infra/</code></td>
+<td>assemblies cherry-pick; per-adapter tests &amp; deps; tech swap is localized</td>
 <td>more POMs, more ceremony</td>
-<td>legitimate the day units need different subsets</td>
+<td>legitimate the day assemblies need different subsets</td>
 </tr>
 <tr>
-<td>Per-deployment-unit infra modules</td>
-<td>each unit fully self-describing</td>
-<td>duplicates adapters shared by several units — same Postgres mapping code twice</td>
-<td>rejected; the pick-list belongs in the unit's POM, not in copied code</td>
+<td>One infra module per assembly</td>
+<td>each assembly fully self-describing</td>
+<td>duplicates adapters shared by several assemblies — same Postgres mapping code twice</td>
+<td>rejected; the pick-list belongs in the assembly's POM, not in copied code</td>
 </tr>
 </tbody>
 </table>
@@ -121,33 +131,74 @@ regardless.</p>
 <h3>Granularity heuristics (when going granular)</h3>
 <ul>
 <li><strong>Split per (driven port × technology) pair</strong>, not per port alone: <code>OrderRepository</code>
-on Postgres is <code>persistence-postgres</code>; if an alternative DynamoDB implementation
-exists, that's <code>persistence-dynamodb</code>, not a second package in the same module —
-the point is that a deployment unit's POM names its technologies.</li>
-<li><strong>One module may implement several small ports of the same technology</strong> — the Postgres
-module can implement <code>OrderRepository</code> <em>and</em> <code>CustomerRepository</code>; splitting those
-would be ceremony without a consumer that wants one and not the other. Split when a
-real deployment unit wants the subset.</li>
-<li><strong>The module name states the technology</strong>, the package inside states the port. Reading
-a deployment unit's dependency list should read like its ops runbook: postgres, kafka,
-billing API.</li>
+on Postgres is <code>infra/persistence-postgres</code>; an alternative DynamoDB implementation
+is <code>infra/persistence-dynamodb</code>, not a second package in the same module — the point
+is that an assembly's POM names its technologies.</li>
+<li><strong>One module may implement several small ports of the same technology</strong> — the
+Postgres module can implement <code>OrderRepository</code> <em>and</em> <code>OrderHistoryQuery</code>; splitting
+those would be ceremony without a consumer that wants one and not the other. Split
+when a real assembly wants the subset.</li>
+<li><strong>The module name states the technology</strong>, the package inside states the port.
+Reading an assembly's dependency list should read like its ops runbook: postgres,
+kafka, billing API.</li>
+<li><strong>Never split along context lines you have not drawn.</strong> If two modules' adapters keep
+wanting to merge, the boundary between the contexts is the thing to re-examine — not
+the infrastructure.</li>
 </ul>
-<h3>Settled (2026-08-09 discussion)</h3>
+<h3>Where the shared things live</h3>
+<table>
+<thead>
+<tr>
+<th>Concern</th>
+<th>Home</th>
+<th>Why not a module's <code>infra/</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Clock, id generation, random</td>
+<td><code>platform/commons</code></td>
+<td>no business owner; every context needs them identically</td>
+</tr>
+<tr>
+<td>The dispatch vocabulary</td>
+<td><code>platform/kernel</code></td>
+<td>it is the contract of the seam, not an adapter</td>
+</tr>
+<tr>
+<td>Test fixtures for a technology</td>
+<td>the adapter module's test sources</td>
+<td>shared test plumbing across contexts couples their release cadence</td>
+</tr>
+<tr>
+<td>A peer module's data</td>
+<td>never — use the service seam</td>
+<td>reading another context's tables is the failure this layout exists to prevent</td>
+</tr>
+</tbody>
+</table>
+<p>The last row is the one worth enforcing loudly: <strong>no shared schema between modules.</strong>
+Each context owns its tables, and a context that needs a peer's data asks for it
+through a port. That rule costs almost nothing while everything is one database and is
+the single thing that makes extraction a migration rather than a rewrite.</p>
+<h3>Settled</h3>
 <ul>
-<li>Ambient ports (<code>Clock</code>, id generation): a <strong>commons module</strong> harboring the common
-secondary ports used throughout — not per-port micro-modules, not
-configurator-supplied defaults.</li>
-<li>Contract testing between infra and the domain contract: <strong>ruled out</strong>. Infra modules
-are integration-tested against their real technology on their own terms; the domain
-owns its fakes. No contract-test kit, so the question of where one would live is moot.</li>
+<li>Ambient ports (<code>Clock</code>, id generation): a <strong>shared platform module</strong> rather than
+per-port micro-modules or assembly-supplied defaults (2026-08-09; moved from
+<code>infrastructure/commons</code> to <code>platform/commons</code> with the modulith, 2026-08-14).</li>
+<li>Contract testing between infra and the domain contract: <strong>ruled out</strong> (2026-08-09).
+Infra modules are integration-tested against their real technology on their own
+terms; the domain owns its fakes.</li>
 </ul>
 <h2>Related</h2>
 <ul>
 <li><a href="../../../java/hexagonal-reference-implementation/hexagonal-reference-implementation/">Hexagonal architecture reference implementation — Java</a>
 — the summary note this details.</li>
 <li><a href="../../../java/hexagonal-reference-implementation/domain-layer/">Domain layer</a> — the driven ports these modules implement.</li>
-<li><a href="../../../java/hexagonal-reference-implementation/application-layer/">Application layer</a> — the configurator that selects among these
-modules per deployment unit.</li>
+<li><a href="../../../java/hexagonal-reference-implementation/application-layer/">User-side adapters &amp; assemblies</a> — the assembly that selects
+among these modules per deployment unit.</li>
+<li><a href="../../../java/hexagonal-reference-implementation/module-composition/">Module composition</a> — the peer gateway, an infra adapter
+whose technology is another module.</li>
 <li><a href="../../../java/storage/">Storage access from Java</a> — the persistence technologies the
 modules wrap.</li>
 <li><a href="../../../java/testing/">Testing in Java</a> — Testcontainers-based integration testing

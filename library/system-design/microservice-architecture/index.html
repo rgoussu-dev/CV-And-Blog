@@ -40,8 +40,8 @@
       <div class="term-out">
         <h1 class="lib-title">Microservice architecture</h1>
         <p class="lib-lede"><span class="tok-comment"># Decomposing a system into independently deployable services — when it pays, what it costs, and the patterns that make it survivable.</span></p>
-        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-08</span><span class="lib-meta-date">updated 2026-08-11</span></cluster-pk>
-        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../tags/#microservices">#microservices</a><a class="lib-tag" href="../../tags/#architecture">#architecture</a><a class="lib-tag" href="../../tags/#distributed-systems">#distributed-systems</a><a class="lib-tag" href="../../tags/#system-design">#system-design</a></cluster-pk>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-08</span><span class="lib-meta-date">updated 2026-08-14</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../tags/#microservices">#microservices</a><a class="lib-tag" href="../../tags/#architecture">#architecture</a><a class="lib-tag" href="../../tags/#distributed-systems">#distributed-systems</a><a class="lib-tag" href="../../tags/#system-design">#system-design</a><a class="lib-tag" href="../../tags/#modulith">#modulith</a></cluster-pk>
       </div>
     </div>
     <article class="lib-doc"><h2>Overview</h2>
@@ -68,7 +68,9 @@ log tells the story.</li>
 <li><strong>Organizational mirror</strong>: Conway's law works both ways — team ownership per service is
 the point (&quot;you build it, you run it&quot;).</li>
 <li><strong>Alternatives on the spectrum</strong>: modular monolith, and the middle grounds (moduliths,
-self-contained systems); migration via strangler fig, not big bang.</li>
+self-contained systems); migration via strangler fig, not big bang. The house position
+is to start as a modulith and keep extraction mechanical — see
+<a href="../../applicative-architecture/modulith-and-microservices/">modulith &amp; microservices</a>.</li>
 <li>To explore: service mesh, serverless as the extreme of the same axis, micro-frontends
 as the front-end analogue.</li>
 </ul>
@@ -92,6 +94,9 @@ limits — built from scratch.</li>
 <li><a href="../../applicative-architecture/ddd/">DDD</a> — supplies the decomposition principle.</li>
 <li><a href="../../applicative-architecture/hexagonal-architecture/">Hexagonal architecture</a> — sound
 internal structure for each service.</li>
+<li><a href="../../applicative-architecture/modulith-and-microservices/">Modulith &amp; microservices</a> —
+the starting point on this spectrum and the mechanics of moving along it in both
+directions.</li>
 <li><a href="../../system-design/asynchronous-and-distributed-system-patterns/">Asynchronous and distributed system patterns</a></li>
 <li><a href="../../system-design/system-design-fundamentals/">System design fundamentals</a></li>
 <li><a href="../../system-design/api-design/">API design</a> — the contract discipline service independence rests on.</li>

@@ -39,48 +39,59 @@
       <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../java/">java</a><span class="tok-path">/</span><span class="tok-path">hexagonal-reference-implementation</span> <span class="tok-cmd">cat</span> <span class="tok-file">domain-layer</span><span class="tok-ext">.md</span></div>
       <div class="term-out">
         <h1 class="lib-title">Domain layer — contract &amp; implementation</h1>
-        <p class="lib-lede"><span class="tok-comment"># Two modules — domain-api with the surface API of the domain (ports, command DTOs) and domain-core with the actual implementation — and the rules for what crosses that line.</span></p>
-        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
-        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#hexagonal-architecture">#hexagonal-architecture</a><a class="lib-tag" href="../../../tags/#architecture">#architecture</a><a class="lib-tag" href="../../../tags/#java">#java</a><a class="lib-tag" href="../../../tags/#domain">#domain</a><a class="lib-tag" href="../../../tags/#ports">#ports</a></cluster-pk>
+        <p class="lib-lede"><span class="tok-comment"># Each module's hexagon is two modules — domain/contract with the surface API (ports, commands, events) and domain/core with the implementation — over a platform/kernel that supplies the dispatch vocabulary and depends on nothing.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span><span class="lib-meta-date">updated 2026-08-14</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#hexagonal-architecture">#hexagonal-architecture</a><a class="lib-tag" href="../../../tags/#architecture">#architecture</a><a class="lib-tag" href="../../../tags/#java">#java</a><a class="lib-tag" href="../../../tags/#domain">#domain</a><a class="lib-tag" href="../../../tags/#ports">#ports</a><a class="lib-tag" href="../../../tags/#modulith">#modulith</a></cluster-pk>
       </div>
     </div>
     <article class="lib-doc"><h2>Overview</h2>
-<p>The <code>domain/</code> folder is the hexagon itself, split in two modules: <strong><code>domain-api</code></strong>, the
-surface API of the domain — ports, command DTOs, domain events, result types — and
-<strong><code>domain-core</code></strong>, the actual implementation — entities, value objects, domain services.
-The split is what lets every other module depend on the domain <em>contract</em> while almost
-none touch the <em>implementation</em>: adapters and infrastructure compile against
-<code>domain-api</code>; only the configurator (or the wiring code) ever sees <code>domain-core</code>.</p>
+<p>Inside every module of the modulith, <code>domain/</code> is the hexagon itself, split in two:
+<strong><code>domain/contract</code></strong>, the surface API — ports in both directions, command and query
+records, domain events, result and error types — and <strong><code>domain/core</code></strong>, the
+implementation — entities, value objects, handlers, domain services. Below both sits
+<strong><code>platform/kernel</code></strong>, the repository-wide dispatch vocabulary (<code>Command</code>, <code>Query</code>,
+<code>Handler</code>, <code>Mediator</code>) that depends on nothing. The split is what lets adapters and
+infrastructure compile against a module's <em>contract</em> while only the assembly ever
+touches its <em>implementation</em>.</p>
 <h2>Key points</h2>
 <ul>
-<li><strong><code>domain-api</code> depends on nothing</strong> — JDK only. No framework, no annotation, no
-logging facade. It is the most stable artifact in the service; every dependency arrow
-in the build points at it.</li>
-<li><strong>Both port directions live in <code>domain-api</code></strong>: driving ports (the use-case interfaces
-primary adapters call) and driven ports (the interfaces infrastructure implements).
-Driven ports must sit in the contract module, not in core — otherwise infrastructure
-modules would need <code>domain-core</code> to compile, and the whole layering collapses.</li>
-<li><strong>Dispatch is Command/Query + Mediator (settled 2026-08-09).</strong> The <code>Mediator</code>
-interface is the domain's primary driving port; sealed <code>Command</code>/<code>Query</code> records in
-<code>domain-api</code> name every supported operation, handlers in <code>domain-core</code> self-declare
-via <code>supports()</code>, and the <code>RegistryMediator</code> is built from a <code>Collection&lt;Handler&gt;</code>
-— never an injected map, no reflection. See the Details ruling for the rejected
-alternative.</li>
-<li><strong>Boundary types, not entities, cross the line.</strong> Commands, queries, results and events
-in <code>domain-api</code> are dedicated types (records, ideally). Entities and value objects stay
-internal to <code>domain-core</code> — they are the domain's working state, not its published
-vocabulary. When a driven port genuinely needs a rich domain type in its signature,
-that type moves to <code>domain-api</code> deliberately — a design decision, not a default.</li>
-<li><strong><code>domain-core</code> depends only on <code>domain-api</code></strong> and implements its driving ports.
-Framework-free: constructor injection of driven ports, plain Java, exhaustively unit
-tested without any container.</li>
-<li><strong>Transaction boundaries are a domain decision</strong> expressed as a port (e.g. a
-<code>TransactionRunner</code> driven port, or unit-of-work semantics on the repository port) and
-implemented in infrastructure or decorated in the configurator. <code>@Transactional</code> on a
-controller is the smell to avoid.</li>
-<li><strong>One domain, many adapters.</strong> The domain pair is shared by every deployment unit; a
-unit that uses only a slice of the use cases still depends on the whole <code>domain-api</code> —
-slicing the domain itself is a service boundary question, not a module one.</li>
+<li><strong><code>platform/kernel</code> depends on nothing</strong> — JDK only — and holds no business
+vocabulary: the <code>Command</code>/<code>Query</code> marker types, the <code>Handler</code> interface, the
+<code>Mediator</code> port and its registry implementation. Every module's contract depends on
+it; it depends on no module.</li>
+<li><strong><code>domain/contract</code> depends only on <code>platform/kernel</code>.</strong> No framework, no
+annotation, no logging facade, and — the modulith's addition — <strong>no other module</strong>.
+It is the most stable artifact in its context.</li>
+<li><strong>Both port directions live in <code>domain/contract</code></strong>: driving ports (what adapters
+call) and driven ports (what infrastructure implements). Driven ports must sit in
+the contract module, otherwise infrastructure would need <code>domain/core</code> to compile and
+the layering collapses.</li>
+<li><strong>A driven port is named after the need, never the provider.</strong> This is what keeps a
+cross-module dependency out of the domain: billing declares <code>OrderLookup</code>, not
+<code>OrderingService</code>, and never learns which module — or which process — answers it.
+See <a href="../../../java/hexagonal-reference-implementation/module-composition/">module composition</a>.</li>
+<li><strong>Dispatch is Command/Query + Mediator, scoped per module (settled 2026-08-09,
+re-scoped 2026-08-14).</strong> Each module has its <strong>own</strong> mediator over its <strong>own</strong>
+handlers; sealed <code>Command</code>/<code>Query</code> records in <code>domain/contract</code> name the operations
+that module supports, handlers in <code>domain/core</code> self-declare via <code>supports()</code>, and
+the registry mediator is built from a <code>Collection&lt;Handler&gt;</code> — never an injected map,
+no reflection. There is deliberately no repository-wide command bus: one would make
+every module's vocabulary visible to every adapter and quietly re-merge the contexts.</li>
+<li><strong>Boundary types, not entities, cross the line.</strong> Commands, queries, results and
+events in <code>domain/contract</code> are dedicated types (records, ideally). Entities and
+value objects stay internal to <code>domain/core</code>. When a driven port genuinely needs a
+rich domain type in its signature, that type moves to <code>domain/contract</code>
+deliberately — a design decision, not a default.</li>
+<li><strong><code>domain/core</code> depends only on its own <code>domain/contract</code></strong> and implements its
+driving ports. Framework-free: constructor injection of driven ports, plain Java,
+exhaustively unit tested without any container.</li>
+<li><strong>Transaction boundaries are a domain decision</strong> expressed as a port (a
+<code>TransactionRunner</code> driven port, or unit-of-work semantics on the repository port)
+and implemented in infrastructure or decorated in the assembly. A transaction never
+spans two modules — treat the service seam as if it were already remote.</li>
+<li><strong>One domain per bounded context, several contexts per repository.</strong> A module that
+wants a slice of another module's use cases is asking a context-mapping question,
+and the answer is a port at the seam — not a wider contract module.</li>
 </ul>
 <h2>Details</h2>
 <h3>What goes where</h3>
@@ -94,103 +105,138 @@ slicing the domain itself is a service boundary question, not a module one.</li>
 </thead>
 <tbody>
 <tr>
-<td>The <code>Mediator</code> driving port + sealed <code>Command</code>/<code>Query</code> records</td>
-<td><code>domain-api</code></td>
-<td>the single dispatch seam primary adapters call; commands name every supported operation</td>
+<td><code>Command</code> / <code>Query</code> / <code>Handler</code> / <code>Mediator</code> types</td>
+<td><code>platform/kernel</code></td>
+<td>the dispatch vocabulary, shared by every context, business-free</td>
+</tr>
+<tr>
+<td>The registry <code>Mediator</code> implementation</td>
+<td><code>platform/kernel</code></td>
+<td>generic; instantiated per module by the assembly</td>
+</tr>
+<tr>
+<td>Sealed command/query records</td>
+<td><code>modules/x/domain/contract</code></td>
+<td>name every operation <em>this</em> module supports</td>
+</tr>
+<tr>
+<td>Driving ports</td>
+<td><code>modules/x/domain/contract</code></td>
+<td>usually just the module's <code>Mediator</code> binding</td>
 </tr>
 <tr>
 <td>Driven ports</td>
-<td><code>domain-api</code></td>
-<td>e.g. <code>OrderRepository</code>, <code>PaymentGateway</code>, <code>Clock</code></td>
+<td><code>modules/x/domain/contract</code></td>
+<td><code>OrderRepository</code>, <code>PaymentGateway</code>, and peer-facing ports like <code>OrderLookup</code></td>
 </tr>
 <tr>
 <td>Command / query / result DTOs</td>
-<td><code>domain-api</code></td>
+<td><code>modules/x/domain/contract</code></td>
 <td>immutable records; validated on construction</td>
 </tr>
 <tr>
 <td>Domain events</td>
-<td><code>domain-api</code></td>
+<td><code>modules/x/domain/contract</code></td>
 <td>published through a driven port</td>
 </tr>
 <tr>
+<td>Domain errors</td>
+<td><code>modules/x/domain/contract</code></td>
+<td>part of the contract — adapters must map them</td>
+</tr>
+<tr>
 <td>Entities, value objects</td>
-<td><code>domain-core</code></td>
+<td><code>modules/x/domain/core</code></td>
 <td>never leak; mapped at the boundary</td>
 </tr>
 <tr>
-<td>Handlers + <code>RegistryMediator</code></td>
-<td><code>domain-core</code></td>
-<td>handlers self-declare via <code>supports()</code>; the mediator builds its own registry from a handler collection</td>
+<td>Handlers</td>
+<td><code>modules/x/domain/core</code></td>
+<td>self-declare via <code>supports()</code></td>
 </tr>
 <tr>
 <td>Domain services</td>
-<td><code>domain-core</code></td>
-<td>plain classes, constructor-injected driven ports, called by handlers</td>
-</tr>
-<tr>
-<td>Domain errors</td>
-<td><code>domain-api</code></td>
-<td>part of the contract — adapters must map them</td>
+<td><code>modules/x/domain/core</code></td>
+<td>plain classes, constructor-injected driven ports</td>
 </tr>
 </tbody>
 </table>
 <p>Both port directions in the contract module, with their callers and implementors:</p>
 <pre class="mermaid">flowchart LR
-    CALLERS[&quot;Primary adapters (application)&quot;]
-    subgraph api[&quot;domain-api (the contract)&quot;]
-        DRIVING[&quot;Driving ports (use-case interfaces)&quot;]
-        DRIVEN[&quot;Driven ports&quot;]
+    CALLERS[&quot;user-side adapters (api, consumers, service)&quot;]
+    KERNEL[&quot;platform/kernel&lt;br/&gt;Command · Handler · Mediator&quot;]
+    subgraph contract[&quot;modules/x/domain/contract&quot;]
+        DRIVING[&quot;Driving seam (the module's Mediator)&quot;]
+        COMMANDS[&quot;Sealed commands &amp; queries&quot;]
+        DRIVEN[&quot;Driven ports (incl. peer-facing ones)&quot;]
     end
-    subgraph core[&quot;domain-core (the implementation)&quot;]
-        SERVICES[&quot;Domain services (entities and value objects stay inside)&quot;]
+    subgraph core[&quot;modules/x/domain/core&quot;]
+        HANDLERS[&quot;Handlers (entities and value objects stay inside)&quot;]
     end
-    IMPLEMENTORS[&quot;Infrastructure modules&quot;]
+    IMPLEMENTORS[&quot;modules/x/infra&quot;]
 
-    CALLERS --&gt;|&quot;call&quot;| DRIVING
-    SERVICES --&gt;|&quot;implement&quot;| DRIVING
-    SERVICES --&gt;|&quot;depend on&quot;| DRIVEN
+    CALLERS --&gt;|&quot;dispatch commands&quot;| DRIVING
+    COMMANDS --&gt; KERNEL
+    HANDLERS --&gt;|&quot;handle&quot;| COMMANDS
+    HANDLERS --&gt;|&quot;depend on&quot;| DRIVEN
     IMPLEMENTORS --&gt;|&quot;implement&quot;| DRIVEN
 </pre>
-<h3>Dispatch — Command/Query + Mediator (settled 2026-08-09)</h3>
+<h3>Dispatch — Command/Query + Mediator, per module</h3>
 <p>Java is the pattern's home turf, and the ruling makes it the default:</p>
 <ul>
 <li><strong>Why it fits</strong>: sealed interfaces + records give genuinely sealed command
 hierarchies; CDI/Spring collect the <code>Collection&lt;Handler&gt;</code> for free; one dispatch
 seam gives uniform cross-cutting (transactions, validation, audit) by decorating
 the mediator — no AOP; and the module graph stays honest, since adapters depend on
-the command vocabulary in <code>domain-api</code> and never on <code>domain-core</code>.</li>
+the command vocabulary in <code>domain/contract</code> and never on <code>domain/core</code>.</li>
+<li><strong>Why per module (2026-08-14)</strong>: the mediator's registry is exactly as wide as the
+set of commands it can dispatch, so a global one would hand every adapter every
+context's vocabulary — the opposite of what <code>modules/</code> is for. Per-module mediators
+also make extraction free: the module leaves with its own seam intact. The assembly
+distinguishes them with a qualifier (<code>@Ordering Mediator</code>) or by constructing them
+explicitly.</li>
 <li><strong>Cost accepted</strong>: one unchecked cast inside the dispatcher; a missing handler is a
 runtime wiring error surfaced at first dispatch (the Rust realization does better —
 its compiler is the registry; see the
 <a href="../../../rust/hexagonal-reference-implementation/">Rust reference</a>).</li>
 <li><strong>Rejected as default — per-use-case driving interfaces</strong> (<code>PlaceOrder</code>,
-<code>CancelOrder</code>): finer-grained dependency truth per unit, but every cross-cutting
+<code>CancelOrder</code>): finer-grained dependency truth per adapter, but every cross-cutting
 concern is re-plumbed per interface and each new use case touches every wiring
 site. They remain the right shape in Go and the frontend, where the mediator
 object fights the platform — the stances are recorded per reference.</li>
+<li><strong>Rejected — one bus for the whole modulith</strong>: it reads as convenience and behaves
+as a shared domain. Modules that need each other use the service seam, where the
+dependency is visible in the build graph.</li>
 </ul>
 <h3>Testing</h3>
 <ul>
-<li><code>domain-core</code>: plain JUnit against the driving ports, driven ports faked in-memory.
-This is where the bulk of the service's tests live, and they run in milliseconds.</li>
-<li><code>domain-api</code>: nothing to test beyond invariants encoded in command constructors.
-Deliberately <strong>no contract-test kit</strong> binding infrastructure implementations to the
-ports (2026-08-09 ruling): adapters are integration-tested against their real
-technology on their own terms (see <a href="../../../java/hexagonal-reference-implementation/infrastructure-layer/">infrastructure layer</a>);
-the in-memory fakes encode only what the domain relies on, and drift between a fake
-and a real adapter is handled when observed, not with standing machinery.</li>
+<li><code>domain/core</code>: plain JUnit against the module's commands, driven ports faked
+in-memory. This is where the bulk of the service's tests live, and they run in
+milliseconds. A context's tests never mention another context.</li>
+<li><code>domain/contract</code>: nothing to test beyond invariants encoded in command
+constructors. Deliberately <strong>no contract-test kit</strong> binding infrastructure
+implementations to the ports (2026-08-09 ruling): adapters are integration-tested
+against their real technology on their own terms (see
+<a href="../../../java/hexagonal-reference-implementation/infrastructure-layer/">infrastructure layer</a>); the in-memory fakes encode only
+what the domain relies on, and drift between a fake and a real adapter is handled
+when observed, not with standing machinery. The one near-exception is the peer
+gateway test described in <a href="../../../java/hexagonal-reference-implementation/module-composition/">module composition</a>.</li>
+<li><code>platform/kernel</code>: the registry mediator's own dispatch behavior — handler
+selection, the missing-handler failure — tested once for the whole repository.</li>
 </ul>
 <h2>Related</h2>
 <ul>
 <li><a href="../../../java/hexagonal-reference-implementation/hexagonal-reference-implementation/">Hexagonal architecture reference implementation — Java</a>
 — the summary note this details.</li>
-<li><a href="../../../java/hexagonal-reference-implementation/application-layer/">Application layer</a> — callers of the driving ports.</li>
+<li><a href="../../../java/hexagonal-reference-implementation/application-layer/">User-side adapters &amp; assemblies</a> — callers of the dispatch
+seam.</li>
 <li><a href="../../../java/hexagonal-reference-implementation/infrastructure-layer/">Infrastructure layer</a> — implementors of the driven ports.</li>
+<li><a href="../../../java/hexagonal-reference-implementation/module-composition/">Module composition</a> — how a driven port becomes a call into
+a peer module.</li>
 <li><a href="../../../applicative-architecture/hexagonal-architecture/">Hexagonal architecture</a> — the
 dependency rule this module split enforces.</li>
 <li><a href="../../../applicative-architecture/ddd/">DDD</a> — the tactical patterns living inside
-<code>domain-core</code>.</li>
+<code>domain/core</code>, and the bounded contexts <code>modules/</code> is carved along.</li>
 <li><a href="../../../applicative-architecture/tdd/">TDD</a> — the framework-free core is what makes
 outside-in test-first practical.</li>
 </ul>

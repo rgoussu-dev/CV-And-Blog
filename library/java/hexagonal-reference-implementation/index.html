@@ -36,7 +36,7 @@
         </div>
         <div class="term-body">
 <div class="sess-block"><div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../java/">java</a><span class="tok-path">/</span><span class="tok-path">hexagonal-reference-implementation</span> <span class="tok-cmd">ls</span> <span class="tok-flag">-la</span></div>
-      <div class="term-out"><h1 class="lib-title">Hexagonal reference implementation</h1><p class="lib-lede"><span class="tok-comment"># The house reference for structuring a hexagonal monolith/microservice in Java — Maven multi-module, application/domain/infrastructure trisection, one deployment unit per primary adapter — with per-layer implementation guidelines.</span></p></div>
+      <div class="term-out"><h1 class="lib-title">Hexagonal reference implementation</h1><p class="lib-lede"><span class="tok-comment"># The house reference for structuring a hexagonal service in Java — a Maven/Gradle modulith whose module graph is the architecture, one hexagon per bounded context under modules/, composed into runnable assemblies under application/ — with per-layer implementation guidelines.</span></p></div>
     </div><section class="lib-section"><h2 class="lib-h" aria-label="documents/"><span class="tok-p">❯</span> <span class="tok-dim">cat</span> <span class="tok-file">documents/</span></h2>
       <ul class="lib-rows"><li class="lib-row">
     <a class="lib-row-link" href="../../java/hexagonal-reference-implementation/hexagonal-reference-implementation/">
@@ -45,15 +45,15 @@
       <span class="lib-type" data-type="concept">Concept</span>
       <span class="lib-row-date">2026-08-09</span>
     </a>
-    <p class="lib-row-desc">The house layout for a hexagonal monolith/microservice in Java — Maven multi-module, application/domain/infrastructure trisection, one deployment unit per primary adapter.</p>
+    <p class="lib-row-desc">The house layout for a hexagonal service in Java — a Maven/Gradle modulith whose module graph is the architecture, one hexagon per bounded context under modules/, composed into runnable assemblies under application/.</p>
   </li><li class="lib-row">
     <a class="lib-row-link" href="../../java/hexagonal-reference-implementation/application-layer/">
       <span class="lib-row-perms" aria-hidden="true">-rw-r--r--</span>
-      <span class="lib-row-title">Application layer — primary adapters as deployment units</span>
+      <span class="lib-row-title">User-side adapters &amp; assemblies</span>
       <span class="lib-type" data-type="concept">Concept</span>
       <span class="lib-row-date">2026-08-09</span>
     </a>
-    <p class="lib-row-desc">Per user-side adapter, an implementation module plus an API module where the contract is real — each mapping to a single unit of deployment — and the optional configurator that harbors the wiring.</p>
+    <p class="lib-row-desc">Each module's user-side/ holds its driving adapters as libraries — api contract+adapters where the contract is real, consumers, and the in-process service — while application/&lt;typology&gt; assembles them into the runnable deployment units.</p>
   </li><li class="lib-row">
     <a class="lib-row-link" href="../../java/hexagonal-reference-implementation/domain-layer/">
       <span class="lib-row-perms" aria-hidden="true">-rw-r--r--</span>
@@ -61,7 +61,7 @@
       <span class="lib-type" data-type="concept">Concept</span>
       <span class="lib-row-date">2026-08-09</span>
     </a>
-    <p class="lib-row-desc">Two modules — domain-api with the surface API of the domain (ports, command DTOs) and domain-core with the actual implementation — and the rules for what crosses that line.</p>
+    <p class="lib-row-desc">Each module's hexagon is two modules — domain/contract with the surface API (ports, commands, events) and domain/core with the implementation — over a platform/kernel that supplies the dispatch vocabulary and depends on nothing.</p>
   </li><li class="lib-row">
     <a class="lib-row-link" href="../../java/hexagonal-reference-implementation/infrastructure-layer/">
       <span class="lib-row-perms" aria-hidden="true">-rw-r--r--</span>
@@ -69,7 +69,15 @@
       <span class="lib-type" data-type="concept">Concept</span>
       <span class="lib-row-date">2026-08-09</span>
     </a>
-    <p class="lib-row-desc">Folder or single module — infrastructure granularity is decided ad-hoc per context; the forcing question is which deployment units need which driven adapters, with a commons module harboring the ubiquitous ports.</p>
+    <p class="lib-row-desc">A module's infra/ implements its driven ports — persistence, messaging, clients and peer gateways — with granularity decided ad-hoc per context; ubiquitous ports live in platform/ rather than in any module.</p>
+  </li><li class="lib-row">
+    <a class="lib-row-link" href="../../java/hexagonal-reference-implementation/module-composition/">
+      <span class="lib-row-perms" aria-hidden="true">-rw-r--r--</span>
+      <span class="lib-row-title">Module composition — the in-process service seam</span>
+      <span class="lib-type" data-type="concept">Concept</span>
+      <span class="lib-row-date">2026-08-14</span>
+    </a>
+    <p class="lib-row-desc">How two modules of the modulith meet in Java — a consumer-owned driven port implemented by an infra gateway that delegates to the peer's user-side/service adapter, and the build rules that keep it the only edge.</p>
   </li><li class="lib-row">
     <a class="lib-row-link" href="../../java/hexagonal-reference-implementation/deployment-and-iac/">
       <span class="lib-row-perms" aria-hidden="true">-rw-r--r--</span>
@@ -77,7 +85,7 @@
       <span class="lib-type" data-type="concept">Concept</span>
       <span class="lib-row-date">2026-08-09</span>
     </a>
-    <p class="lib-row-desc">Containerisation definitions live alongside the deployment unit they belong to; a deployment folder holds the infrastructure-as-code (OpenTofu or the like) defining the services.</p>
+    <p class="lib-row-desc">Containerisation definitions live alongside the assembly they package; a deployment folder holds the infrastructure-as-code (OpenTofu or the like) defining the services, mirroring the application tree.</p>
   </li></ul></section>
         </div>
       </section>
