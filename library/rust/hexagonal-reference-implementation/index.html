@@ -257,7 +257,7 @@ gets the inter-context rule for free.</p>
 <tr>
 <td>the seam carries only the service crate's own DTOs</td>
 <td>nothing on stable — a leaked signature hands the peer's domain type to every consumer</td>
-<td><strong>discipline + review</strong>; <code>-Z public-dependency</code> on nightly</td>
+<td><strong>discipline, stated in the seam crate's own doc</strong> (decided 2026-08-14); <code>-Z public-dependency</code> when it stabilizes</td>
 </tr>
 <tr>
 <td>domain contract vs implementation</td>
@@ -310,8 +310,10 @@ on the peer's <code>domain-contract</code>. Consumers cannot <em>name</em> that 
 correction above: they can still receive and use its types if the service crate lets
 one into a public signature. <strong>Every type in the service crate's public API must be
 declared by the service crate itself</strong>, and that rule is on the author, not the
-compiler. The realistic guard is a review checklist plus, where the team is willing to
-build on nightly, <code>-Z public-dependency</code>.</li>
+compiler. The guard is the rule stated in this crate's own module doc — one small,
+rarely-edited crate per context, which <code>cargo tree</code> names for a reviewer — plus the
+two-line switch to <code>-Z public-dependency</code> the day it stabilizes. See the decision
+below (2026-08-14) for why a custom lint is not a third option on stable.</li>
 <li><strong><code>&lt;consumer&gt;-infra-&lt;peer&gt;-gateway</code></strong> implements a driven-port trait the consumer
 declared in its own <code>domain-contract</code>, delegating to <code>Arc&lt;dyn OrderingService&gt;</code>. It
 is the only crate in the workspace whose <code>[dependencies]</code> names two contexts, and
@@ -363,23 +365,46 @@ every <code>use</code> statement spells out. The counter-pressure is that Rust's
 strongest of the four once you have paid, so a project that <em>knows</em> it has two contexts
 should start at <code>modulith</code> rather than migrate. See
 <a href="../../applicative-architecture/hexagonal-references-compared/">the four references compared</a>.</p>
-<h3>Settled, and the one thing still open</h3>
+<h3>Settled, and the one thing still open on stable</h3>
 <p><strong>Settled — the compile-time cost of many small crates</strong> (2026-08-09): accepted by
 design. The dependency-rule enforcement the crate separation buys is the point of the
 layout; the build cost is its price, not a factor to optimize the architecture around.
 Measured incremental behaviour supports this: touching a <code>domain-core</code> rebuilt only that
 crate and the assembly (2 crates), where the same edit in a merged domain crate rebuilt
 3. Cargo compiles independent clusters in parallel and rebuilds only what changed.</p>
-<p><strong>Open — enforcing the seam's type discipline on stable.</strong> The one wall this layout
-assumes and does not get: nothing on stable Rust stops <code>&lt;ctx&gt;-user-side-service</code> from
-exposing a <code>&lt;ctx&gt;-domain-contract</code> type in its public API, and once it does, every
-consumer can use that type without declaring any dependency on it. Candidate answers, in
-order of preference: (1) wait for <code>public-dependency</code> to stabilize and turn
-<code>exported_private_dependencies</code> into a deny-level lint; (2) a <code>cargo-deny</code>-style custom
-check or a clippy lint over the crate's public signatures; (3) accept it as a review rule
-and rely on the seam being one small, rarely-edited crate per context. Nothing here is
-blocking — the failure mode is coupling that compiles, not a broken build — but the note
-should stop claiming the crate graph prevents it.</p>
+<p><strong>Decided, and still partly open — enforcing the seam's type discipline on stable</strong>
+(2026-08-14). The one wall this layout assumes and does not get: nothing on stable Rust
+stops <code>&lt;ctx&gt;-user-side-service</code> from exposing a <code>&lt;ctx&gt;-domain-contract</code> type in its
+public API, and once it does, every consumer can use that type without declaring any
+dependency on it. The three candidates are not equally weighted, and working through
+them settles the stance even though it does not close the gap:</p>
+<ul>
+<li><strong>A custom lint is not actually available on stable.</strong> Checking &quot;every type in the
+seam crate's public API is declared by that crate&quot; needs the public API surface, and
+stable offers no supported way to get it: <code>cargo public-api</code> and <code>cargo-semver-checks</code>
+both consume rustdoc JSON (nightly-only), <code>cargo-deny</code> bans dependency <em>edges</em> and
+cannot see type flow at all, and a clippy lint would have to ship as a <code>dylint</code> crate
+pinned to its own nightly. It needs nightly too, and costs more than the real
+nightly option for the same result. Out.</li>
+<li><strong><code>-Z public-dependency</code> is exact but disproportionate.</strong> With <code>public = false</code> and
+<code>#![deny(exported_private_dependencies)]</code> it flags leaked return types <em>and</em>
+constructor parameters — verified. But turning it on pins the whole project to
+nightly, including every single-context project that has no seam, to enforce one rule
+on one crate. That trades &quot;always latest stable&quot; for a wall most projects never test.</li>
+<li><strong>So: discipline, reinforced structurally.</strong> The rule governs the <code>pub</code> items of
+exactly one small, rarely-edited crate per context whose entire purpose is to <em>be</em>
+that seam. State it in that crate's own module doc, at the point where it would be
+violated, rather than in a checklist elsewhere; <code>cargo tree</code> names the one crate a
+reviewer has to read.</li>
+</ul>
+<p><strong>The upgrade is pre-written</strong>, so it is mechanical the day <code>public-dependency</code>
+stabilizes: add <code>public = false</code> to the seam crate's <code>&lt;ctx&gt;-domain-contract</code> dependency
+and <code>#![deny(exported_private_dependencies)]</code> to its crate root. Two lines, no
+restructuring.</p>
+<p>What stays open is the <em>enforcement</em>, not the stance — and the difference matters when
+comparing references. Rust's peer seam is genuinely weaker than the JVM's, where build
+scope holds it, and than Go's, where unnameability does. Nothing here is blocking: the
+failure mode is coupling that compiles, not a broken build.</p>
 <h2>Examples</h2>
 <p>Workspace root:</p>
 <pre><code class="language-toml">[workspace]

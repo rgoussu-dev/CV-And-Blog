@@ -77,7 +77,9 @@ the resulting unnameable values, so the tighter aperture costs nothing.</li>
 <li><strong>Rust's crate graph stops you naming a crate — not domain types flowing.</strong> A peer
 service crate that mentions a domain type in its public signature hands that type to
 every consumer, with no error and no warning. The fix (<code>public = false</code> +
-<code>exported_private_dependencies</code>) is <strong>nightly-only</strong>, so on stable this is discipline.</li>
+<code>exported_private_dependencies</code>) is <strong>nightly-only</strong>, so on stable this is discipline
+— decided 2026-08-14, and the one place a reference is weaker than its neighbours:
+the JVM holds this wall with build scope and Go with unnameability, Rust with a rule.</li>
 <li><strong>TypeScript's package graph enforces nothing.</strong> Undeclared workspace dependencies
 resolve fine (hoisting), relative paths bypass <code>exports</code> maps entirely, and project
 references do not restrict which projects a project may import. The <code>exports</code> map is
@@ -245,8 +247,16 @@ its fields — with no dependency edge, no error, no warning. The crate graph st
 <em>naming</em> a crate, not values flowing. <code>cargo -Z public-dependency</code> with <code>public = false</code>
 and <code>#![deny(exported_private_dependencies)]</code> catches it exactly (it also flags
 constructor signatures taking the domain's own ports), but it is <strong>nightly-only as of
-1.94</strong> — so on stable the &quot;the service crate's DTOs are its own&quot; rule is discipline, and
-that is now an explicitly open item rather than a silent assumption.</p>
+1.94</strong> — so on stable the &quot;the service crate's DTOs are its own&quot; rule is discipline.</p>
+<p>Settled 2026-08-14: keep the discipline, state it in the seam crate's own module doc at
+the point where it would be violated, and switch to <code>public-dependency</code> the day it
+stabilizes (two lines: <code>public = false</code> on the contract dependency, plus the deny
+attribute on the crate root). A custom lint is not a third option — checking a crate's
+public API surface needs rustdoc JSON, which is itself nightly, while <code>cargo-deny</code> bans
+dependency edges and cannot see type flow. Pinning a scaffolded project to nightly to
+enforce one rule on one crate, for every project including the single-context majority
+that has no seam, is the disproportionate trade. What stays open is the enforcement, not
+the stance.</p>
 <p><strong>Rust — the contract/core split does not need two crates.</strong> A private <code>mod core_impl</code>
 inside one <code>ordering-domain</code> crate hides entities from dependents
 (<code>E0603: module core_impl is private</code>) exactly as a separate crate would. The two-crate
