@@ -40,7 +40,7 @@
       <div class="term-out">
         <h1 class="lib-title">The Java build ecosystem</h1>
         <p class="lib-lede"><span class="tok-comment"># The three ways to build Java — bare JDK tools, Maven, Gradle — and the artifact formats they produce.</span></p>
-        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span><span class="lib-meta-date">updated 2026-08-10</span></cluster-pk>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span><span class="lib-meta-date">updated 2026-08-20</span></cluster-pk>
         <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#java">#java</a><a class="lib-tag" href="../../../tags/#build">#build</a><a class="lib-tag" href="../../../tags/#tooling">#tooling</a><a class="lib-tag" href="../../../tags/#packaging">#packaging</a></cluster-pk>
       </div>
     </div>
@@ -68,6 +68,15 @@ and cacheable. The default for Android and large multi-project builds — see
 <li><strong>Wrappers</strong> (<code>mvnw</code>, <code>gradlew</code>): committed launcher scripts that download and pin the
 build-tool version, so a clone builds without any locally installed Maven/Gradle. Use
 them; never depend on a machine-global installation.</li>
+<li><strong>The wrapper pins the build tool, not the JDK</strong> — and the two tools then differ on
+where the JDK comes from. Maven compiles with whatever JDK is running it, so <code>JAVA_HOME</code>
+<em>is</em> the setting; Gradle can provision a JDK of its own via Java toolchains. That
+asymmetry is the source of a whole class of confusion — see the two deep dives below.</li>
+<li><strong>SDKMAN! is the JVM's version manager</strong>: <code>.sdkmanrc</code> per project, covering JDKs, Gradle,
+Maven, Kotlin and more. Note that <code>sdk</code> is a shell <em>function</em>, not a binary, so any
+script driving it must source <code>sdkman-init.sh</code> in a login shell first — the single most
+common way JVM provisioning automation fails. See
+<a href="../../../platform/developer-environments/version-managers/">Version managers</a>.</li>
 <li><strong>Newer entrants</strong>, one line each: Bazel (monorepo-scale, hermetic), Mill (Scala-ish,
 fast), jbang (single-file scripting with dependencies) — niche, worth knowing they exist.</li>
 </ul>
@@ -150,6 +159,8 @@ per-project fashion.</li>
 <li><a href="../../../java/build-ecosystem/maven/">Maven deep dive</a> — the convention-first tier in detail.</li>
 <li><a href="../../../java/build-ecosystem/gradle/">Gradle deep dive</a> — the programmable tier in detail.</li>
 <li><a href="../../../java/jdk-and-tools/jdk-and-tools/">JDK &amp; tools</a> — the bare tools every build wraps.</li>
+<li><a href="../../../platform/developer-environments/version-managers/">Version managers</a> — SDKMAN! and
+the universal managers that provision the JDK the wrapper does not.</li>
 <li><a href="../../../java/java-deep-dive/">Deep dive Java</a> — the parent theme note.</li>
 <li><a href="../../../java/frameworks/frameworks/">Frameworks</a> — frameworks ship build plugins (Boot,
 Quarkus, Micronaut) that hook into both Maven and Gradle.</li>

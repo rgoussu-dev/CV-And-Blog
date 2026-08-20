@@ -40,7 +40,7 @@
       <div class="term-out">
         <h1 class="lib-title">go mod</h1>
         <p class="lib-lede"><span class="tok-comment"># The daily dependency interface — init, tidy, download, why, graph, vendor, edit — over go.mod and go.sum.</span></p>
-        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span><span class="lib-meta-date">updated 2026-08-20</span></cluster-pk>
         <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#go">#go</a><a class="lib-tag" href="../../../tags/#tooling">#tooling</a><a class="lib-tag" href="../../../tags/#build">#build</a><a class="lib-tag" href="../../../tags/#dependencies">#dependencies</a></cluster-pk>
       </div>
     </div>
@@ -66,6 +66,12 @@ caching's best friend (<code>COPY go.mod go.sum</code> + download before copying
 plus checksums usually suffice.</li>
 <li><strong><code>go mod edit</code></strong>: scripted edits (<code>-replace</code>, <code>-require</code>, <code>-go</code>) — the mechanical tool;
 humans mostly edit <code>go.mod</code> directly.</li>
+<li><strong><code>go.mod</code> also carries the toolchain</strong>: the <code>go</code> line sets the minimum language version
+and the optional <code>toolchain go1.x.y</code> line names the toolchain to switch to when the local
+one is older. Both are <em>floors</em>, not pins — see
+<a href="../../../go/toolchain/toolchain/">The Go toolchain</a>. Note that this makes <code>go.mod</code> a file the
+project owns and a provisioning file at once, so tooling that maintains it must merge the
+one directive in place rather than render the file.</li>
 <li><strong><code>go.sum</code> is not a lock file</strong>: <code>go.mod</code> already pins versions (MVS is deterministic);
 <code>go.sum</code> holds hashes so a tampered or republished module fails the build. Commit both.</li>
 <li><strong>Adding a dependency is implicit</strong>: <code>go get example.com/pkg@v1.2.3</code> (or just importing
@@ -83,6 +89,7 @@ go mod why -m golang.org/x/crypto
 <li><a href="../../../go/modules-and-build/go-modules/">Go modules</a> — MVS, proxy protocol, and sumdb behind these commands.</li>
 <li><a href="../../../go/toolchain/go-work/">go work</a> — the workspace answer to cross-module local development.</li>
 <li><a href="../../../java/build-ecosystem/build-ecosystem/">Build ecosystem (Java)</a> — the Maven/Gradle world this replaces with one built-in subcommand.</li>
+<li><a href="../../../platform/developer-environments/version-managers/">Version managers</a> — why Go's built-in mechanism means the ecosystem needs no manager of its own.</li>
 </ul>
 </article>
         </div>

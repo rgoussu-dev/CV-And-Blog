@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Patterns for tools that generate configuration — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../assets/styles.css" />
+  <link rel="stylesheet" href="../../assets/structural.css" />
+  <link rel="stylesheet" href="../../assets/theme.css" />
+</head>
+<body data-prefix="../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/applicative-architecture</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../">~/library</a><span class="tok-path">/</span><span class="tok-path">applicative-architecture</span> <span class="tok-cmd">cat</span> <span class="tok-file">configuration-generation-patterns</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Patterns for tools that generate configuration</h1>
+        <p class="lib-lede"><span class="tok-comment"># Design rules for scaffolders, provisioners and any tool that writes files another tool consumes — render the native format, delegate the doing, never offer a partial answer, and make the record the source of truth.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-20</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../tags/#architecture">#architecture</a><a class="lib-tag" href="../../tags/#patterns">#patterns</a><a class="lib-tag" href="../../tags/#tooling">#tooling</a><a class="lib-tag" href="../../tags/#code-generation">#code-generation</a><a class="lib-tag" href="../../tags/#idempotence">#idempotence</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>A large class of tools does not <em>do</em> the work — it writes the configuration that makes
+another tool do the work. Scaffolders and project generators, provisioners, IaC wrappers,
+pipeline generators, dependency and migration managers all share this shape: they take a
+declaration of intent, emit files a third party reads, and then usually invoke that third
+party. They also share a recognisable set of failure modes, and the patterns below are the
+answers.</p>
+<p>The unifying idea is that <strong>the generated file is the interface</strong>, not an implementation
+detail. Everything else follows from taking that seriously.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>Render the target's native format.</strong> Emit the file the downstream tool already
+documents, so an IDE, a container build, a CI runner and a colleague who has never heard
+of your tool all understand the project. A bespoke format that only your tool reads makes
+every one of those a customer of your tool.</li>
+<li><strong>Orchestrate, never implement.</strong> Write the configuration, then invoke the target's own
+idempotent operation. Reimplementing what the target already does — downloads, checksums,
+platform matrices — is a maintenance burden that is always slightly wrong.</li>
+<li><strong>Do not route around a solved problem.</strong> If the ecosystem already handles something,
+the correct implementation is to say so and do nothing. An empty step is a legitimate
+answer, not a stub — and it is more honest than adding a dependency that buys nothing.</li>
+<li><strong>Merge in place when the file belongs to the project.</strong> Some target formats live inside
+files the project owns. Generating those wholesale destroys user content; the rule is to
+own <em>one field</em> and leave everything else untouched.</li>
+<li><strong>Never produce a partial answer.</strong> If a choice cannot satisfy the whole declaration,
+it must not be offered. A half-configured environment is worse than an unconfigured one:
+it looks done. Where nothing covers the requirement alone, compose several things that
+together do, or fail loudly naming the gap.</li>
+<li><strong>Compositions, not copies.</strong> A combined answer is a list of members whose behaviour is
+the union of theirs — render each member's file, run each member's step. The moment a
+combination is implemented by copying a member's logic, you maintain both forever.</li>
+<li><strong>Make decisions sticky.</strong> Record the answer to every question in the project's own
+manifest, so re-runs follow it without asking again. An interactive tool that cannot be
+re-run non-interactively is not automatable.</li>
+<li><strong>The record is the source of truth; the generated file is derived.</strong> That single
+direction gives you a consistency check for free: re-render and compare. Disagreement is
+a report (&quot;out of date&quot;), and writing it back is the fix.</li>
+<li><strong>Re-running must write nothing.</strong> Idempotence is not a nice property here, it is the
+definition of correct: the tool runs on a new laptop, a colleague's clone, a CI runner
+and after every upgrade, and a re-run that produces churn makes all of those unsafe.</li>
+<li><strong>Resolve derived values in stable-first order.</strong> When a declaration must be made more
+concrete than it is written, prefer what is already on disk while it still satisfies the
+declaration, and ask an external source only when nothing does. The inverse order makes
+every run network-dependent and re-derives a perfectly good value the day upstream moves.</li>
+<li><strong>Never invent the missing half.</strong> Either reuse a recorded value or ask the component
+that knows. Guessing produces a value that is plausible, wrong, and hard to trace.</li>
+<li><strong>Single-source every value with more than one consumer</strong>, and enforce it with a check
+that fails when consumers disagree — plus, ideally, one that fails on any value-shaped
+thing no registry entry claims. The subtle failure is not a wrong value; it is a new
+surface quietly growing an unregistered one.</li>
+</ul>
+<h2>Details</h2>
+<h3>The choice-from-coverage pattern</h3>
+<p>Where a tool must pick between several ways of satisfying a declaration, computing the
+options beats declaring them:</p>
+<ol>
+<li>Model each candidate by <strong>what it covers</strong> — the subset of the requirement it can
+satisfy.</li>
+<li>Given a concrete requirement, offer exactly the candidates covering it <strong>whole</strong>, plus
+curated combinations whose union does.</li>
+<li>Record the answer; follow it on later runs.</li>
+</ol>
+<p>The payoff is that eligibility rules stop being written down anywhere. A candidate that
+only handles one ecosystem simply stops appearing once the project needs a second one —
+no rule, no conditional, no place to forget. The invariant to hold is the one above: a
+partial cover is never an option, so there is no path to a half-configured result.</p>
+<p>The same structure applies well beyond provisioning — anywhere a plugin, backend or
+strategy is chosen against a set of required capabilities.</p>
+<h3>Idempotence in practice</h3>
+<p>Three things make a generator genuinely re-runnable:</p>
+<ul>
+<li><strong>Deterministic rendering</strong> — same inputs, byte-identical output. Sort collections, do
+not stamp timestamps into generated files, do not depend on map iteration order.</li>
+<li><strong>Derived values that stick</strong> — see stable-first resolution above; a value re-derived on
+every run is a file rewritten on every run.</li>
+<li><strong>Delegated steps that are themselves idempotent</strong> — which is one more reason to invoke
+the target's own documented operation rather than a hand-rolled equivalent.</li>
+</ul>
+<p>Together these give the steady state its defining property: nothing to write, and often
+nothing to execute at all.</p>
+<h3>Generated files people will edit</h3>
+<p>Users edit generated files. Decide in advance which of three stances applies to each, and
+say which in the file itself:</p>
+<table>
+<thead>
+<tr>
+<th>Stance</th>
+<th>Meaning</th>
+<th>Suits</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Owned</strong></td>
+<td>Regenerated wholesale; edits are lost</td>
+<td>Files that are purely derived</td>
+</tr>
+<tr>
+<td><strong>Seeded</strong></td>
+<td>Written once, never touched again</td>
+<td>Starting points meant to diverge</td>
+</tr>
+<tr>
+<td><strong>Merged</strong></td>
+<td>One region or field maintained; the rest is the user's</td>
+<td>Files the project owns</td>
+</tr>
+</tbody>
+</table>
+<p>The unsafe combination is a file that looks seeded and is actually owned. Where an upgrade
+path would rewrite something a user has customised, the right behaviour is to <strong>refuse and
+name the manual recipe</strong> — silently losing their work is the one outcome with no recovery.</p>
+<h2>Related</h2>
+<ul>
+<li><a href="../../applicative-architecture/design-patterns/">Design patterns</a> — the general catalog;
+the choice-from-coverage shape is a strategy selection with an explicit invariant.</li>
+<li><a href="../../applicative-architecture/coupling-and-cohesion/">Coupling &amp; cohesion</a> — &quot;render the
+native format&quot; is a coupling decision: depend on the ecosystem's contract, not on yours.</li>
+<li><a href="../../platform/infrastructure-as-code/">Infrastructure as code</a> — the same declare-then-
+reconcile loop, and the drift problem the consistency check answers.</li>
+<li><a href="../../platform/developer-environments/version-pinning-and-currency/">Version pinning &amp; currency</a> —
+the single-source registry and its guard, in operational detail.</li>
+<li><a href="../../platform/developer-environments/version-managers/">Version managers</a> — the worked
+example most of these patterns were drawn from.</li>
+<li><a href="../../applicative-architecture/architecture-documentation/">Architecture documentation</a> —
+recording which stance a generated file takes is the same instinct as an ADR.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../assets/planks.js"></script>
+  <script src="../../assets/search.js" defer></script>
+  <script src="../../assets/mermaid.js" defer></script>
+</body>
+</html>

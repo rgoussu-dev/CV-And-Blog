@@ -40,7 +40,7 @@
       <div class="term-out">
         <h1 class="lib-title">Maven deep dive</h1>
         <p class="lib-lede"><span class="tok-comment"># Maven's POM model, fixed lifecycles, plugin-goal bindings, dependency mediation, BOMs, multi-module reactor, and the plugins worth knowing.</span></p>
-        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span><span class="lib-meta-date">updated 2026-08-20</span></cluster-pk>
         <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#java">#java</a><a class="lib-tag" href="../../../tags/#build">#build</a><a class="lib-tag" href="../../../tags/#tooling">#tooling</a><a class="lib-tag" href="../../../tags/#maven">#maven</a></cluster-pk>
       </div>
     </div>
@@ -63,6 +63,13 @@ plugin goals to phases (<code>compile</code> → <code>compiler:compile</code>, 
 <code>package</code> → <code>jar:jar</code>, <code>install</code> → <code>install:install</code>, <code>deploy</code> → <code>deploy:deploy</code>).</li>
 <li><strong>Plugins are the unit of everything</strong>: compiling, testing, packaging, releasing — all
 plugin goals. Maven core is just the lifecycle engine plus dependency resolution.</li>
+<li><strong>Maven compiles with whatever JDK runs it.</strong> There is no widely-used equivalent of
+Gradle's toolchain provisioning (<code>maven-toolchains-plugin</code> exists and is rarely used), so
+<code>JAVA_HOME</code> is the real control. <code>&lt;release&gt;</code> sets the <em>target</em> — which language level and
+API surface <code>javac</code> accepts — but the compiler itself is the one in the running JDK, and
+a <code>&lt;release&gt;</code> newer than that JDK supports simply fails. The consequence worth
+remembering: nothing warns you when <code>JAVA_HOME</code> is not the JDK you meant — the build
+just uses it.</li>
 <li><strong>Dependency mediation</strong>: nearest-wins — the version closest to the root of the
 dependency tree is selected; ties go to declaration order. No Gradle-style
 highest-version conflict resolution; override deliberately via <code>dependencyManagement</code>.</li>
@@ -182,6 +189,8 @@ where Maven sits among the three tiers.</li>
 task DAG vs fixed lifecycle.</li>
 <li><a href="../../../java/testing/testing/">Testing in Java</a> — surefire/failsafe are the Maven ends of
 the unit/integration split.</li>
+<li><a href="../../../platform/developer-environments/version-managers/">Version managers</a> — how the JDK
+that <code>JAVA_HOME</code> points at gets there in the first place.</li>
 </ul>
 </article>
         </div>

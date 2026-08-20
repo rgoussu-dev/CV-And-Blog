@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Version pinning &amp; currency — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/structural.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/platform/developer-environments</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../platform/">platform</a><span class="tok-path">/</span><span class="tok-path">developer-environments</span> <span class="tok-cmd">cat</span> <span class="tok-file">version-pinning-and-currency</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Version pinning &amp; currency</h1>
+        <p class="lib-lede"><span class="tok-comment"># Pinning tool and dependency versions without letting them rot — single-sourcing the value across its consumers, choosing a precision, and detecting drift from latest stable without gating unrelated work.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-20</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#platform">#platform</a><a class="lib-tag" href="../../../tags/#tooling">#tooling</a><a class="lib-tag" href="../../../tags/#dependencies">#dependencies</a><a class="lib-tag" href="../../../tags/#reproducibility">#reproducibility</a><a class="lib-tag" href="../../../tags/#supply-chain">#supply-chain</a><a class="lib-tag" href="../../../tags/#maintenance">#maintenance</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>Pinning is easy; keeping pins honest is not. A version that is stated in four places will
+eventually be four different versions, and a version stated correctly today rots silently
+— nothing in the build fails when a pinned release stops being the latest stable. Those
+are two separate problems: <strong>consistency</strong> (all consumers agree) and <strong>currency</strong> (the
+agreed value is still the right one), and they want different mechanisms.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>Choose a precision deliberately.</strong> A major (<code>25</code>) tracks a series and takes patches
+for free; an exact version (<code>25.0.4+7</code>) is reproducible but is now a maintenance
+obligation; a floating tag (<code>latest</code>) is neither. The right answer differs per surface —
+a library's supported range is not a CI runner's toolchain is not a release image's tag.</li>
+<li><strong>One source, many consumers.</strong> The same tool version typically appears in the declared
+project requirement, the dev container, the CI pipeline, and the release image. Name it
+<strong>once</strong> and have the rest resolve from that; anything else is four sources pretending
+to be one fact.</li>
+<li><strong>Single-sourcing is only real if something checks it.</strong> A convention that consumers
+&quot;should&quot; read the registry is not enforcement. Add a test in the fast gate that fails
+when a consumer and the registry disagree.</li>
+<li><strong>Guard the blind spots, not just the entries.</strong> The subtle failure is not a wrong
+value, it is a <em>new</em> surface that quietly grows a version nobody registered. A sweep
+that fails on any version-shaped string no registry entry claims catches that; the rule
+is to extend the registry, never to widen the sweep's exclusions.</li>
+<li><strong>Record deliberate absences too.</strong> A surface that floats by construction — a major-only
+tag, a <code>stable</code> channel, a version read from a project file — should be registered <em>as
+an absence</em>, so a hardcoded version appearing there later is as loud as a wrong one.</li>
+<li><strong>Currency wants to be a scheduled report rather than a gate.</strong> An upstream release
+would otherwise turn unrelated work red — a third party could break your build by
+shipping. Run the &quot;is each pin still latest stable?&quot; comparison on a schedule; the
+failing run <em>is</em> the report, naming each stale pin and its current upstream value. The
+exception is a policy you are actually held to: where a compliance or security regime
+requires dependencies within a stated age, gating is the point, and the cost of a
+surprise red build is one you have accepted deliberately.</li>
+<li><strong>A bump is a reviewed change, proved by tests.</strong> Automation can tell you a version is
+stale; it should not decide that the new one works. The bump updates the value and every
+consumer together, and the existing test suite is what says it is safe.</li>
+<li><strong>Distinguish the two automations.</strong> Dependency bots (Dependabot, Renovate) cover the
+dependencies your package manager resolves. They do <em>not</em> cover versions embedded in
+templates, Dockerfiles, workflow files, or scaffolded output — those need the registry
+and the currency report above.</li>
+</ul>
+<h2>Details</h2>
+<h3>The two problems, and their mechanisms</h3>
+<table>
+<thead>
+<tr>
+<th>Problem</th>
+<th>Symptom</th>
+<th>Mechanism</th>
+<th>Where it runs</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Consistency</strong></td>
+<td>The dev container ships a JDK the pipeline does not</td>
+<td>One registry + a check that consumers match it</td>
+<td>The fast gate, on every change</td>
+</tr>
+<tr>
+<td><strong>Currency</strong></td>
+<td>Every pin is internally consistent and nine months old</td>
+<td>Compare each entry against its upstream latest stable</td>
+<td>A schedule, as a report</td>
+</tr>
+</tbody>
+</table>
+<p>Keeping these apart is the whole trick. Consistency is cheap, deterministic and offline,
+so it belongs in the gate every change passes. Currency is network-bound and depends on
+events outside the repository, so gating on it makes a third party able to break your
+build by shipping a release.</p>
+<h3>What a registry entry needs</h3>
+<p>Enough to find every place the value lives, and to ask upstream what the current one is:</p>
+<ul>
+<li>the <strong>value</strong> itself, and what it is;</li>
+<li>the <strong>locations</strong> — file patterns plus how to extract the version from each;</li>
+<li>the <strong>upstream check</strong> — which feed answers &quot;what is latest stable?&quot;, or an explicit
+marker that this entry deliberately floats and is not to be checked.</li>
+</ul>
+<p>The locations list is what makes a bump mechanical rather than archaeological, and what
+lets the consistency check exist at all.</p>
+<h3>Precision, per surface</h3>
+<table>
+<thead>
+<tr>
+<th>Surface</th>
+<th>Usual precision</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Library's declared support</td>
+<td>a range or minimum</td>
+<td>Consumers pick within it</td>
+</tr>
+<tr>
+<td>Application dependencies</td>
+<td>exact, via lockfile</td>
+<td>Reproducible installs; the range lives in the manifest</td>
+</tr>
+<tr>
+<td>Toolchain requirement</td>
+<td>major</td>
+<td>Patches are free and wanted; a series is the real intent</td>
+</tr>
+<tr>
+<td>Manager lockfiles (<code>.tool-versions</code>, <code>.sdkmanrc</code>)</td>
+<td>exact</td>
+<td>The format demands it — see <a href="../../../platform/developer-environments/version-managers/">Version managers</a></td>
+</tr>
+<tr>
+<td>Release image base</td>
+<td>exact + digest</td>
+<td>The one place drift is a security problem</td>
+</tr>
+<tr>
+<td>CI action / plugin refs</td>
+<td>commit SHA</td>
+<td>A mutable tag is an arbitrary-code-execution surface</td>
+</tr>
+</tbody>
+</table>
+<h3>The supply-chain half</h3>
+<p>Pinning is not only a reproducibility practice. A mutable reference — a floating tag, a
+branch name, an unpinned third-party CI action — is a place someone else can change what
+your build executes. Pin those to immutable identifiers (digests, commit SHAs), and accept
+the maintenance cost that creates: an unmaintained pin is its own risk, which is exactly
+why the currency report has to exist alongside.</p>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../platform/developer-environments/developer-environments/">Developer environments</a> — the group; the versions here are what its layers provision.</li>
+<li><a href="../../../platform/developer-environments/version-managers/">Version managers</a> — which files take a prefix and which demand an exact version.</li>
+<li><a href="../../../platform/developer-environments/dev-containers/">Dev containers</a> — one of the consumers a registry keeps in line.</li>
+<li><a href="../../../platform/ci-cd-and-delivery-engineering/">CI/CD &amp; delivery engineering</a> — supply-chain hygiene and the pipeline as an attack surface.</li>
+<li><a href="../../../applicative-architecture/configuration-generation-patterns/">Patterns for tools that generate configuration</a> — the single-source registry as a design pattern.</li>
+<li><a href="../../../security/threat-modeling/">Threat modeling</a> — how to reason about the mutable-reference risk.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+  <script src="../../../assets/mermaid.js" defer></script>
+</body>
+</html>

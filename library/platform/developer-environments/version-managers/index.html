@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Version managers — universal vs ecosystem-native — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../assets/structural.css" />
+  <link rel="stylesheet" href="../../../assets/theme.css" />
+</head>
+<body data-prefix="../../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/platform/developer-environments</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../../">~/library</a><span class="tok-path">/</span><a class="tok-path" href="../../../platform/">platform</a><span class="tok-path">/</span><span class="tok-path">developer-environments</span> <span class="tok-cmd">cat</span> <span class="tok-file">version-managers</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Version managers — universal vs ecosystem-native</h1>
+        <p class="lib-lede"><span class="tok-comment"># The layer above every language toolchain — mise and asdf against nvm, corepack, SDKMAN!, rustup and Go's own directive; the native config files, what each covers, and the traps in automating them.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-20</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#platform">#platform</a><a class="lib-tag" href="../../../tags/#tooling">#tooling</a><a class="lib-tag" href="../../../tags/#toolchain">#toolchain</a><a class="lib-tag" href="../../../tags/#mise">#mise</a><a class="lib-tag" href="../../../tags/#asdf">#asdf</a><a class="lib-tag" href="../../../tags/#sdkman">#sdkman</a><a class="lib-tag" href="../../../tags/#nvm">#nvm</a><a class="lib-tag" href="../../../tags/#rustup">#rustup</a><a class="lib-tag" href="../../../tags/#reproducibility">#reproducibility</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>A version manager installs toolchains, keeps several versions side by side, and makes the
+right one answer inside the right directory. Two shapes exist. <strong>Universal</strong> managers
+(mise, asdf) handle any tool through a plugin/backend system and one config file.
+<strong>Ecosystem-native</strong> managers (nvm, Corepack, SDKMAN!, rustup, and Go's built-in
+mechanism) handle exactly one ecosystem, are what that ecosystem's own documentation
+assumes, and are usually already installed on the machines that matter.</p>
+<p>The choice is not obvious in either direction, and for a polyglot project it is often not
+a choice at all — see <em>Coverage</em> below.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>Every manager's authority is a committed file at the project root.</strong> That file, not
+the manager, is the real interface: it is what a colleague without your manager, an
+IDE, or a container build reads. Prefer writing the ecosystem's <em>native</em> file over
+inventing your own format, even when a universal manager could hold everything.</li>
+<li><strong>Universal managers trade breadth for indirection.</strong> One file for the whole polyglot
+toolchain is genuinely valuable; the cost is that everyone needs the manager, and the
+file means nothing to a tool that does not know it.</li>
+<li><strong>Some &quot;native files&quot; belong to the project, not the manager</strong> — Corepack's
+<code>packageManager</code> field lives in <code>package.json</code>, Go's <code>toolchain</code> line in <code>go.mod</code>.
+Automation must <strong>merge one field in place</strong> and leave the rest alone; rendering these
+files from scratch destroys project content.</li>
+<li><strong>Coverage is the real constraint.</strong> An ecosystem manager is only an option when your
+project's needs sit entirely inside its ecosystem. A JVM project can use SDKMAN!; a
+project that is JVM <em>and</em> Node cannot, without pairing it with something else.</li>
+<li><strong>Some managers only compose in pairs.</strong> nvm installs Node but cannot install pnpm;
+Corepack pins pnpm but cannot install Node. Either alone is a half-answer; the pair is a
+whole one.</li>
+<li><strong><code>sdk</code> is a shell function, not a binary</strong> — the single most common automation trap in
+this space. Scripts must run it through a login shell that has sourced
+<code>sdkman-init.sh</code>; a plain <code>exec</code> of <code>sdk</code> finds nothing on <code>PATH</code>.</li>
+<li><strong>Not every ecosystem needs a manager.</strong> Since Go 1.21 the <code>toolchain</code> directive in
+<code>go.mod</code> makes any installed Go fetch and run the toolchain the module asks for. The
+honest answer there is &quot;no manager&quot; — routing around a solved problem adds a dependency
+and buys nothing.</li>
+<li><strong>Managers disagree about version precision.</strong> Some resolve a prefix (<code>22</code>) natively;
+others treat their file as a <strong>lockfile</strong> and demand an exact version. Automation that
+writes those files has to resolve the prefix first — see <em>Prefixes and lockfiles</em>.</li>
+</ul>
+<h2>Details</h2>
+<h3>The managers, side by side</h3>
+<table>
+<thead>
+<tr>
+<th>Manager</th>
+<th>Kind</th>
+<th>Native file</th>
+<th>Covers</th>
+<th>Install invocation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>mise</strong></td>
+<td>universal</td>
+<td><code>mise.toml</code></td>
+<td>anything with a backend</td>
+<td><code>mise trust</code> then <code>mise install</code></td>
+</tr>
+<tr>
+<td><strong>asdf</strong></td>
+<td>universal</td>
+<td><code>.tool-versions</code></td>
+<td>anything with a plugin</td>
+<td><code>asdf plugin add &lt;p&gt;</code> then <code>asdf install</code></td>
+</tr>
+<tr>
+<td><strong>nvm</strong></td>
+<td>Node</td>
+<td><code>.nvmrc</code></td>
+<td><code>node</code> (npm rides along)</td>
+<td><code>nvm install</code></td>
+</tr>
+<tr>
+<td><strong>Corepack</strong></td>
+<td>Node</td>
+<td><code>packageManager</code> in <code>package.json</code></td>
+<td><code>pnpm</code>, <code>yarn</code></td>
+<td><code>corepack enable</code> then <code>corepack install</code></td>
+</tr>
+<tr>
+<td><strong>SDKMAN!</strong></td>
+<td>JVM</td>
+<td><code>.sdkmanrc</code></td>
+<td>JDK, Gradle, Maven, and the rest of the JVM candidates</td>
+<td><code>sdk env install</code></td>
+</tr>
+<tr>
+<td><strong>rustup</strong></td>
+<td>Rust</td>
+<td><code>rust-toolchain.toml</code></td>
+<td>the Rust toolchain</td>
+<td><code>rustup toolchain install</code></td>
+</tr>
+<tr>
+<td><strong>Go (built-in)</strong></td>
+<td>Go</td>
+<td><code>toolchain</code> directive in <code>go.mod</code></td>
+<td><code>go</code></td>
+<td>nothing — the directive <em>is</em> the provisioning</td>
+</tr>
+</tbody>
+</table>
+<h3>Coverage, and why it is the deciding question</h3>
+<p>The useful way to choose is not &quot;which manager is best&quot; but <strong>&quot;which managers cover
+everything this project declares?&quot;</strong> Work it as a set-cover problem over the project's
+needs:</p>
+<ul>
+<li>A project needing only a JDK, Gradle and Maven is covered whole by mise, asdf <strong>or</strong>
+SDKMAN! — three real options.</li>
+<li>Add a Node requirement and SDKMAN! drops out. Not because of any rule of SDKMAN!'s, but
+because it no longer covers the set. Nothing was configured to make that happen; it
+falls out of the coverage question.</li>
+<li>A Node project on pnpm is covered by mise, asdf, or <strong>nvm + Corepack together</strong> — a
+combination, because neither member covers it alone.</li>
+</ul>
+<p>Two rules make this safe to automate:</p>
+<ol>
+<li><strong>Never offer or accept a partial cover.</strong> A manager that installs three of your four
+tools leaves the fourth silently missing, which is worse than having no manager: the
+environment looks provisioned. If nothing covers the set, the answer is a combination
+or an honest failure — never a half-install.</li>
+<li><strong>A combination is a composition, not a new manager.</strong> It renders each member's own
+file and runs each member's own installer, and its coverage is the union of its
+members'. Copying one manager's configuration into a &quot;combined&quot; variant is how you end
+up maintaining two of them.</li>
+</ol>
+<h3>Prefixes and lockfiles</h3>
+<p>Projects usually want to pin a <strong>series</strong> — &quot;JDK 25&quot;, &quot;Node 22&quot; — not a patch. Managers
+split on whether they accept that:</p>
+<ul>
+<li><strong>Resolve a prefix natively</strong>: mise's resolver, rustup's <code>stable</code> channel (a channel,
+not a version), nvm and Corepack (handed something concrete already).</li>
+<li><strong>Refuse it</strong>: asdf documents <code>.tool-versions</code> as a lockfile wanting exact versions;
+SDKMAN!'s candidate identifiers always carry a patch, so <code>java=25-tem</code> names nothing
+installable.</li>
+</ul>
+<p>For the second group, resolve the prefix <em>before</em> writing the file, and in <strong>lockfile
+order</strong>:</p>
+<ol>
+<li><strong>Whatever the file already names wins</strong>, as long as it still satisfies the prefix. A
+lockfile resolves once and then stays put — this is what stops a consistency check
+flapping the day an upstream patch ships, and what makes a re-run write nothing at all.</li>
+<li><strong>Otherwise ask the manager</strong>, its own way — <code>asdf latest java temurin-25</code>,
+<code>sdk list java</code>. That happens on a first install, or after a pin bump moves the series
+out from under the recorded value.</li>
+<li><strong>Failing both, write the prefix as it stands and say so.</strong> Never invent the missing
+half of a version: either reuse what is on disk or ask the tool that knows.</li>
+</ol>
+<p>Asking upstream <em>first</em> is the tempting inversion and it is wrong — it calls a perfectly
+good lockfile stale the moment a patch is released, and makes every check network-bound.</p>
+<h3>Per-manager notes</h3>
+<ul>
+<li><strong>mise</strong> — an increasingly common default for polyglot work: fast, one <code>mise.toml</code>, backends
+for most things, and it reads <code>.tool-versions</code> too. Its <code>trust</code> step is a
+security boundary — config files are not honoured until trusted.</li>
+<li><strong>asdf</strong> — the older universal, plugin-per-tool, plugins are third-party of varying
+quality. Its <code>.tool-versions</code> is the closest thing this space has to a lingua franca.</li>
+<li><strong>nvm</strong> — a shell function, like SDKMAN!'s (same automation caveat). <code>.nvmrc</code> is
+near-universally understood, including by CI actions that never use nvm itself.</li>
+<li><strong>Corepack</strong> — pins the package-manager client and version from <code>package.json</code>'s
+<code>packageManager</code> field; its bundled-with-Node status has wobbled, but the field is the
+convention the clients honour regardless. See
+<a href="../../../frontend/build-ecosystem/package-managers/">Package managers</a>.</li>
+<li><strong>SDKMAN!</strong> — the JVM classic, covers far more than the JDK (Gradle, Maven, Kotlin,
+Scala…). Shell function, exact versions, <code>.sdkmanrc</code> per project.</li>
+<li><strong>rustup</strong> — first-party, assumed by all Rust documentation, and needs no activation
+story at all: <code>rust-toolchain.toml</code> is honoured natively by every <code>cargo</code> and <code>rustc</code>
+invocation in the directory. See <a href="../../../rust/toolchain/rustup/">rustup</a>.</li>
+<li><strong>Go's built-in mechanism</strong> — the <code>toolchain</code> directive is a <strong>floor, not a pin</strong>: a
+newer local Go is used as-is, only an older one triggers a download. <code>GOTOOLCHAIN</code>
+governs whether switching is allowed at all.</li>
+</ul>
+<h2>Examples</h2>
+<pre><code class="language-toml"># mise.toml — one file for a polyglot project
+[tools]
+java = &quot;temurin-25&quot;
+gradle = &quot;9.7.0&quot;
+node = &quot;22&quot;
+</code></pre>
+<pre><code># .tool-versions — asdf, a lockfile: exact versions only
+java temurin-25.0.4+7
+nodejs 22.14.0
+</code></pre>
+<pre><code># .sdkmanrc — candidate identifiers always carry a patch
+java=25.0.4-tem
+gradle=9.7.0
+</code></pre>
+<pre><code class="language-sh"># SDKMAN! and nvm are shell functions — automation needs a login shell
+bash -lc 'source &quot;$SDKMAN_DIR/bin/sdkman-init.sh&quot; &amp;&amp; sdk env install'
+bash -lc 'source &quot;$NVM_DIR/nvm.sh&quot; &amp;&amp; nvm install'
+</code></pre>
+<h2>Related</h2>
+<ul>
+<li><a href="../../../platform/developer-environments/developer-environments/">Developer environments</a> — the group this is the first layer of.</li>
+<li><a href="../../../platform/developer-environments/dev-containers/">Dev containers</a> — the layer above, when host-level management is not enough.</li>
+<li><a href="../../../platform/developer-environments/version-pinning-and-currency/">Version pinning &amp; currency</a> — where the versions these files carry come from.</li>
+<li><a href="../../../rust/toolchain/rustup/">rustup</a> — the Rust manager in depth.</li>
+<li><a href="../../../go/toolchain/go-mod/">go mod</a> and <a href="../../../go/toolchain/toolchain/">The Go toolchain</a> — the <code>toolchain</code> directive.</li>
+<li><a href="../../../java/build-ecosystem/build-ecosystem/">The Java build ecosystem</a> — wrappers, the JVM's other pinning mechanism.</li>
+<li><a href="../../../frontend/build-ecosystem/package-managers/">Package managers: npm, pnpm, yarn, bun</a> — Corepack and <code>packageManager</code>.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../../assets/planks.js"></script>
+  <script src="../../../assets/search.js" defer></script>
+  <script src="../../../assets/mermaid.js" defer></script>
+</body>
+</html>

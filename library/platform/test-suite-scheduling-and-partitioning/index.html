@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Test-suite scheduling &amp; job partitioning — Library — rgoussu.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../assets/tokens.css" />
+  <link rel="stylesheet" href="../../assets/styles.css" />
+  <link rel="stylesheet" href="../../assets/structural.css" />
+  <link rel="stylesheet" href="../../assets/theme.css" />
+</head>
+<body data-prefix="../../">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="../../../" aria-label="rgoussu.dev — home"><span class="tok-p" aria-hidden="true">❯</span> <span class="site-brand-name">rgoussu.dev</span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-link" href="../../../cv/">CV</a>
+        <a class="site-nav-link is-active" href="../../" aria-current="page">Library</a>
+      </nav>
+    </div>
+  </header>
+  <main class="lib-page">
+    <div class="lib-sheet">
+      <section class="term">
+        <div class="term-bar">
+          <span class="term-btns" aria-hidden="true"><i class="term-btn term-btn-close"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5 15 15M15 5 5 15"/></svg></i><i class="term-btn term-btn-min"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 10h10"/></svg></i><i class="term-btn term-btn-max"><svg viewBox="0 0 20 20" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="1.5"/></svg></i></span>
+          <span class="term-title">rgoussu@goussu: ~/library/platform</span>
+          <span class="lib-search" data-search>
+      <label class="lib-search-field"><svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="m13.5 13.5 3.5 3.5"/></svg><input type="search" placeholder="search the shelves…" autocomplete="off" aria-label="Search the library" /></label>
+      <ul class="lib-search-results" hidden></ul>
+    </span>
+        </div>
+        <div class="term-body">
+<div class="sess-block">
+      <div class="term-cmd"><span class="tok-p">❯</span> <a class="tok-path" href="../../">~/library</a><span class="tok-path">/</span><span class="tok-path">platform</span> <span class="tok-cmd">cat</span> <span class="tok-file">test-suite-scheduling-and-partitioning</span><span class="tok-ext">.md</span></div>
+      <div class="term-out">
+        <h1 class="lib-title">Test-suite scheduling &amp; job partitioning</h1>
+        <p class="lib-lede"><span class="tok-comment"># Why a slow pipeline is usually floored by one unit rather than starved of workers — the runner's scheduling granularity, amortizing setup, and dividing jobs along an axis that makes the failure a diagnosis.</span></p>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-20</span></cluster-pk>
+        <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../tags/#ci-cd">#ci-cd</a><a class="lib-tag" href="../../tags/#testing">#testing</a><a class="lib-tag" href="../../tags/#platform">#platform</a><a class="lib-tag" href="../../tags/#performance">#performance</a><a class="lib-tag" href="../../tags/#delivery">#delivery</a></cluster-pk>
+      </div>
+    </div>
+    <article class="lib-doc"><h2>Overview</h2>
+<p>Long test suites get split. The split is usually done by intuition — &quot;this job takes
+twenty minutes, let's run it as four jobs&quot; — and often buys much less than expected,
+sometimes nothing at all. The reasons are mechanical: parallel runners have a scheduling
+granularity that is coarser than a single test, expensive setup is frequently duplicated
+by exactly the split meant to help, and total wall clock is set by the slowest indivisible
+unit rather than by the total amount of work.</p>
+<p>This note is about deciding <em>whether</em> and <em>how</em> to divide, and about the fact that both
+questions want measurements rather than instinct.</p>
+<h2>Key points</h2>
+<ul>
+<li><strong>Find your runner's unit of scheduling — it varies, and everything below depends on
+it.</strong> Vitest and Jest parallelise across <em>files</em> and run one file's tests sequentially;
+<code>go test</code> parallelises across <em>packages</em> (and within one only where <code>t.Parallel()</code> says
+so); JUnit 5 parallelises by class or method once configured; pytest-xdist is
+configurable and can distribute individual tests. Whatever that unit is, it is the atom:
+no amount of concurrency splits it, and the slowest single unit sets a floor under the
+whole job.</li>
+<li><strong>The floor is the number to look at first.</strong> Adding workers to a job whose longest unit
+is most of its wall clock changes almost nothing. Measure the longest unit and the total
+before deciding anything — if they are close, the problem is that unit, not the
+parallelism.</li>
+<li><strong>Where the unit is coarser than a test, a long case deserves its own unit</strong> —
+precisely because the unit is what gets scheduled. With a file-level runner, appending
+one more slow case to an already-slow file makes the floor worse in a way no scheduling
+change can recover. With a test-level distributor this pressure largely disappears,
+which is itself a reason to know which you have.</li>
+<li><strong>Where a job is slow because each unit does real work — builds, containers, databases —
+setup is usually the bigger half, and splitting duplicates it.</strong> Dependency resolution,
+toolchain provisioning, image pulls, database seeding are all paid per unit. (For a pure
+unit-test suite the opposite holds: setup is trivial and the tests are the cost.) Two
+cases sharing one expensive setup can be dramatically cheaper than the same two cases in
+separate units, each paying for it cold.</li>
+<li><strong>So fix the setup before changing the layout.</strong> Amortize what is genuinely reusable
+across cases (a dependency cache, a downloaded toolchain, a warmed image) and isolate
+only what actually carries state between cases (the working tree, the database
+contents). The instinct to split two slow cases into two units is often exactly
+backwards — it hands the second one its cold setup back.</li>
+<li><strong>Divide along an axis that means something.</strong> If a partition is a real dimension of the
+thing under test, a failure <em>names the cause</em>. If it is an arbitrary split by count, a
+failure is a log to go read. That difference is most of the value of partitioning.</li>
+<li><strong>Extra jobs are cheap in wall clock only while your runner concurrency can absorb
+them</strong>, and never free in machine time. Given spare capacity, jobs finishing faster than
+the pipeline's slowest job cost nothing perceptible. Against a concurrency cap they
+queue, and the wall clock you were protecting is exactly what you lose — so check the
+cap before adding cells, because this is the assumption that silently flips the
+trade-off. Either way every job pays its own setup and its own minutes: spend them where
+attribution is worth it.</li>
+<li><strong>Never create a cell nothing populates.</strong> A partition that runs no tests reports green,
+and its name then asserts coverage that does not exist — worse than an absence, because
+it looks like a presence.</li>
+<li><strong>A suite in no partition never runs, and looks exactly like a suite that passed.</strong> Once
+the partitioning is an explicit list, that list and the actual set of suites can drift
+silently. Check the correspondence mechanically in the fast gate; convention will not
+hold it.</li>
+<li><strong>Verify the assumptions that motivated the split.</strong> Which half is slower, whether a
+given tool is the expensive one, whether a case is really independent — all cheap to
+measure, and frequently inverted in practice.</li>
+</ul>
+<h2>Details</h2>
+<h3>Deciding whether to split</h3>
+<p>Work down this list; most slow jobs are fixed before the last step.</p>
+<ol>
+<li><strong>Measure the longest unit against the total.</strong> A job whose longest unit is a small
+fraction of its total is genuinely under-parallelised — add workers or units. A job
+whose longest unit dominates cannot be helped by either.</li>
+<li><strong>Find the repeated setup.</strong> Anything paid once per unit that could be paid once per
+job is a candidate for amortization, and amortizing it usually beats splitting.</li>
+<li><strong>Check the isolation you actually need.</strong> Cases often share more safely than assumed —
+a downloaded artifact cache is shared state carrying no test-visible information, while
+a database or a working tree is. Conflating the two is what makes setup expensive.</li>
+<li><strong>Only then split</strong>, and split the <em>long unit</em>, not the job.</li>
+</ol>
+<h3>Deciding how to divide</h3>
+<p>Two partitions of identical cost can differ enormously in value:</p>
+<table>
+<thead>
+<tr>
+<th>Partition</th>
+<th>On failure you learn</th>
+<th>Worth it when</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>By arbitrary count (<code>shard 3 of 8</code>)</td>
+<td>that something in a bucket broke</td>
+<td>you only want throughput</td>
+</tr>
+<tr>
+<td>By a real axis (platform, version, configuration)</td>
+<td>which platform/version/configuration broke</td>
+<td>the axis is what the tests exist to explore</td>
+</tr>
+</tbody>
+</table>
+<p>If the suite exists to prove something works across a matrix of combinations, the matrix
+<em>is</em> the partition — and the job name becomes the diagnosis. If the suite is merely long,
+an arbitrary split is honest and cheaper to maintain.</p>
+<p>Two follow-on rules:</p>
+<ul>
+<li><strong>Keep the body shared.</strong> Cells that duplicate their assertions drift into subtly
+different tests, and the matrix stops meaning what its name says. One parameterised
+body, many cells.</li>
+<li><strong>Assert per-axis facts once.</strong> A property belonging to one dimension of the matrix
+should be checked in one cell of that dimension, not in every cell of the whole grid.
+Repeating it multiplies cost and proves the same thing.</li>
+</ul>
+<h3>The enumeration hazard</h3>
+<p>Any scheme where jobs name their work explicitly has a silent failure mode: work that no
+job names. It produces no error, no skipped-test count, and no red — the pipeline simply
+does less than it claims.</p>
+<p>The first answer is to <strong>not declare it</strong>: derive the enumeration from the filesystem or
+from the runner's own discovery, so the question cannot arise. Where the partitioning must
+be declared — a static matrix, a hand-tuned split, per-cell configuration a generated list
+cannot express — the fallback is a check comparing the declaration against the actual set
+and failing on disagreement. Treat that check as part of the pipeline rather than a tooling
+nicety; where the list is hand-maintained it is the one thing standing between a new suite
+and never running.</p>
+<h2>Related</h2>
+<ul>
+<li><a href="../../platform/ci-cd-and-delivery-engineering/">CI/CD &amp; delivery engineering</a> — the wider
+pipeline discipline; fast feedback first is the principle this serves.</li>
+<li><a href="../../applicative-architecture/testing-strategies/">Testing strategies</a> — deciding what
+the slow suites should contain in the first place.</li>
+<li><a href="../../system-design/performance-engineering/">Performance engineering</a> — measure-first and
+bottleneck reasoning, generalised.</li>
+<li><a href="../../platform/developer-environments/developer-environments/">Developer environments</a> —
+toolchain provisioning is the setup cost most often duplicated per job.</li>
+</ul>
+</article>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <span class="site-copy">© 2026 rgoussu.dev · All rights reserved.</span>
+      <span class="site-built"><span class="tok-comment"># An OKF v0.1 bundle, shelved by Alfred.</span></span>
+    </div>
+  </footer>
+  <script type="module" src="../../assets/planks.js"></script>
+  <script src="../../assets/search.js" defer></script>
+  <script src="../../assets/mermaid.js" defer></script>
+</body>
+</html>

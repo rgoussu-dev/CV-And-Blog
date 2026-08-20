@@ -40,7 +40,7 @@
       <div class="term-out">
         <h1 class="lib-title">Gradle deep dive</h1>
         <p class="lib-lede"><span class="tok-comment"># Gradle's task DAG, Kotlin/Groovy DSLs, configuration vs execution, caching and incrementality, version catalogs, and convention plugins.</span></p>
-        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span><span class="lib-meta-date">updated 2026-08-20</span></cluster-pk>
         <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#java">#java</a><a class="lib-tag" href="../../../tags/#build">#build</a><a class="lib-tag" href="../../../tags/#tooling">#tooling</a><a class="lib-tag" href="../../../tags/#gradle">#gradle</a></cluster-pk>
       </div>
     </div>
@@ -70,6 +70,15 @@ remote cache lets CI populate results developers then download instead of rebuil
 compile classpath — faster rebuilds, cleaner APIs), <code>api</code> (part of your public
 signature, only in library projects applying <code>java-library</code>), plus <code>compileOnly</code>,
 <code>runtimeOnly</code>, <code>testImplementation</code>.</li>
+<li><strong>Java toolchains</strong>: the <code>java { toolchain { languageVersion = … } }</code> block declares
+which JDK <em>compiles</em> the code, independently of the JVM running Gradle. With the foojay
+resolver plugin applied, Gradle will download a matching JDK if none is installed —
+genuinely useful, and the reason a Gradle build can be JDK-agnostic on the host.</li>
+<li><strong>But Gradle still has to start</strong> on the JVM it is launched with, and a given Gradle
+version only supports JDKs up to a known maximum. So a too-new <code>JAVA_HOME</code> fails before
+any toolchain logic runs, with an error that looks nothing like &quot;upgrade Gradle&quot;. The
+practical rule: the Gradle version and the launching JDK are coupled even when the
+<em>compile</em> JDK is not — change one, check the other.</li>
 <li><strong>Version catalogs</strong> (<code>gradle/libs.versions.toml</code>): central, typed declaration of
 dependency versions shared across modules — <code>libs.junit.jupiter</code> in scripts.</li>
 <li><strong>Convention plugins</strong>: shared build logic packaged as plugins (typically in
@@ -167,6 +176,8 @@ where Gradle sits among the three tiers.</li>
 contrast fixed lifecycle vs task DAG.</li>
 <li><a href="../../../java/testing/testing/">Testing in Java</a> — <code>test</code> tasks, JUnit Platform wiring, and
 the integration-test source-set pattern live here.</li>
+<li><a href="../../../platform/developer-environments/version-managers/">Version managers</a> — provisioning
+the launching JDK, which toolchains deliberately do not cover.</li>
 </ul>
 </article>
         </div>

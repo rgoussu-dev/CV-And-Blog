@@ -40,7 +40,7 @@
       <div class="term-out">
         <h1 class="lib-title">rustup — toolchain management &amp; the release channels</h1>
         <p class="lib-lede"><span class="tok-comment"># The toolchain multiplexer — stable/beta/nightly channels, components, cross-compilation targets, and per-project pinning via rust-toolchain.toml.</span></p>
-        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span></cluster-pk>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-09</span><span class="lib-meta-date">updated 2026-08-20</span></cluster-pk>
         <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../../tags/#rust">#rust</a><a class="lib-tag" href="../../../tags/#tooling">#tooling</a><a class="lib-tag" href="../../../tags/#rustup">#rustup</a><a class="lib-tag" href="../../../tags/#toolchain">#toolchain</a></cluster-pk>
       </div>
     </div>
@@ -72,6 +72,13 @@ half (a linker) is yours to provide.</li>
 <li><strong>Pinned toolchains</strong>: <code>rustup toolchain install 1.85.0</code> and
 <code>channel = &quot;1.85.0&quot;</code> in <code>rust-toolchain.toml</code> — how MSRV-sensitive projects and
 reproducible builds pin exactly.</li>
+<li><strong>There is no &quot;series&quot; channel</strong> — and this bites anyone automating pins. A channel
+(<code>stable</code>) or an exact version (<code>1.85.0</code>) are the only two spellings; &quot;latest 1.85.x&quot;
+cannot be expressed. So a project wanting major-only pinning has to take <code>stable</code>,
+which floats across majors too, and accept that its Rust version is &quot;current stable by
+construction&quot; rather than a series it controls. Most other
+<a href="../../../platform/developer-environments/version-managers/">version managers</a> resolve a
+prefix; rustup is the outlier.</li>
 <li><strong><code>rustup doc</code></strong> opens the <em>offline</em> copy of the book, reference and stdlib docs
 matching your installed version — underused and excellent on trains.</li>
 </ul>
@@ -96,6 +103,8 @@ the channels implement.</li>
 <li><a href="../../../rust/toolchain/cargo/">cargo</a> — the tool the shims dispatch to.</li>
 <li><a href="../../../rust/build-ecosystem/building-and-releasing/">Building &amp; releasing</a> — targets in
 anger: cross-compilation and static musl builds.</li>
+<li><a href="../../../platform/developer-environments/version-managers/">Version managers</a> — rustup's
+place among the ecosystem-native managers, and the universal ones that can replace it.</li>
 </ul>
 </article>
         </div>
