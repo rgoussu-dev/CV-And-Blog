@@ -40,7 +40,7 @@
       <div class="term-out">
         <h1 class="lib-title">Microservice architecture</h1>
         <p class="lib-lede"><span class="tok-comment"># Decomposing a system into independently deployable services — when it pays, what it costs, and the patterns that make it survivable.</span></p>
-        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-08</span><span class="lib-meta-date">updated 2026-08-14</span></cluster-pk>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-08</span><span class="lib-meta-date">updated 2026-08-20</span></cluster-pk>
         <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../tags/#microservices">#microservices</a><a class="lib-tag" href="../../tags/#architecture">#architecture</a><a class="lib-tag" href="../../tags/#distributed-systems">#distributed-systems</a><a class="lib-tag" href="../../tags/#system-design">#system-design</a><a class="lib-tag" href="../../tags/#modulith">#modulith</a></cluster-pk>
       </div>
     </div>
@@ -74,6 +74,18 @@ is to start as a modulith and keep extraction mechanical — see
 <li>To explore: service mesh, serverless as the extreme of the same axis, micro-frontends
 as the front-end analogue.</li>
 </ul>
+<h2>Details</h2>
+<h3>The boundary tax</h3>
+<p>A boundary in a distributed system is not free. Every boundary buys you independent
+deployment and independent scaling, and charges you for it in serialisation, network
+transfer, orchestration state, request volume and failure handling [1]. Prime Video's
+own team found this the hard way: a serverless, heavily-decomposed pipeline was
+redesigned into a monolith and cut cost by ~90%, because the fan-out of boundaries was
+charging orchestration and data-transfer costs the workload didn't need. The lesson
+isn't &quot;monoliths win&quot; — it's that each boundary should be bought deliberately (per an
+operational trigger, not aesthetics — see
+<a href="../../applicative-architecture/modulith-and-microservices/">modulith &amp; microservices</a>),
+not inherited from a reference architecture.</p>
 <h2>Practice</h2>
 <ul>
 <li><strong>Saga, twice</strong> (<a href="https://microservices.io/patterns/data/saga.html" rel="noopener">source</a>) —
@@ -108,6 +120,8 @@ is the part every service boundary multiplies.</li>
 <li><a href="../../engineering-practice/team-topologies-and-conways-law/">Team topologies &amp; Conway's law</a> —
 the organizational mirror, in full.</li>
 </ul>
+<h2>Citations</h2>
+<p>[1] <a href="https://medium.com/@speedcraft21/prime-video-cut-costs-90-by-deleting-its-serverless-architecture-then-the-post-vanished-a9fa093cdc77" rel="noopener">Prime Video cut costs 90% by deleting its serverless architecture, then the post vanished</a></p>
 </article>
         </div>
       </section>
