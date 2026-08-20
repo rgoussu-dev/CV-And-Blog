@@ -54,7 +54,7 @@ know the corpus intimately, every retrieval failure is visible — which is the 
 <h3>1. Corpus &amp; structure-aware chunking</h3>
 <ul>
 <li>Walk <code>tech-kb/</code> recursively; skip reserved files (<code>index.md</code>, <code>log.md</code>, <code>AGENTS.md</code>,
-<code>CLAUDE.md</code>) and anything with <code>visibility: private</code>.</li>
+<code>AGENTS.md</code>) and anything with <code>visibility: private</code>.</li>
 <li>Parse each note's YAML frontmatter; carry <code>title</code>, <code>type</code>, <code>tags</code>, theme, and the
 bundle-relative path as metadata on every chunk from that file.</li>
 <li>Chunk <strong>by heading section</strong>: each <code>#</code>/<code>##</code> section is a chunk (split oversized
@@ -127,8 +127,6 @@ judge has been spot-checked, and the chunking change's effect is stated with num
 the subject of.</li>
 <li><a href="../../../ai-engineering/exercises/build-an-agent-from-scratch/">Build an agent from scratch</a> — the sibling subject
 that consumes this retriever as a tool.</li>
-<li>RAG over the knowledge base — mentor — the
-AI-mentor brief that runs this subject as a guided session.</li>
 </ul>
 </article>
         </div>
