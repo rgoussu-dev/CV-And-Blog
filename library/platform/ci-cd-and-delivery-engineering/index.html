@@ -40,7 +40,7 @@
       <div class="term-out">
         <h1 class="lib-title">CI/CD &amp; delivery engineering</h1>
         <p class="lib-lede"><span class="tok-comment"># Trunk-based development, pipelines, feature flags, and progressive deployment — shipping safely as a solved engineering problem.</span></p>
-        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-08</span><span class="lib-meta-date">updated 2026-08-20</span></cluster-pk>
+        <cluster-pk class="lib-meta" space="var(--s-3)"><span class="lib-type" data-type="concept">Concept</span><span class="lib-meta-date">saved 2026-08-08</span><span class="lib-meta-date">updated 2026-09-09</span></cluster-pk>
         <cluster-pk class="lib-tags" space="var(--s-4)"><a class="lib-tag" href="../../tags/#ci-cd">#ci-cd</a><a class="lib-tag" href="../../tags/#delivery">#delivery</a><a class="lib-tag" href="../../tags/#devops">#devops</a><a class="lib-tag" href="../../tags/#deployment">#deployment</a><a class="lib-tag" href="../../tags/#platform">#platform</a></cluster-pk>
       </div>
     </div>
@@ -52,6 +52,11 @@ and deployment strategies that make releases boring. The research backbone is <e
 failure rate, time to restore — tie delivery practice to organizational performance.</p>
 <h2>Key points</h2>
 <ul>
+<li><strong>Start from what you are afraid of breaking</strong> (Bryan Finster's question: <em>&quot;What are we
+afraid of breaking? List those.&quot;</em>). Before choosing stages or tools, list — with the
+business and the stakeholders — the parts of the system that may not break under any
+circumstances, and aim the pipeline's effort at protecting exactly those. The pipeline's
+purpose is to prevent bad changes, not to automate shipping them.</li>
 <li><strong>Trunk-based development</strong>: short-lived branches (hours, not weeks) merged into an
 always-releasable main; long-lived feature branches trade merge pain for false safety.
 CI means <em>integrating</em> continuously, not just running tests on PRs.</li>

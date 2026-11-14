@@ -149,8 +149,8 @@ session close → the debrief block below, handed to the learner to post
 </code></pre>
 <p>Sessions may span days; the debrief block makes each sitting resumable.</p>
 <h2>Debrief format</h2>
-<p>The session closes with this block, which the learner posts to <code>#journal</code> as-is (the
-<code>🎓</code> prefix is how Alfred's capture recognizes it):</p>
+<p>The session closes with this block, which the learner hands to Alfred as-is, as a triage
+note (the <code>🎓</code> prefix is how Alfred recognizes it as a journal debrief):</p>
 <pre><code>🎓 Mentor debrief — &lt;exercise title&gt; — YYYY-MM-DD
 - Milestones: &lt;n&gt;/&lt;total&gt; (&lt;which were touched this session&gt;)
 - Shipped: &lt;one line, past tense, specific&gt;
@@ -166,7 +166,7 @@ code open.</p>
 <p>The debrief is where the session hands off to Alfred's machinery (see
 <code>../../journal/AGENTS.md</code> and <code>routines/nightly.md</code>):</p>
 <ol>
-<li>The learner posts the debrief to <code>#journal</code>; capture files it into the day's entry,
+<li>The learner hands the debrief to Alfred; triage files it into the day's journal entry,
 with the <code>Re-ask later</code> questions under <code>## Re-ask</code>.</li>
 <li>Nightly surfaces re-ask questions in the morning digest's <code>## Recall</code> section <strong>2
 days and 14 days</strong> after the session.</li>
