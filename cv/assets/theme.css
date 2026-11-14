@@ -322,6 +322,8 @@ body {
 }
 .cv-download:hover { border-color: var(--cv-green); box-shadow: 0 0 12px -4px var(--cv-green); }
 .cv-download .cv-ico { width: 0.9rem; height: 0.9rem; }
+.cv-anon-link { font-size: 0.78rem; color: var(--cv-faint); text-decoration: none; }
+.cv-anon-link:hover { color: var(--cv-neon); }
 
 a { color: var(--cv-neon); }
 
